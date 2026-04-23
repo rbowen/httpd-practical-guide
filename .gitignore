@@ -1,0 +1,12 @@
+# Sphinx build output
+_build/
+_ext/__pycache__/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
