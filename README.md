@@ -1,4 +1,4 @@
-# Apache Cookbook
+# Apache httpd: A Practical Guide
 
 Solutions and examples for Apache HTTP Server administrators, by [Rich Bowen](https://github.com/rbowen) and Ken Coar.
 
@@ -147,6 +147,6 @@ This cleans the output directory and builds HTML, ePub, and PDF in one go.
 
 ## License
 
-Copyright © 2004–2026 Rich Bowen and Ken Coar.
+Copyright © 2004–2026 Rich Bowen. Earlier editions co-authored with Ken Coar.
 
 All rights reverted to the author. Licensed under the [Apache License, Version 2.0](LICENSE). See the LICENSE file for details.

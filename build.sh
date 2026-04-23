@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build all output formats for Apache Cookbook
+# Build all output formats for Apache httpd: A Practical Guide
 set -e
 
 cd "$(dirname "$0")"
@@ -23,7 +23,7 @@ echo "  To send to Kindle via email, use the .epub file."
 EPUB_FILE=$(find _build/epub -name '*.epub' -maxdepth 1 | head -1)
 if [ -n "$EPUB_FILE" ] && command -v ebook-convert &> /dev/null; then
     # Convert to both azw3 (USB sideload) and kepub (Kobo)
-    ebook-convert "$EPUB_FILE" _build/apache_cookbook.azw3
+    ebook-convert "$EPUB_FILE" _build/apache_httpd_practical_guide.azw3
 elif [ -n "$EPUB_FILE" ]; then
     echo "  ⚠ Calibre not installed — skipping Kindle conversion."
     echo "  Install with: brew install calibre"
@@ -45,12 +45,12 @@ echo "=== Done ==="
 echo "  HTML:  _build/html/index.html"
 echo "  ePub:  $EPUB_FILE"
 if command -v latexmk &> /dev/null; then
-    echo "  PDF:   _build/latex/apache_cookbook.pdf"
+    echo "  PDF:   _build/latex/apache_httpd_practical_guide.pdf"
 else
     echo "  PDF:   (skipped — install LaTeX to enable)"
 fi
 if command -v ebook-convert &> /dev/null; then
-    echo "  Kindle: _build/apache_cookbook.azw3"
+    echo "  Kindle: _build/apache_httpd_practical_guide.azw3"
 else
     echo "  Kindle: (skipped — install Calibre to enable)"
 fi

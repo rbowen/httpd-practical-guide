@@ -22,9 +22,9 @@ roles.register_local_role('module', module_role)
 
 # -- Project information -----------------------------------------------------
 
-project = 'Apache Cookbook'
-copyright = '2004–2026, Rich Bowen and Ken Coar. Licensed under the Apache License, Version 2.0'
-author = 'Rich Bowen and Ken Coar'
+project = 'Apache httpd: A Practical Guide'
+copyright = '2004–2026, Rich Bowen. Licensed under the Apache License, Version 2.0'
+author = 'Rich Bowen'
 
 # The full version, including alpha/beta/rc tags
 release = '4.0.0'
@@ -59,7 +59,7 @@ html_theme = 'alabaster'
 html_theme_options = {
     'description': 'Solutions and examples for Apache HTTP Server administrators',
     'github_user': 'rbowen',
-    'github_repo': 'apache_cookbook',
+    'github_repo': 'apache-cookbook',
     'fixed_sidebar': True,
     'sidebar_width': '260px',
 }
@@ -69,8 +69,8 @@ html_static_path = ['_static']
 # -- Options for LaTeX/PDF output --------------------------------------------
 
 latex_documents = [
-    (master_doc, 'apache_cookbook.tex',
-     'Apache Cookbook',
+    (master_doc, 'apache_httpd_practical_guide.tex',
+     'Apache httpd: A Practical Guide',
      'Rich Bowen and Ken Coar', 'manual'),
 ]
 

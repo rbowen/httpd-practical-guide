@@ -1,8 +1,8 @@
 .. Apache Cookbook documentation master file
 
-============================
-Apache Cookbook
-============================
+======================================
+Apache httpd: A Practical Guide
+======================================
 
 .. toctree::
    :maxdepth: 3

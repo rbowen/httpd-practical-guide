@@ -52,7 +52,7 @@ responsible for the entire server; however, many are equally applicable to
 users who want to customize the behavior in their own Web directories
 through the use of **.htaccess** files.
 
-We've written the Apache Cookbook to be a practical reference,
+We've written the Apache httpd: A Practical Guide to be a practical reference,
 rather than a theoretical discourse: reading it recipe by recipe, chapter
 by chapter, isn't going to reveal a plot ("Roy Fielding in the Library
 with an RFC!" [#apacheckbk-PREFACE-2-FNOTE-1]_ ). It's intended to provide point solutions to specific
@@ -509,8 +509,8 @@ Version 2.0. See the LICENSE file for details.
 
 We appreciate, but do not require, attribution. An attribution
 usually includes the title and author. For example:
-"**Apache Cookbook**, Fourth Edition, by Rich Bowen.
-Copyright 2004–2026 Rich Bowen."
+"**Apache httpd: A Practical Guide**, Fourth Edition, by Rich Bowen.
+Copyright 2004–2026 Rich Bowen. Earlier editions co-authored with Ken Coar."
 
 
 .. _Wed_Like_to_Hear_from_You:
