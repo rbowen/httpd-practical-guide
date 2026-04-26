@@ -5,6 +5,13 @@
 User Directories
 ================
 
+.. epigraph::
+
+   Our house, in the middle of our street.
+
+   -- Madness, *Our House*
+
+
 .. index:: User directories
 
 .. index:: UserDir
@@ -20,8 +27,13 @@ username of ``dpitts`` would be able to have this content served **via** the
 URL http://example.com/~dpitts without having to have write
 access to the main website content directory.
 
-In this chapter, we explore the various aspects of configuring this
+In this chapter, I explore the various aspects of configuring this
 functionality.
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_userdir`
 
 
 .. _Recipe_UserDir:
@@ -81,7 +93,7 @@ Discussion
 
 
 The first solution is the simplest and most widely used of the
-possible recipes we present here. With this directive in place, all
+possible recipes I present here. With this directive in place, all
 users on your system are able to create a directory called _public_html_ in their home directories and
 put web content there. Their web space is accessible **via** a URL
 starting with a tilde (``~``), followed by their username. So, a user 
@@ -99,29 +111,8 @@ also contains a ``<Directory>``
 section referring to the directory ``/home/*/public_html``, with various options
 and permissions turned on. You need to uncomment that section in order
 for anyone to have access to these user web sites. This section should
-look something like the following for Apache httpd 2.2 and earlier:
+look something like the following:
 
-[role="v22"]
-
-.. code-block:: text
-
-   <Directory "/home/*/public_html">
-       AllowOverride FileInfo AuthConfig Limit
-       Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
-       <Limit GET POST OPTIONS PROPFIND>
-           Order allow,deny
-           Allow from all
-       </Limit>
-       <LimitExcept GET POST OPTIONS PROPFIND>
-           Order deny,allow
-           Deny from all
-       </LimitExcept>
-   </Directory>
-
-
-Or, for Apache httpd 2.4 and later:
-
-[role="v24"]
 
 .. code-block:: text
 
@@ -164,7 +155,7 @@ execute bit set
 for that user, so the httpd server can read content out of that
 directory. (The execute bit is needed in order to get a directory
 listing.) Thus, for user **rbowen**, the
-directories **/**, **/home**, **/home/rbowen**, and _/home/rbowen/public_html_ 
+directories **/**, **/home**, **/home/rbowen**, and **/home/rbowen/public_html** 
 (or the corresponding directory paths for the other
 solutions) all need to execute access, and the last one also requires
 read access.
@@ -351,9 +342,9 @@ Discussion
 
 For reasons of security, or possibly convenience, it may be desirable
 to keep user-editable content on a separate server from your main
-website. In the example given here, we have our main website on the
+website. In the example given here, the main website is on the
 server ``example.com`` and user-editable content on a separate server
-``users.example.com``, but we still wish to support ``~`` style URLs on
+``users.example.com``, but you still wish to support ``~`` style URLs on
 the main server.
 
 The recipe given will give us the best of both worlds, with
@@ -565,8 +556,8 @@ This solution provides **UserDir** functionality without
 having to use a tilde (``~``) in the URL.
 
 Using the **RewriteCond**
-directive, we first check for the existence of the user's home
-directory, and, if it exists, we rewrite requests into that directory.
+directive, the rule first checks for the existence of the user's home
+directory, and, if it exists, it rewrites requests into that directory.
 Performing this check first ensures that other URLs continue to work
 correctly, and only those URLs starting with a valid username are
 rewritten to a user's home directory.
@@ -575,7 +566,7 @@ This rewrite ruleset takes advantage of a little-known fact
 about ``mod_rewrite`` —in particular,
 that a ``RewriteRule`` is always
 considered first, and, if it matches, the ``RewriteCond`` is evaluated after that.
-Consequently, we can use ``$1`` in the
+Consequently, you can use ``$1`` in the
 ``RewriteCond``, even though the value
 of that variable is set in the ``RewriteRule`` appearing on the following
 line.

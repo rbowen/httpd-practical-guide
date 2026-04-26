@@ -5,6 +5,14 @@
 My First Website
 ================
 
+.. epigraph::
+
+   | Hello, is there anybody in there? Just nod if you can hear me.
+   | Is there anyone home?
+
+   -- Pink Floyd, *Comfortably Numb*
+
+
 .. index:: My first website
 
 .. index:: Getting started
@@ -15,17 +23,17 @@ of the informaiton that you'll need to get started with your first
 site. If you're already familiar with running a website, this
 chapter can be safely skipped.
 
-We'll cover such things as how to edit a configuration file, how to
+I'll cover such things as how to edit a configuration file, how to
 upload files to your site, and what other skills you'll need to
 learn before you can move on.
 
 Of course, this can't be comprehensive. Web site design is an entire
-discipline, and not one that we claim to be experts on. We're going
+discipline, and not one that I claim to be an expert on. I'm going
 to try to give you a starting place, and point you in the right
 direction to learn more.
 
 Also, most of the things in this chapter are not specific to the
-Apache http server, but are things you'll need to know before you make
+Apache HTTP Server, but are things you'll need to know before you make
 your first website on any server software.
 
 
@@ -49,7 +57,7 @@ Problem
 ~~~~~~~
 
 
-Now that you have te Apache Web Server installed, you want to set up
+Now that you have te Apache httpd installed, you want to set up
 your first simple website.
 
 
@@ -59,7 +67,7 @@ Solution
 ~~~~~~~~
 
 
-Locate the document directory of your Apache http server, and create a
+Locate the document directory of your httpd, and create a
 file in that directory called **index.html**. Type the following 
 HTML markup into that file, and save it:
 
@@ -102,14 +110,14 @@ wrong at each step, so if this doesn't work immediately, don't worry,
 it could be something that's expected.
 
 Document directory
-^^^^^^^^^^^^^^^^^^
+------------------
 
 .. index:: DocumentRoot
 
 .. index:: Default document directory
 
 
-In the recipe, we start by saying that you need to locate your
+In the recipe, I start by saying that you need to locate your
 document directory. Depending on how you installed the server, this
 could be almost anywhere. This is discussed in greater detail in
 :ref:`Recipe_Where_are_my_files`, so you should go take a look at that if
@@ -178,7 +186,7 @@ Secondly, near the bottom of the output, you'll see the *Main DocumentRoot*, whi
 **index.html** file if your site is not in a virtual host.
 
 index.html
-^^^^^^^^^^
+----------
 
 .. index:: index.html
 
@@ -202,7 +210,7 @@ that name in that directory will cause it to be loaded as the front
 page of your website.
 
 File permissions
-^^^^^^^^^^^^^^^^
+----------------
 
 .. index:: Commands,chmod
 
@@ -212,7 +220,7 @@ File permissions
 The most common thing that can go wrong here is file permissions.
 
 If the file permissions on the **index.html** file are not right - **i.e.**,
-if the file is not readable by the Apache web server process, you'll
+if the file is not readable by httpd process, you'll
 get a **Forbidden** response from the server, instead of seeing the
 'It Works' page that you expected.
 
@@ -236,7 +244,7 @@ notice the last two lines of the output:
    Group: name="apache" id=48
 
 
-These indicate the user permissions with which the Apache http server
+These indicate the user permissions with which httpd
 is running. This informs your decisions about the file permissions
 that need to be applied to the file in order for Apache httpd to be
 able to read the file and send it to the client.
@@ -328,7 +336,7 @@ http://en.wikipedia.org/wiki/Chmod
 See also the ``chown`` command, for changing file ownership.
 
 HTML
-^^^^
+----
 
 .. index:: HTML
 
@@ -337,20 +345,36 @@ HTML
 .. index:: JavaScript
 
 
-HTML - the HyperText Markup Language - is the language of web pages,
-and you need to learn to write it if you're going to run a website.
-The HTML file presented in the recipe above is the simplest possible
-HTML document, with a title and simple body, and is enough to get you
-started. But if you want to do anything more complicated than an "It
-works!" page, you'll need to learn some more.
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+HTML — the HyperText Markup Language — is the language of web pages,
+and you need at least a passing familiarity with it if you're going
+to run a website. The HTML file presented in the recipe above is the
+simplest possible HTML document, with a title and a body, and is
+enough to get you started. But if you want to do anything more
+complicated than an "It works!" page, you'll need to learn some more.
+
+As a server administrator, you don't need to become an HTML expert,
+but you should understand the basics: documents have a ``<head>``
+(metadata, title, stylesheet links) and a ``<body>`` (visible
+content). Content is structured with elements like ``<h1>`` through
+``<h6>`` for headings, ``<p>`` for paragraphs, ``<a>`` for links,
+``<img>`` for images, and ``<ul>``/``<ol>`` for lists. When
+something goes wrong — a broken page, a missing image, a garbled
+layout — understanding these elements helps you diagnose whether the
+problem is in the HTML or in the server configuration.
 
 The comprehensive guide to HTML may be found at
-http://www.w3schools.com/html/
+https://developer.mozilla.org/en-US/docs/Web/HTML — the Mozilla
+Developer Network (MDN) reference is thorough, up to date, and free.
+The W3Schools tutorial at https://www.w3schools.com/html/ is another
+popular starting point.
 
-If you prefer your documentation on paper, there are a large number of
-great reference books about HTML, including those listed at
-.. todo:: Update resource URL  Be aware, however, that
-HTML is an evolving standard, with improvements being added every few
+Be aware, however, that HTML is an evolving standard, with
+improvements being added every few
 years, so you'll want to be sure to have a recent book.
 
 While you're at it, you'll want to learn two other technologies, CSS -
@@ -358,7 +382,7 @@ Cascading Style Sheets - and JavaScript, which will be your constant
 companions as you create web content.
 
 127.0.0.1
-^^^^^^^^^
+---------
 
 .. index:: 127.0.0.1
 
@@ -415,7 +439,8 @@ See Also
 
 * :ref:`Recipe_File_permissions`
 
-* .. todo:: Update resource URL
+* The Mozilla Developer Network HTML reference at
+  https://developer.mozilla.org/en-US/docs/Web/HTML
 
 * :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
 
@@ -446,7 +471,7 @@ Problem
 ~~~~~~~
 
 
-Every change to the Apache web server configuration requires that you
+Every change to httpd configuration requires that you
 edit a configuration file. How do you do that?
 
 
@@ -480,7 +505,7 @@ Discussion
 
 Editor choice is a surprisingly controversial topic. People in the
 geek world feel very strongly about their choice of editor, and the
-convesation often leads to argument. So, we're not going to recommend
+convesation often leads to argument. So, I'm not going to recommend
 a specific editor. [#vim-joke]_ But here are some of the more popular choices.
 
 .. index:: Windows,Editors
@@ -495,7 +520,7 @@ may want to look at some of the more featureful editors that are
 avaible. There are, however, so many of them, that it's difficult to
 recommend just a few. 
 
-However, since we are advocates of free and open source software, we'd
+However, since I am an advocate of free and open source software, I'd
 recommend that you look at Emacs
 (https://ftp.gnu.org/gnu/emacs/windows/), Winvim
 (http://winvim.codeplex.com/), Atom
@@ -516,14 +541,14 @@ of the pack, and have been for a few decades. Others swear by (or at)
 Pico and Nano. These are all console editors, meaning that they are
 a textual interface, with no fancy GUI (Graphical User Interface), and
 so may be a little hostile to someone coming from a more graphical
-computing environment like Windows or OS X.
+computing environment like Windows or macOS.
 
 Most Linuxes come with a graphical editor like Gedit or Kedit, or some
 other generic Notepad-like editor, which give a more point-and-click
 navigation interface, as well as helpful drop-down menu items to
 assist in common tasks.
 
-Mac OS X has a wide variety of featureful editors, including Sublime
+macOS has a wide variety of featureful editors, including Sublime
 (http://www.sublimetext.com/),
 BBEdit (http://www.barebones.com/products/bbedit/), and
 TextWrangler
@@ -533,7 +558,7 @@ versions of Emacs and Vim, which are free.
 
 In the end, however, you'll need to find an editor that works for you,
 as you will be editing text files a lot in your newly chosen career as
-an Apache web server administrator. So, look around, and find
+httpd administrator. So, look around, and find
 something that you like.
 
 Whichever platform you're using, do not use a word processor, like
@@ -616,7 +641,7 @@ the (usually) mistaken impression that it will make a difference
 whether a directive is put in one file or another.
 
 Knowing exactly where to put a particular directive comes from
-understanding how Apache deals with sections (such as 
+understanding how httpd deals with sections (such as 
 **&lt;Directory&gt;** and **&lt;Location&gt;**). There is seldom one magic
 place that a directive must be placed to make it work. Rather, you
 need to think about how the configuration file is parsed, and which
@@ -629,7 +654,7 @@ same scope but later in the configuration, and when there is a
 directive in a more specific scope.
 
 For the first of these two situations, it is important to
-understand that the Apache configuration file is parsed from top to
+understand that the httpd configuration file is parsed from top to
 bottom. Files that use **Include** are
 considered to appear in their entirety in the location where the
 **Include** directive appears. Thus, if
@@ -747,15 +772,11 @@ Since the first versions of Apache httpd, the server configuration
 file was split into several files, in order to provide a logical
 organization of directives.
 
-In the very earliest versions (prior to 1.3), it did actually matter
-in which file you placed which directive. That is, there were three
-configuration files -- **httpd.conf**, **access.conf**, and **srm.conf**,
-and for each directive it was specified, as part of its documentation,
-which file you could put it in. 
-
-However, since 1.3, this has no longer been the case, and
-configuration files are divided into smaller files purely for
-convenience and organization.
+Historically, the server configuration was split into three fixed
+files — **httpd.conf**, **access.conf**, and **srm.conf** — and each
+directive had to go in its designated file. That restriction has long
+since been removed, and configuration files are now divided into
+smaller files purely for convenience and organization.
 
 .. index:: Include
 
@@ -796,7 +817,7 @@ packaging.
 
 .. index:: mods-enabled
 
-For example the Debian/Ubuntu distribution of Apache
+For example the Debian/Ubuntu distribution of httpd
 **httpd** puts configuration for each module into its own file in the
 **mods-available** directory, which is then symlinked into the
 **mods-enabled** when that module is enabled using the **a2enmod** tool
@@ -821,9 +842,9 @@ container. For example, a directive placed within a particular
 and a directive placed within a particular **<Directory>** block will
 apply to requests that target that particular directory.
 
-Because there are several third-party distributions of the Apache
-http server, and each one makes their own decisions about
-configuration file layout, we have documented these decisions in the
+Because there are several third-party distributions of httpd,
+and each one makes their own decisions about
+configuration file layout, these decisions have been documented in the
 Apahche HTTP server wiki, at
 http://wiki.apache.org/httpd/DistrosDefaultLayout where
 they can be updated as those layouts shift over time.
@@ -931,6 +952,8 @@ See Also
 ~~~~~~~~
 
 
+.. refcosplay
+
 .. _Recipe_config-file-variables:
 
 Using variables in configuration files
@@ -996,9 +1019,9 @@ file, and then refer to that variable elsewhere. This can prevent
 errors in typing, as well as ensuring that an update in one place
 immediately effects all of the other places where it is used.
 
-In the example shown above, we configure the document root directory
-in a single place, and then use it in two places, ensuring that we
-don't forget to update one when we update the other.
+In the example shown above, the document root directory is configured
+in a single place, and then used in two places, ensuring that you
+don't forget to update one when you update the other.
 
 
 .. _See_Also_config-file-variables:
@@ -1083,7 +1106,7 @@ Discussion
 
 
 Each of the possible values of ``Options`` enables (or disables) major
-categories of functionality of the Apache HTTP server. These can be
+categories of functionality of httpd. These can be
 set globally, **per** directory, **per** virtual host, or in ``.htaccess``
 files.
 
@@ -1244,7 +1267,7 @@ including the IP address of your network interface.
 
    eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
       inet 146.78.185.89  netmask 255.255.255.0  broadcast 146.78.185.255
-      ...
+-------------------------------------------------------------------------
 
 
 In this case, the IP address of the server is 166.78.185.89, so you'd
@@ -1278,7 +1301,7 @@ Problem
 ~~~~~~~
 
 
-You want to run the Apache HTTP server somewhere, but you don't have either a
+You want to run httpd somewhere, but you don't have either a
 server class machine to run it on, or an Internet connection capable
 of supporting a busy website. Where should you put your site?
 
@@ -1333,8 +1356,8 @@ solution, such as Wordpress.com or Blogger.com, where you create an
 account and create content, and someone else manages everything else
 beneath that level.
 
-For the purposes of this book, and hosting your own Apache HTTP
-server, a VPS makes the most sense, since you'll need to be able to
+For the purposes of this book, and hosting your own httpd,
+a VPS makes the most sense, since you'll need to be able to
 configure and restart your own server, which isn't possible when
 you're simply renting Web space.
 
@@ -1397,9 +1420,9 @@ depend on the exact nature of your Web hosting provider.
 
 Depending on what operating system you're running on your local
 computer, different remote copy solutions will be available to you.
-For Microsoft Windows, we recommend WinSCP
-(link:``http://winscp.net/). For Mac OS X, we recommend CyberDuck
-(link:``https://cyberduck.io/). For Linux, we recommend **scp**,
+For Microsoft Windows, I recommend WinSCP
+(http://winscp.net/). For macOS, I recommend CyberDuck
+(https://cyberduck.io/). For Linux, I recommend **scp**,
 which should be available to you by default.
 
 
@@ -1577,7 +1600,7 @@ as the pages that reference them.
 
 What the lines in the solution do is trap any references to
 **favicon.ico** files that don't
-exist and supply a default instead. An **ErrorDocument** is used instead of a **RewriteRule** because we
+exist and supply a default instead. An **ErrorDocument** is used instead of a **RewriteRule** because you
 want the default to be supplied **only** if the file
 isn't found where expected. A rewrite, unless carefully crafted, would
 force the specified file to be used regardless of whether a more
@@ -1634,7 +1657,7 @@ Discussion
 ~~~~~~~~~~
 
 
-Web site design is an art, and not one that we, the authors of this
+Web site design is an art, and not one that I, the author of this
 book, have mastered. Fortunately, there are many practitioners of this
 art who you can contact to help you with your website. There are also
 many, many web site design books available. 
@@ -1643,9 +1666,12 @@ Don't neglect designing for mobile clients, as that is a large and
 growing percentage of your audience.
 
 A good place to start on your quest to be a web designer might be
-'Learning Web Design'
-(.. todo:: Update book reference URL by
-Jennifer Niederst Robbins.
+*Learning Web Design* by Jennifer Niederst Robbins
+(https://www.learningwebdesign.com/). The Mozilla Developer Network
+also has an excellent free tutorial series, "Learn web development,"
+at https://developer.mozilla.org/en-US/docs/Learn that covers HTML,
+CSS, and JavaScript from the ground up. Both are practical,
+beginner-friendly, and regularly updated.
 
 There are also numerous talented web designers that you can hire to
 help with your web site, either in your local phone book or online.
@@ -1657,15 +1683,24 @@ See Also
 ~~~~~~~~
 
 
-* .. todo:: Update book reference URL
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+* *Learning Web Design* by Jennifer Niederst Robbins —
+  https://www.learningwebdesign.com/
+
+* MDN "Learn web development" —
+  https://developer.mozilla.org/en-US/docs/Learn
 
 Summary
 -------
 
 
-While most of this book is specifically about configuring the Apache
+While most of this book is specifically about configuring the httpd
 HTTP Server, there are a number of areas of knowledge that are assumed
-in much of the discussion to come. We hope that this chapter points
+in much of the discussion to come. I hope that this chapter points
 you in the right direction to acquire these skills.
 
 Searching for 'my first website' on your favorite web search site will

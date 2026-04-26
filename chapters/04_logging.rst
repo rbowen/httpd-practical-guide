@@ -5,6 +5,15 @@
 Logging
 =======
 
+.. epigraph::
+
+   | Every breath you take, every move you make,
+   | every bond you break, every step you take,
+   | I'll be watching you.
+
+   -- The Police, *Every Breath You Take*
+
+
 .. index:: Logging
 
 .. index:: Log files
@@ -41,7 +50,7 @@ a busy site and uncomfortably large ones even for a modest site. To
 keep the file sizes from growing ever larger, most sites rotate or
 **roll over** their logfiles on a semi-regular basis. Rolling over a
 logfile simply means persuading the server to stop writing to the
-current file and start recording to a new one. Because of Apache's
+current file and start recording to a new one. Because of httpd's
 determination to see that no records are lost, cajoling it to do this
 according to a specific timetable may require a bit of effort; some of
 the recipes in this chapter cover how to accomplish the task
@@ -81,6 +90,14 @@ directives in the same scope.
 .. index:: containers,<VirtualHost>
 
 
+.. refcosplay
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_dumpio`, :module:`mod_log_config`, :module:`mod_logio`,
+   :module:`mod_macro`, :module:`mod_setenvif`
+
+
 .. _Recipe_Understanding_CLF:
 
 Understanding the Common Log Format
@@ -104,7 +121,7 @@ Problem
 
 
 You'd like to understand what information is being logged in the
-common log format that the Apache HTTP server uses by default.
+common log format that httpd uses by default.
 
 
 .. _Solution_Understanding_CLF:
@@ -254,6 +271,8 @@ See Also
 * http://httpd.apache.org/docs/mod/mod_log_config.html
 
 
+.. refcosplay
+
 .. _Recipe_Understanding_Combined_Log_Format:
 
 Understanding Combined Log Format
@@ -347,13 +366,13 @@ agent (browser) string making the request.
 
 .. note::
 
-   .Yes, we know
-   ====
+   **Yes, I know**
+
    The misspelling of "Referrer" as "Referer" is a legacy artifect from
    the earliest days of the web.  Don't bother reporting it.  It makes a
    lot of people grind their teeth when they see it, but we're kind of
    stuck with it.
-   ====
+
 
 
 A combined log file was desired - one that logged the referrer and the
@@ -435,13 +454,13 @@ it hasn't been faked—because there's no way to tell if it has.
 
 .. tip::
 
-   .Mobile user or not?
-   ====
+   **Mobile user or not?**
+
    Many Web sites use the value of the **User-agent** field to determine
    whether the visitor is using a mobile device (**e.g.**, a tablet or
    smartphone) or not, in order to tailor the page layout for better
    readability.
-   ====
+
 
 
 To use the combined log format in your access log, invoke it with the
@@ -468,6 +487,8 @@ See Also
 
 * :ref:`Recipe_image-theft`
 
+
+.. refcosplay
 
 .. _Recipe_Status_codes:
 
@@ -502,11 +523,13 @@ The various HTTP status codes are defined in the HTTP specification
 itself, as follows:
 
 
+.. refcosplay
+
 .. _HTTP_status_codes:
 
 
-**HTTP status codes**
-
+HTTP status codes
+---------------------
 
 +-----------------------+---------------------------------+
 | Code                  | Abstract                        |
@@ -689,12 +712,6 @@ These are documented in the ``mod_log_config`` documentation at
 http://httpd.apache.org/docs/mod/mod_log_config.html.
 
 
-.. tip::
-
-   Some variables which are available in httpd 2.4 are not available in
-   2.2.
-
-
 For example, if you wanted to log the ``QUERY_STRING```, you could create
 a query string log format:
 .. index:: directives,LogFormat
@@ -848,6 +865,8 @@ See Also
 * **``man 3 strftime``**
 
 
+.. refcosplay
+
 .. _Recipe_Understanding_ErrorLog:
 
 Understanding your error_log
@@ -877,16 +896,10 @@ Solution
 ~~~~~~~~
 
 
-.. warning::
-
-   The error log format changed significantly between version 2.2 and
-   version 2.4. Be sure you are reading the right part of this recipe.
-
-
 Error log entries contain a few standard fields, and then a free-form
 error message.
 
-In 2.2, the error log format is not configurable, and looks like:
+The default error log format looks like:
 
 
 .. code-block:: text
@@ -902,7 +915,7 @@ The fields in this error message are:
 * The elient address making the request
 * Free-form error message
 
-In 2.4, the error log format can be customized, but by default it looks like:
+The error log format can be customized with the ``ErrorLogFormat`` directive. By default it looks like:
 
 
 .. code-block:: text
@@ -929,11 +942,7 @@ Discussion
 ~~~~~~~~~~
 
 
-In 2.2 and earlier, the error log format is not customizable.
-
-Several important new pieces of information were added to the standard
-error log format in 2.4, and, furthermore, you now have the ability to
-use the ``ErrorLogFormat`` directive to to create your own custom error
+You can use the ``ErrorLogFormat`` directive to create your own custom error
 log format to include additional information to help in
 troubleshooting.
 
@@ -1079,7 +1088,7 @@ error condition gets logged is decided at the discretion of the
 developer who wrote the code—your opinion may differ.
 
 Here are some sample messages of various severities, taken from the
-log file of an Apache httpd 2.2 server:
+log file of an Apache httpd server:
 
 
 .. code-block:: text
@@ -1127,7 +1136,7 @@ cryptic import, such as:
 
 
 These are exactly what they seem to be: debugging messages
-intended to help an Apache developer figure out what the proxy module
+intended to help an httpd developer figure out what the proxy module
 is doing.
 
 And, in the 2.4 version, you can set your ``LogLevel`` to one of the
@@ -1148,7 +1157,8 @@ See Also
 
 
 * See the detailed documentation of the **LogLevel**
-directive at the Apache site: http://httpd.apache.org/docs/mod/core.html#loglevel
+
+directive at the httpd site: http://httpd.apache.org/docs/mod/core.html#loglevel
 
 * :ref:`Problem_Understanding_ErrorLog`
 
@@ -1179,10 +1189,24 @@ Solution
 ~~~~~~~~
 
 
-None.
+.. admonition:: DRAFT — Review needed
 
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
 
-.. todo:: This is false. Fix.
+Use :module:`mod_remoteip` with the ``RemoteIPHeader`` directive to
+replace the connection-level client IP with the address reported in the
+``X-Forwarded-For`` header (or a similar header set by your proxy or
+load balancer):
+
+.. code-block:: apache
+
+   LoadModule remoteip_module modules/mod_remoteip.so
+
+   RemoteIPHeader X-Forwarded-For
+   RemoteIPTrustedProxy 10.0.0.0/8
+   RemoteIPTrustedProxy 172.16.0.0/12
+   RemoteIPTrustedProxy 192.168.0.0/16
 
 
 .. _Discussion_logging_proxied_ipaddress:
@@ -1191,25 +1215,55 @@ Discussion
 ~~~~~~~~~~
 
 
-Unfortunately, (or fortunately, depending on your perspective)
-the HTTP protocol itself prevents this from being
-possible. From the client side, proxies are intended to be completely
-transparent; from the side of the origin server, where the content
-actually resides, they are meant to be almost utterly opaque,
-concealing the identity of a request.
+.. admonition:: DRAFT — Review needed
 
-Your best option is to log the IP address from which the request
-came. If it came directly from a browser, it will be the client's
-address; if it came through one or more proxy servers, it will be the
-address of the one that actually contacts your server.
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
 
-Both the combined and common
-log formats include the %h format variable, which represents
-the (remote) client's identity. However, this may be a hostname rather
-than an address, depending on the setting of your **HostNameLookups** directive, among
-other things. If you
-always want the client's IP address to be included in your logfile,
-use the %a variable instead.
+When a client connects through a reverse proxy or load balancer, the
+IP address that httpd sees is the address of the proxy, not the
+original client. Most proxies add an ``X-Forwarded-For`` header
+containing the real client IP, but by default httpd ignores this
+header and logs only the direct connection's address.
+
+:module:`mod_remoteip` solves this. When loaded, it overrides the
+client IP for the connection with the address from the header you
+specify in ``RemoteIPHeader``. This affects everything that uses the
+client IP — log format tokens like ``%a`` and ``%h``, access control
+with ``Require ip``, and environment variables like
+``REMOTE_ADDR`` passed to CGI scripts.
+
+**Trust only your proxies.**
+The ``RemoteIPTrustedProxy`` directive is essential. Without it,
+:module:`mod_remoteip` trusts *any* host presenting the header, which
+means a client could forge its IP address by sending a fake
+``X-Forwarded-For`` header directly. Always list only the addresses
+of your actual proxies and load balancers:
+
+.. code-block:: apache
+
+   # Trust only the load balancer at 10.0.1.50
+   RemoteIPTrustedProxy 10.0.1.50
+
+If you have internal proxies on RFC 1918 networks, use
+``RemoteIPInternalProxy`` instead — it additionally trusts private
+IP addresses reported within the header chain:
+
+.. code-block:: apache
+
+   RemoteIPInternalProxy 10.0.2.0/24
+
+**Multiple proxies.** When a request passes through several proxies,
+the ``X-Forwarded-For`` header contains a comma-separated list of
+addresses. :module:`mod_remoteip` processes this list from right to
+left, stopping at the first address that isn't in the trusted proxy
+list. That address becomes the client IP for the request.
+
+**Verifying it works.** After enabling :module:`mod_remoteip`, check
+your access log. The ``%a`` format token should now show the real
+client address rather than the proxy's address. You can also use the
+``%{REMOTE_ADDR}e`` token to confirm the environment variable is set
+correctly.
 
 
 .. _See_Also_logging_proxied_ipaddress:
@@ -1218,7 +1272,11 @@ See Also
 ~~~~~~~~
 
 
-* The HTTP protocol specification at ```ftp://ftp.isi.edu/in-notes/rfc2616.txt`` <``ftp://ftp.isi.edu/in-notes/rfc2616.txt``>`_
+* The :module:`mod_remoteip` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_remoteip.html
+
+* The HTTP/1.1 specification (RFC 7230-7235) at
+  https://httpwg.org/specs/
 
 
 .. _Recipe_Correlating_error_access:
@@ -1248,7 +1306,6 @@ Problem
 You have the error log and the access log, but it's hard to tell which
 error messages go with which access log entries.
 
-[role="v24"]
 
 .. _Solution_Correlating_error_access:
 
@@ -1301,13 +1358,7 @@ access log entries happen only when the request has been completed.
 This time lag can occasionally be long enough that it's difficult to
 correlate messages.
 
-In httpd 2.2 and earlier, you didn't have any real options here, other
-than looking at the time stamp in the two log files and making the
-best guess. This is usually good enough unless you have a very busy
-server, where multiple requests happen within the scope of the same
-timestamp.
-
-In 2.4, the ``%L`` log format variable has been added to address this
+The ``%L`` log format variable addresses this
 difficulty. A unique request ID will be put in each log file that uses
 this variable, so that all log entries can be directly correlated.
 
@@ -1352,7 +1403,7 @@ Solution
 
 
 This cannot be logged reliably in most network situations and
-not by the Apache HTTP server at all.
+not by httpd at all.
 
 
 .. _Discussion_Log_MAC_Address:
@@ -1377,6 +1428,7 @@ See Also
 
 
 * The TCP/IP protocol specifications (see
+
 http://www.rfc-editor.org/cgi-bin/rfcsearch.pl
 and search for "TCP" in the title field)
 
@@ -1430,11 +1482,9 @@ To log cookie values set and sent by the server to the
    CustomLog logs/cookies2_out.log "%{UNIQUE_ID}e %{Set-Cookie2}o"
 
 
-In versions before to 2.0.56, using the
-%{Set-Cookie}o format variable for debugging is not
-recommended if multiple cookies are (or may be) involved. Only the
-first one will be recorded in the logfile. See the Discussion text for
-an example.
+Use the
+%{Set-Cookie}o format variable for debugging cookies. See the Discussion text for
+additional details.
 
 
 .. _Discussion_logging_cookies:
@@ -1451,12 +1501,11 @@ environment variable (assuming that ``mod_unique_id`` is active in the server an
 that the activity log format includes the environment variable with a
 %{UNIQUE_ID}e format variable).
 
-At the time of this writing, the ``Cookie`` and ``Set-Cookie`` header fields are most commonly
-used. The ``Cookie2`` and corresponding
-``Set-Cookie2`` fields are newer and
-have been designed to correct
+The ``Cookie`` and ``Set-Cookie`` header fields are the standard
+mechanism for HTTP cookies. The older ``Cookie2`` and
+``Set-Cookie2`` fields were designed to correct
 some of the shortcomings in the original specifications, but they
-haven't yet achieved much penetration.
+never achieved widespread adoption and are now obsolete.
 
 Because of the manner in which the syntax of the cookie header
 fields has changed over time, these logging instructions may or may
@@ -1502,10 +1551,7 @@ all fit on the page):
        Version=1; Path=/; Max-Age=60; Comment=\"RFC2109 demonstration cookie\"
 
 
-.. tip::
 
-   Before version 2.0.56, the Apache HTTP server didn't log multiple
-   cookies correctly; it would only log one.
 
 
 .. _See_Also_logging_cookies:
@@ -1593,7 +1639,8 @@ request is for a GIF, PNG, or JPEG image.
 
 .. tip::
 
-.. index:: directives,SetEnvIf
+   .. index:: directives,SetEnvIf
+
    **SetEnvIfNoCase** is the same as **SetEnvIf** except that variable
    comparisons are done in a case-insensitive manner.
 
@@ -1641,7 +1688,7 @@ Problem
 ~~~~~~~
 
 
-You want to automatically roll over the Apache logs every day
+You want to automatically roll over the httpd logs every day
 without having to shut down and restart the server.
 
 
@@ -1669,7 +1716,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The **rotatelogs** script is designed to use an Apache feature called
+The **rotatelogs** script is designed to use an httpd feature called
 piped logging, which is just a fancy name for sending log output to
 another program rather than to a file. By inserting the **rotatelogs**
 script between the Web server and the actual logfiles on disk, you can
@@ -1797,8 +1844,8 @@ contents:
 
 .. tip::
 
-   The syntax used here is specific to CentOS, Fedora, and
-   other Linuxes in the Red Hat family, but it will be similar
+   The syntax used here is specific to Fedora, RHEL, and
+   other RPM-based distributions, but it will be similar
    on other Unixes. In particular, you'll need to update the ``postrotate``
    section to reflect your system's method of restarting services.
 
@@ -1853,7 +1900,7 @@ Solution
 
 
 You can let the Web server resolve the hostname when it
-processes the request by enabling runtime lookups with the Apache
+processes the request by enabling runtime lookups with the httpd
 directive:
 
 
@@ -1862,7 +1909,7 @@ directive:
    HostnameLookups On
 
 
-Or you can let Apache use the IP address during normal
+Or you can let httpd use the IP address during normal
 processing and then postprocess the log file using the **logresolve**
 program that comes with the server.
 
@@ -1881,7 +1928,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The Apache activity logging mechanism can record either the
+The httpd activity logging mechanism can record either the
 client's IP address or its hostname (or both). Logging the hostname
 directly requires that the server spend some time to perform a DNS
 lookup to turn the IP address (which it already has) into a hostname.
@@ -1898,7 +1945,7 @@ performance.
 
 In theory, this is an excellent choice; in practice, however,
 there are some pitfalls. For one thing, the
-**logresolve** application included with Apache
+**logresolve** application included with httpd
 (usually installed in the **``bin/``** subdirectory under the ``ServerRoot``)
 will only resolve IP addresses that appear at the very beginning of
 the log entry, and so it's not very flexible if you want to use a
@@ -1986,7 +2033,7 @@ that inserts the answering hostname:
 Then, once your log file has been rotated (See
 :ref:`Recipe_System_logrotate` and :ref:`Recipe_Rotate_By_Time`), split the
 log file up using the **split-logfile** program that comes with the
-Apache HTTP server.
+httpd.
 
 
 .. code-block:: text
@@ -2077,8 +2124,8 @@ Discussion
 ~~~~~~~~~~
 
 
-The **<Proxy **>* block will be applied to all proxied requests. (This
-used to be more complicated with httpd 1.3.) **SetEnv** sets an
+The **<Proxy **>* block will be applied to all proxied requests.
+**SetEnv** sets an
 environment variable which can then be used to trigger conditional
 logging with the **CustomLog** directive.
 
@@ -2316,7 +2363,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The HTTP response sent by Apache when answering a request can be
+The HTTP response sent by httpd when answering a request can be
 very complex, according to the server's configuration. Advanced
 scripts or application servers may add custom fields to the server's
 response, and knowing what values were set may be of great help when
@@ -2365,7 +2412,7 @@ You want to send your log entries to syslog.
 Solution
 ~~~~~~~~
 
-To log your error log to syslog, simply tell Apache to log to
+To log your error log to syslog, simply tell httpd to log to
 **syslog**:
 
 
@@ -2405,13 +2452,13 @@ There are several compelling reasons for logging to syslog. The first
 of these is to have many servers log to a central logging
 facility. The second is that there are many existing tools for
 monitoring syslog and sending appropriate notifications on certain
-events. Allow the Apache HTTP server to take advantage of these tools,
+events. Allow httpd to take advantage of these tools,
 and your particular installation may benefit. Also, in the event that
 your server is either compromised, or has some kind of catastrophic
 failure, having logfiles on a dfferent physical machine can be of
 enormous benefit in finding out what happened.
 
-Apache supports logging your error log to syslog by default.
+httpd supports logging your error log to syslog by default.
 This is by far the more useful log to handle this way, since syslog is
 typically used to track error conditions, rather than merely
 informational messages.
@@ -2435,7 +2482,7 @@ the following in **syslog.conf**:
    local6.info @10.11.12.13:514
 
 
-Because Apache does not support logging your access log to
+Because httpd does not support logging your access log to
 syslog by default, you need to accomplish this with a piped logfile
 directive.
 
@@ -2565,9 +2612,6 @@ everyone else's website as well.
 This recipe attempts to give each user their own log file, to make it
 easier to track their own requests.
 
-The first recipe presented here is ideal for httpd 2.2 and earlier,
-where **per**-directory log directives aren't available.
-
 The first line of the recipe inspects the URL, and if it is a userdir
 request, it puts the username in an environment variable named
 **userdir**:
@@ -2585,7 +2629,7 @@ slash - **i.e.**, the username.
 The next two lines of the recipe create a custom log file format named
 'userlog' which looks just like the **common** log file format, but puts
 the **userdir** environment variable on the start of the line, so that
-we know whose request it was.
+you know whose request it was.
 
 
 .. code-block:: text
@@ -2594,8 +2638,8 @@ we know whose request it was.
    CustomLog logs/userdir_logs userlog env=userdir
 
 
-Finally, we periodically rotate the log file out, and, using the
-**split-logfile** script, we split that log file into one **per** username.
+Finally, you periodically rotate the log file out, and, using the
+**split-logfile** script, you split that log file into one **per** username.
 
 See :ref:`Recipe_Per_Vhost_Log` for more discussion of the
 **split-logfile** utility.
@@ -2628,7 +2672,7 @@ _mod_macro_ and **per**-directory logging.
 .. index:: Modules,mod_macro
 
 
-First, we create the macro:
+First, you create the macro:
 
 
 .. code-block:: text
@@ -2673,6 +2717,8 @@ See Also
 
 * :ref:`Recipe_Per_Vhost_Log`
 
+
+.. refcosplay
 
 .. _Recipe_Logging_environment_variables:
 
@@ -2965,7 +3011,7 @@ matching end-of-request log entry.
    The _check_forensic_ script is often not installed in your execution
    path when the server is installed. It is located in the **support**
    directory of the source tree, and may be found at
-   link:``http://svn.apache.org/repos/asf/httpd/httpd/trunk/support/check_forensic``
+   ``https://github.com/apache/httpd/blob/trunk/support/check_forensic``
    if you're unable to locate it on your system.
 
 
@@ -2982,7 +3028,7 @@ See Also
 
 * http://httpd.apache.org/docs/trunk/mod/mod_log_forensic.html
 
-* http://svn.apache.org/repos/asf/httpd/httpd/trunk/support/check_forensic
+* https://github.com/apache/httpd/blob/trunk/support/check_forensic
 
 
 .. _Recipe_log_debug:
@@ -3031,7 +3077,7 @@ For example, to log that a particular directory has been requested:
 
 
 Or, if you want to only log under certain conditions, these can be
-specified. The following recipe, for example, will log every time we
+specified. The following recipe, for example, will log every time you
 get a request from an IPv6 address.
 
 
@@ -3170,8 +3216,8 @@ what was logged with the **POST**.
 
 .. warning::
 
-   .Use with care and disable when done
-   ====
+   **Use with care and disable when done**
+
    Logging POST data is potentially very dangerous in terms of data
    security. Consider, for example, if you are collecting personal
    information (social security numbers, phone numbers, home addresses)
@@ -3263,8 +3309,8 @@ enabled in production.
 
 .. warning::
 
-   .Potential for logging sensitive information
-   ====
+   **Potential for logging sensitive information**
+
    The security warning in the recipe above is also relevant here. Be very
    cautious about logging potentially sensitive information, as it makes
    this information available to anyone that compromises your system.
@@ -3346,7 +3392,7 @@ Discussion
 ~~~~~~~~~~
 
 
-In the past, analyzing Apache HTTP server log files was the most popular way to
+In the past, analyzing httpd log files was the most popular way to
 generate statistics about traffic to your website. However, it is now
 much more common to use JavaScript-based solutions, like Google
 Analytics, to provide real-time tracking of website access.
@@ -3374,5 +3420,5 @@ Summary
 
 
 The Apache HTTP Server provides a large number of ways to collect logs of what
-happens on your server. In this chapter we've covered all of the
+happens on your server. In this chapter I've covered all of the
 standard logging modules, as well as a handful of third-party tools.

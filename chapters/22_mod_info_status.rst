@@ -5,6 +5,14 @@
 mod_info and mod_status
 =======================
 
+.. epigraph::
+
+   | Ground control to Major Tom.
+   | Take your protein pills and put your helmet on.
+
+   -- David Bowie, *Space Oddity*
+
+
 .. index:: mod_info
 
 .. index:: mod_status
@@ -16,13 +24,13 @@ mod_info and mod_status
 
 The modules covered in this chapter, ``mod_info`` and ``mod_status``,
 are two of the hidden gems in your Apache httpd toolbox. They're
-standard modules, and have been for many, many years. But, we find
+standard modules, and have been for many, many years. But, I find
 that many Apache httpd server admins are all but unaware that they
 even exist.
 
 The modules do what the names suggest - ``mod_info`` gives you detailed
 information about your server configuration, and ``mod_status`` gives
-you the current status of your server. In this chapter we'll delve
+you the current status of your server. In this chapter I'll delve
 into all of the information that these modules expose to you.
 
 .. index:: mod_info
@@ -36,6 +44,11 @@ into all of the information that these modules expose to you.
 .. index:: Modules,mod_status
 
 .. index:: server-status
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_info`, :module:`mod_status`
 
 
 .. _Recipe_mod_info:
@@ -98,7 +111,7 @@ sensitive, as it provides a detailed description of how your server is
 configured, and will therefore be very valuable to an attacker seeking
 to compromise your server.
 
-We therefore recommend that you configure your server to protect this
+I therefore recommend that you configure your server to protect this
 information, by limiting access to this handler to requests from the
 local machine:
 
@@ -214,6 +227,8 @@ See Also
 * https://httpd.apache.org/docs/mod/mod_info.html#queries
 
 
+.. refcosplay
+
 .. _Recipe_mod_info_server:
 
 Displaying basic server settings
@@ -294,6 +309,8 @@ See Also
 
 * https://httpd.apache.org/docs/mod/mod_info.html#queries
 
+
+.. refcosplay
 
 .. _Recipe_mod_info_modules:
 
@@ -435,7 +452,7 @@ Discussion
 have loaded. In particular, it tells you which directives the module
 makes available, and which ones you are actually using, and where.
 
-In the screenshot shown above, for example, we see that my
+In the screenshot shown above, for example, you can see that the
 configuration uses ``LogFormat`` three times, and ``CustomLog`` once. It
 shows which configuration file, and which line, invokes these
 directives.
@@ -926,14 +943,14 @@ Example output from the ``?auto`` argument is shown below:
    IdleWorkers: 8
    Scoreboard:
    ________W..............................................
-   .......................................................
-   .......................................................
-   .......................................................
-   ....................................
+----------------------------------------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+----------------------------------------------------------
 
 
 An example Perl program named ``log_server_status`` is provided in the
-``/support`` directory of your Apache HTTP server installation, which
+``/support`` directory of your httpd installation, which
 generates a simple log file of active vs idle server processes, and
 CPU load. It may be run periodically **via** a ``cron`` job to log this
 information as frequently as you require.
@@ -943,10 +960,9 @@ There are also a variety of third-party utilities which use
 reports over time. See the ``See Also`` section below for a link to one
 article describing how to graph ``server-status`` output using Cacti.
 
-At the time of this writing, work is ongoing to provide the output in
-other formats, including JSON. This functionality is expected to be
-available in the 2.6 release of httpd, and possibly in upcoming 2.4
-releases.
+The ``server-status`` output is also available in machine-readable
+format using the ``?auto`` query string parameter, which can be
+parsed by monitoring tools.
 
 
 .. _See_Also_server-status-auto:
@@ -1081,10 +1097,34 @@ Discussion
 
 The recipe shown will replace the last two digits of an IP address
 with ``x``. Thus, an address of ``172.20.15.99`` will instead be displayed
-as ``172.20.x.x``, obscuring the identity of your visitors.
+as ``172.20.x.x``, providing a degree of privacy for your visitors.
 
-To also match IPv6 addresses, you'll need to add a regex to match
-them, which can be subprisingly difficult to get right.
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+**Why you might want this.** The ``server-status`` page displays the
+IP address of every client currently being served. If you expose this
+page to a wider audience (for monitoring dashboards, for example),
+you may want to protect your visitors' privacy by partially
+redacting those addresses.
+
+**ExtendedStatus and what it reveals.** The ``ExtendedStatus On``
+directive (which is automatically enabled when :module:`mod_status` is
+loaded in httpd 2.4) causes httpd to track per-request details in
+the scoreboard, including the client IP, the request URI, and the
+virtual host being served. Without ``ExtendedStatus``, the
+``server-status`` page shows only basic worker state (idle, reading,
+sending, etc.) with no client-identifying information at all. If
+privacy is your primary concern, you could simply set
+``ExtendedStatus Off``, though you'll lose all the useful
+request-level detail.
+
+**IPv6 addresses.** To also match IPv6 addresses, you'll need to add
+a regex to match them, which can be surprisingly difficult to get
+right. IPv6 addresses can appear in many different notations
+(full, compressed, mixed IPv4-mapped, etc.).
 
 If you need to obfuscate IPv6 addresses in ``server-status``, you might
 consider using the solution discussed in
@@ -1098,7 +1138,10 @@ See Also
 
 
 * Regular Expressions Cookbook by Jan Goyvaerts and Steven Levithan -
-  .. todo:: Update book reference URL
+  https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/
+
+* The :module:`mod_status` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_status.html
 
 * :ref:`Recipe_server-status-fancy`
 
@@ -1180,7 +1223,7 @@ usage, and a list of the most expensive (in server resources) requests
 that your server has handled recently.
 
 This utility is a third-party program - meaning that it is not a
-standard part of the Apache http server, and thus has no guarantees
+standard part of httpd, and thus has no guarantees
 attached to it. However, it is developed by someone who is actively
 involved in the httpd project, and so is likely to continue to be
 developed in the future.

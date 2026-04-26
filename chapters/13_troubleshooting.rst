@@ -5,6 +5,16 @@
 Troubleshooting and Error Handling
 ==================================
 
+.. epigraph::
+
+   | I've looked at clouds from both sides now,
+   | from up and down, and still somehow
+   | it's cloud illusions I recall.
+   | I really don't know clouds at all.
+
+   -- Joni Mitchell, *Both Sides Now*
+
+
 .. index:: Troubleshooting
 
 .. index:: Error handling
@@ -32,7 +42,7 @@ how to handle error conditions, return useful messages to the user, and
 capture information that will help you fix the problem so that it does not
 happen again.
 
-The Apache Web server is a very complex beast. The vanilla package
+The Apache HTTP Server is a very complex beast. The vanilla package
 includes over 30 functional modules and more than 12 dozen configuration
 directives. This means that there are significant opportunities for
 interactions that produce unexpected or undesirable results. This Appendix
@@ -49,10 +59,10 @@ Troubleshooting Methodology
 .. _In_the_Error_Log_id158778:
 
 In the Error Log
-~~~~~~~~~~~~~~~~
+----------------
 
 
-The Apache software does quite a reasonable job of reporting the
+The Apache httpd does quite a reasonable job of reporting the
 details when it encounters
 problems. The reports are recorded in the server's error log, which is
 usually stored in one of the following places:
@@ -79,7 +89,7 @@ SuSE, etc.) each has its own preferred location. Of course, the
 definitive location can be determined by examining your **httpd.conf** file for the **ErrorLog**
 directive(s).
 
-So the very first thing you should do when Apache appears to be
+So the very first thing you should do when httpd appears to be
 misbehaving is see if the server has any comments to make.
 
 If the messages in the error log don't make the cause of the
@@ -103,7 +113,7 @@ The ``debug`` setting enables all
 .. _Characterize_the_Problem_id158947:
 
 Characterize the Problem
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 
 When you're trying to diagnose a problem, here is a question you
@@ -157,19 +167,19 @@ but are not necessarily limited to:
 
 
 * The CGI script is either not emitting any output at all, or it
-is emitting content before the required header lines, or it's
-neglecting to emit the obligatory blank line between the header and
-the content.
+  is emitting content before the required header lines, or it's
+  neglecting to emit the obligatory blank line between the header and
+  the content.
 
 
 * The script encountered an error and emitted the error message
-instead of its expected
-output.
+  instead of its expected
+  output.
 
 
 * You're using **suexec** and
-one or more of the **suexec**
-constraints has been violated.
+  one or more of the **suexec**
+  constraints has been violated.
 
 To test to see if the problem is an error condition or improper
 CGI response formatting, run the script interactively from the command
@@ -183,13 +193,13 @@ are security constraints being violated.
 You can tell if you're using **suexec** with the following command:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e21876" data-type="programlisting">% <strong><code>httpd -l</code></strong>
-Compiled-in modules:
-  http_core.c
-  mod_so.c
-suexec: disabled; invalid wrapper /var/www/apache/bin/suexec</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
+
+   % httpd -l
+   Compiled-in modules:
+     http_core.c
+     mod_so.c
+   suexec: disabled; invalid wrapper /var/www/apache/bin/suexec
 
 If you get a message that says that **suexec** is disabled, you can ignore that as a
       possible cause of the script's execution problems.
@@ -199,16 +209,16 @@ If **suexec** is enabled, though,
       You can find the logfile with:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e21891" data-type="programlisting">% sudo <strong><code>suexec -V</code></strong>
- -D DOC_ROOT="/usr/local/apache/htdocs"
- -D GID_MIN=100
- -D HTTPD_USER="www"
- -D LOG_EXEC="/usr/local/apache/logs/suexec.log"
- -D SAFE_PATH="/usr/local/bin:/usr/bin:/bin"
- -D UID_MIN=100
- -D USERDIR_SUFFIX="public_html"</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
+
+   % sudo suexec -V
+    -D DOC_ROOT="/usr/local/apache/htdocs"
+    -D GID_MIN=100
+    -D HTTPD_USER="www"
+    -D LOG_EXEC="/usr/local/apache/logs/suexec.log"
+    -D SAFE_PATH="/usr/local/bin:/usr/bin:/bin"
+    -D UID_MIN=100
+    -D USERDIR_SUFFIX="public_html"
 
 The important line is ``-D``
       ``LOG_EXEC="/usr/local/apache/logs/suexec.log"``;
@@ -241,14 +251,14 @@ Windows has its own distinct set of problem areas that don't apply
 .. _Cannot_Determine_Hostname_id159448:
 
 Cannot Determine Hostname
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 
-When trying to start Apache from a DOS window, you receive a
+When trying to start httpd from a DOS window, you receive a
 message like, "Cannot determine hostname. Use **ServerName** directive to set it
 manually."
 
-If you don't explicitly supply Apache with a name for your
+If you don't explicitly supply httpd with a name for your
 system, it tries to figure it out. This message is the result of that
 process failing.
 
@@ -265,9 +275,9 @@ an uncommented directive such as:
 or:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e21969" data-type="programlisting">ServerName <em><code>www.foo.com</code></em></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: apache
+
+   ServerName www.foo.com
 
 in the file. Correct it if there is one there with wrong
 information, or add one if you don't already have one.
@@ -284,15 +294,15 @@ server again.
 .. _Finding_WS2_32DLL_on_Windows_id159567:
 
 Finding WS2_32.DLL on Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 
-When trying to start Apache on Windows 95, a message like,
+When trying to start httpd on Windows 95, a message like,
 "Unable To Locate WS2_32.DLL..." appears. This file is necessary for
-Apache to function properly.
+httpd to function properly.
 
-Prior to Version 1.3.9, Apache for Windows used Winsock 1.1.
-Beginning with Version 1.3.9, Apache began using Winsock 2 features
+Prior to Version 1.3.9, httpd for Windows used Winsock 1.1.
+Beginning with Version 1.3.9, httpd began using Winsock 2 features
 (specifically, WSADuplicateSocket()). ``WS2_32.DLL`` implements the Winsock 2 API.
 Winsock 2 ships with Windows NT 4.0 and Windows 98. Some of the
 earlier releases of Windows 95 did not include Winsock 2.
@@ -304,11 +314,11 @@ restart your server, and the problem should be gone.
 .. _Fixing_WSADuplicateSocket_Errors_id159641:
 
 Fixing WSADuplicateSocket Errors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 
-If, when trying to start Apache on Windows, it fails and the
-Apache error log contains this message:
+If, when trying to start httpd on Windows, it fails and the
+httpd error log contains this message:
 
 
 .. code-block:: text
@@ -323,9 +333,9 @@ provide all the functionality of the native network calls.
 
 To get rid of the problem, you need to reconfigure, disable, or
 remove the firewall product that is running on the same box as the
-Apache server.
+httpd.
 
-This problem has been seen when Apache is run on systems along
+This problem has been seen when httpd is run on systems along
 with Virtual Private Networking (VPN) clients such
 as **Aventail Connect**. **Aventail Connect** is a Layered Service Provider (LSP) that inserts
 itself, as a shim, between the Winsock 2 API
@@ -338,8 +348,8 @@ rebooted.
 
 Another potential solution (not tested) is to add **apache.exe** to the **Aventail Connect** exclusion list (see below).
 
-Apache is affected in a similar way by any firewall program that
-isn't correctly configured. Assure you exclude your Apache server
+httpd is affected in a similar way by any firewall program that
+isn't correctly configured. Assure you exclude your httpd
 ports (usually port 80) from the list of ports to block. Refer to your
 firewall program's documentation for the how-to.
 
@@ -350,30 +360,30 @@ Application Exclusion List at http://support.aventail.com/akb/article00586.html.
 .. _Handling_System_Error_1067_id159829:
 
 Handling System Error 1067
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 
-Sometimes, when starting Apache on Windows, you might get a
+Sometimes, when starting httpd on Windows, you might get a
         message like "``System error 1067 has occurred. The process terminated unexpectedly.``" This uninformative
         message means that the Web server was unable to start correctly as a
         service for one reason or another.
 
-As with any error, the first step should be to check your Apache
+As with any error, the first step should be to check your httpd
         error log. If that doesn't reveal anything useful, try checking the
-        Windows application event log to find out why Apache won't start. If
+        Windows application event log to find out why httpd won't start. If
         that doesn't help, try:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e22096" data-type="programlisting">D:\&gt;<strong><code>c:</code></strong>
-C:\&gt;<strong><code>cd "\Program Files\Apache Group\Apache"</code></strong>
-C:\Program Files\Apache Group\Apache&gt;<strong><code>apache</code></strong></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
 
-(If you don't get the prompt back, hit Ctrl-C to cause Apache to
+   D:\>c:
+   C:\>cd "\Program Files\Apache Group\Apache"
+   C:\Program Files\Apache Group\Apache>apache
+
+(If you don't get the prompt back, hit Ctrl-C to cause httpd to
         exit.)
 
-This will run Apache interactively rather than as a service; any
+This will run httpd interactively rather than as a service; any
         error messages should show up on your screen rather than being
         concealed behind a ``System Error 1067`` alert box.
 
@@ -384,10 +394,10 @@ Fixing Build-Time Error Messages
 --------------------------------
 
 
-.. ___inet_Symbols_id159947:
+.. _inet_Symbols_id159947:
 
 __inet Symbols
-~~~~~~~~~~~~~~
+--------------
 
 
 If you have installed BIND-8, then this is normally because of a
@@ -402,22 +412,22 @@ If your system uses the header files in **/usr/local/include/** before those in
         libraries that came with your system, or make sure to use the new
         include files and libraries.
 
-If you're using Apache 2.0 or later, or Apache 1.3 with the
+If you're using httpd 2.0 or later, or httpd 1.3 with the
         ``APACI`` build script, you can make
         changes to the library search lists by defining them on the **./configure** command line:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e22156" data-type="programlisting">% <strong><code>LIBS=-lbind ./configure </code></strong><em><code>...</code></em></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
 
-If you're using Apache 1.3 or earlier and controlling the build
+   % LIBS=-lbind ./configure ...
+
+If you're using httpd 1.3 or earlier and controlling the build
         process by editing the **Configuration** file directly, just add
         -lbind to the EXTRA_LDFLAGS line in
         the file.
 
 After making the appropriate change to your build configuration
-        process, Apache should build with the correct library.
+        process, httpd should build with the correct library.
 
 
 .. _apacheckbk-APP-B-NOTE-127:
@@ -425,7 +435,7 @@ After making the appropriate change to your build configuration
 
 .. tip::
 
-             Apache versions 1.2 and earlier use
+             httpd versions 1.2 and earlier use
              EXTRA_LFLAGS in the **Configuration** file instead.
 
 
@@ -435,15 +445,15 @@ As of BIND 8.1.1, the **bind**
         the following to the respective lines:
 
 
-* For Apache 1.3 with APACI, or 2.0 and later:
+* For httpd 1.3 with APACI, or 2.0 and later:
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e22199" data-type="programlisting">% <strong><code>CFLAGS=-I/usr/local/bin/include \</code></strong>
-&gt; <strong><code>LDFLAGS=/usr/local/bind/lib LIBS=-lbind \</code></strong>
-&gt;<strong><code>./configure </code></strong><em><code>...</code></em></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
+
+   % CFLAGS=-I/usr/local/bin/include \
+   > LDFLAGS=/usr/local/bind/lib LIBS=-lbind \
+   >./configure ...
     
-* For Apache 1.2 or 1.3 with direct editing of **Configuration**, add/change the following lines in the file:      
+* For httpd 1.2 or 1.3 with direct editing of **Configuration**, add/change the following lines in the file:      
 
 
 .. code-block:: text
@@ -485,7 +495,7 @@ If your **RewriteRule** directives
       keep resulting in ``404 Not Found`` error
       pages, add the ``PT`` (PassThrough) flag
       to the **RewriteRule** line. Without this
-      flag, Apache won't process a lot of other factors that might apply, such
+      flag, httpd won't process a lot of other factors that might apply, such
       as **Alias** settings.
 
 You can verify that this is the cause of your problem by cranking
@@ -493,16 +503,16 @@ You can verify that this is the cause of your problem by cranking
       9 and seeing that the entries relating to the **RewriteRule** mention something about prefixes
       with ``document_root``:
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting_d1e22302" data-type="programlisting">RewriteLog logs/rewrite-log
-RewriteLogLevel 9
+.. code-block:: bash
 
-% <strong><code>tail logs/rewrite_log</code></strong>
-<em><code>ip-address</code></em> - - [<em><code>date</code></em>] [<em><code>reqid</code></em>] (2) prefixed with document_root to
-/usr/local/apache/htdocs/robots.text
-<em><code>ip-address</code></em> - - [<em><code>date</code></em>] [<em><code>reqid</code></em>] (1) go-ahead with
-/usr/local/apache/htdocs/robots.text [OK]</pre>
-++++++++++++++++++++++++++++++++++++++
+   RewriteLog logs/rewrite-log
+   RewriteLogLevel 9
+
+   % tail logs/rewrite_log
+   ip-address - - [date] [reqid] (2) prefixed with document_root to
+   /usr/local/apache/htdocs/robots.text
+   ip-address - - [date] [reqid] (1) go-ahead with
+   /usr/local/apache/htdocs/robots.text [OK]
 
 
 .. _apacheckbk-APP-B-NOTE-129:
@@ -567,10 +577,10 @@ Make sure that **AllowOverride** is
       ignore my **.htaccess** files."
 
 Thus, the most common cause of an **.htaccess** file being ignored is simply that
-      your configuration file tells Apache to ignore it.
+      your configuration file tells httpd to ignore it.
 
 If you put garbage in your **.htaccess** file, this should generate a Server
-      Error message in the browser, which will verify that Apache is indeed
+      Error message in the browser, which will verify that httpd is indeed
       looking at the contents of your file. However, if such a message is not
       displayed, this is a sure sign that your **.htaccess** file is being completely
       ignored.
@@ -582,7 +592,7 @@ Address Already in Use
 ----------------------
 
 
-If, when attempting to start your Apache server, you get the
+If, when attempting to start your httpd, you get the
       following error message:
 
 
@@ -600,8 +610,8 @@ one of three things is happening:
 
 
         
-* There is already some process running (perhaps another Apache
-          server) using port 80. Run **netstat**, or perhaps look at the process
+* There is already some process running (perhaps another httpd
+          ) using port 80. Run **netstat**, or perhaps look at the process
           list and kill any process that seems to fill this role.
 
 
@@ -612,12 +622,12 @@ one of three things is happening:
 
 
 In the case of the first condition, you will need to become the
-      root user in order to start Apache. By long tradition, only the root
-      user may bind to any port lower than 1025. Because Apache typically runs
+      root user in order to start httpd. By long tradition, only the root
+      user may bind to any port lower than 1025. Because httpd typically runs
       on port 80, this requires root privileges.
 
 The second condition can be a little trickier. Sometimes a child
-      process will refuse to die and will remain running after Apache has been
+      process will refuse to die and will remain running after httpd has been
       shut down. There are numerous reasons this might happen. Most of the
       time, you can kill this process forcibly using **kill** or **kill -9** while logged in as root. As long as this process is running
       and has the port occupied, you will be unable to start anything else
@@ -690,12 +700,12 @@ Solution
 Add the following lines to your **httpd.conf** file:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting9_d1e15776" data-type="programlisting">Alias /NoHost.cgi <em><code>/usr/local/apache/cgi-bin</code></em>/NoHost.cgi
-RewriteEngine On
-RewriteCond "%{HTTP_HOST}" "^$"
-RewriteRule "(.*)" "/NoHost.cgi$1" [PT]</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: apache
+
+   Alias /NoHost.cgi /usr/local/apache/cgi-bin/NoHost.cgi
+   RewriteEngine On
+   RewriteCond "%{HTTP_HOST}" "^$"
+   RewriteRule "(.*)" "/NoHost.cgi$1" [PT]
 
 The file **NoHost.cgi** can contain something like the following:
 
@@ -805,17 +815,17 @@ Discussion
 ~~~~~~~~~~
 
 
-If Apache encounters an error processing a document, such as not
+If httpd encounters an error processing a document, such as not
         being able to locate a file, by default it will return a canned error
         response to the client. You can customize this error response with the
-        **ErrorDocument** directive, and Apache
+        **ErrorDocument** directive, and httpd
         will generally maintain the
         error status when it sends your custom error text to the
         client.
 
 However, if you want to change the status to something else,
         such as hiding the fact that a file doesn't exist by returning a
-        Forbidden status, you need to tell Apache about the change.
+        Forbidden status, you need to tell httpd about the change.
 
 This requires that the **ErrorDocument** be a dynamic page, such as a
         CGI script. The CGI specification provides a very simple means of
@@ -849,7 +859,7 @@ Problem
 
 
 You want to display a customized error message, rather than the
-        default Apache error page.
+        default httpd error page.
 
 
 .. _Solution_id146187:
@@ -861,9 +871,9 @@ Solution
 Use the **ErrorDocument** directive in **httpd.conf**:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting9_d1e15946" data-type="programlisting">ErrorDocument 405 <em><code>/errors/notallowed.html</code></em></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: apache
+
+   ErrorDocument 405 /errors/notallowed.html
 
 
 .. _Discussion_id146219:
@@ -876,7 +886,7 @@ The **ErrorDocument** directive
         allows you to create your own error pages to be displayed when
         particular error conditions occur. In the previous example, in the
         event of a ``405`` status code ``(Method Not Allowed)``, the specified URL is
-        displayed for the user, rather than the default Apache error
+        displayed for the user, rather than the default httpd error
         page.
 
 The page can be customized to look like the rest of your Web
@@ -916,7 +926,7 @@ Solution
 ~~~~~~~~
 
 
-The Apache 2.0 default configuration file contains a
+The httpd 2.0 default configuration file contains a
 configuration section, initially commented out, that allows you to
 provide error documents in multiple languages customized to the look
 of your Web site, with very little additional work.
@@ -932,10 +942,9 @@ default configuration file:
    # and mod_negotiation.  To activate them, uncomment the following 30 lines.
 
 
-In Apache 1.3 this is harder, but there's a solution in the
+In httpd 1.3 this is harder, but there's a solution in the
 works, as of this writing, that will make it similar to the 2.0
-implementation. Check the Apache Cookbook Web site for more
-information.
+implementation.
 
 
 .. _Discussion_id146407:
@@ -944,7 +953,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The custom error documents provided with Apache 2.0 combine a
+The custom error documents provided with httpd 2.0 combine a
 variety of techniques to provide internationalized error messages. As
 of this writing, these error messages are available in German,
 English, Spanish, French, Dutch, Swedish, Italian, and Portuguese.
@@ -991,7 +1000,6 @@ See Also
 
 
           
-* http://apache-cookbook.com
 
 
           
@@ -1024,10 +1032,10 @@ Solution
 Use the **ErrorDocument** directive to catch ``404 (Not Found)`` errors:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting9_d1e16081" data-type="programlisting">ErrorDocument 404 <em><code>/index.html</code></em>
-DirectoryIndex index.html<em><code>/path/to/notfound.html</code></em></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: apache
+
+   ErrorDocument 404 /index.html
+   DirectoryIndex index.html/path/to/notfound.html
 
 
 .. _Discussion_id146694:
@@ -1178,9 +1186,9 @@ Solution
 
 Point the **ErrorDocument** directive to a CGI program that sends mail, rather than to a static document:
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting9_d1e16182" data-type="programlisting">ErrorDocument 404 <em><code>/cgi-bin/404.cgi</code></em></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: apache
+
+   ErrorDocument 404 /cgi-bin/404.cgi
 
 **404.cgi** looks like the following:
 
@@ -1266,6 +1274,5 @@ Summary
 -------
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 

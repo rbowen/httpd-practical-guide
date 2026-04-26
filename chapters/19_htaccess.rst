@@ -5,6 +5,13 @@
 .htaccess Files
 ===============
 
+.. epigraph::
+
+   Breaking the law, breaking the law.
+
+   -- Judas Priest, *Breaking the Law*
+
+
 .. index:: .htaccess files
 
 .. index:: htaccess files
@@ -16,7 +23,7 @@
 .. index:: .htaccess
 
 
-While we strongly recommend that all of your configuration changes are
+While I strongly recommend that all of your configuration changes are
 made in the server configuration files (typically located in
 ``/etc/httpd/conf``) this is sometimes not possible. If for some reason,
 you do not have permission to edit those configuration files, or for
@@ -89,7 +96,7 @@ scope, is discussed in :ref:`Recipe_Directive_goes_where`. In this case,
 it means that the ``AllowOverride`` directive must be placed inside a
 ``<Directory>`` block where you want it to take effect. This block will
 probably be the one that configures your document directory, such as
-`<Directory /var/www/htdocs>.
+``<Directory /var/www/htdocs>``.
 
 
 .. warning::
@@ -369,7 +376,7 @@ Discussion
 ~~~~~~~~~~
 
 
-As an Apache web server administrator, you want to disable the use of
+As an Apache httpd administrator, you want to disable the use of
 ``.htaccess`` files wherever and whenever possible, primarily because
 they can have a significant impact on performance, but also because of
 the potential security concerns. Furthermore, having your
@@ -384,7 +391,7 @@ troubleshoot problems.
    performance impact of using ``.htaccess`` files becomes less and less.
    Anecdotally, it has been reported that there is almost no perceptible
    performance impact of using ``.htaccess`` files on most modern hardware.
-   Despite this, we still recommend avoiding ``.htaccess`` files unless
+   Despite this, I still recommend avoiding ``.htaccess`` files unless
    they are absolutely necessary, due to the maintenance benefits of
    having all of your configuration in one place.
 
@@ -528,7 +535,7 @@ to enable a wide variety of different behaviors, from CGI execution to
 directory indexing to following symbolic links. You may want to permit
 some of these, but not others, for reasons of security.
 
-In httpd 2.2 and later, the ``Options`` argument to ``AllowOverride``
+The ``Options`` argument to ``AllowOverride``
 gives you the ability to exert this kind of fine-grained control over
 what ``AllowOverride Options`` actually means, by specifying exactly
 what ``Options`` you want to permit.
@@ -545,7 +552,7 @@ configuration file:
    AllowOverride Options=Indexes,MultiViews
 
 
-then ``.htaccess`` files could contain ``Options Indexes`` or `Options
+then ``.htaccess`` files could contain ``Options Indexes`` or ``Options
 Multiviews`` directives, while other ``Options` settings would not be
 permitted.
 
@@ -587,7 +594,7 @@ perhaps preventing them from resulting in server errors.
 
 .. _Solution_AllowOverride-nonfatal:
 
-[role="v24"]
+
 Solution
 ~~~~~~~~
 
@@ -628,7 +635,7 @@ The ``Nonfatal`` keyword can take one of three possible arguments:
 
 .. warning::
 
-   Hiding error conditions makes troubleshooting very difficult. We do
+   Hiding error conditions makes troubleshooting very difficult. I do
    not recommend the use of this configuration option. It is frequently
    the case that people who use ``.htaccess`` files don't have unfettered
    access to the error logs, and hiding their error conditions will make
@@ -662,7 +669,7 @@ Problem
 
 
 You've heard that ``.htaccess`` files cause a performance degradation on
-your Apache http server, and want to reduce that impact.
+your httpd, and want to reduce that impact.
 
 
 .. _Solution_htaccess-performance:
@@ -763,8 +770,7 @@ fetchable over the Web:
 .. code-block:: text
 
    <FilesMatch "^ht\.">
-       Order deny,allow
-       Deny from all
+       Require all denied
    </FilesMatch>
 
 
@@ -828,9 +834,9 @@ Summary
 -------
 
 
-``.htaccess`` files are a critical part of many Apache http server
+``.htaccess`` files are a critical part of many httpd
 installations where more than one individual has responsibility for
-content. In this chapter we show how to get the most out of
+content. In this chapter I show how to get the most out of
 ``.htaccess`` files, while also knowing when they are not the best
 solution.
 

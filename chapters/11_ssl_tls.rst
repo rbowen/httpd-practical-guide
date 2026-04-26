@@ -5,6 +5,13 @@
 SSL and TLS
 ===========
 
+.. epigraph::
+
+   I got my mind set on you. I got my mind set on you.
+
+   -- George Harrison, *Got My Mind Set on You*
+
+
 .. index:: SSL
 
 .. index:: TLS
@@ -28,7 +35,7 @@ The exact mechanism by which this encryption is accomplished is
 discussed extensively in the TLS/SSL specifications, the current
 version at the time of the booking writing is TLS 1.3 which you can read at
 https://tools.ietf.org/html/rfc8446. For a more user-friendly
-discussion of TLS/SSL, we recommend looking through the ``mod_ssl``
+discussion of TLS/SSL, I recommend looking through the ``mod_ssl``
 manual, which you can find at
 http://httpd.apache.org/docs/2.4/ssl. This document not
 only discusses the specific details of setting up ``mod_ssl`` but
@@ -41,8 +48,13 @@ http://en.wikipedia.org/wiki/Transport_Layer_Security.
 As people tends to use SSL for both TLS and SSL, this chapter will use
 SSL to designate the encryption layer you use.
 
-In this chapter, we talk about some of the common things that you
+In this chapter, I talk about some of the common things that you
 might want to do with your secure server, including installing it.
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_http2`, :module:`mod_md`, :module:`mod_ssl`
 
 
 .. _Installing_SSL_id138166:
@@ -57,7 +69,7 @@ Problem
 ~~~~~~~
 
 
-You want to install SSL on your Apache server.
+You want to install SSL on your Apache HTTP Server.
 
 
 .. _Solution_id138216:
@@ -67,17 +79,17 @@ Solution
 
 
 The solutions to this problem fall into several categories, depending
-on how you installed Apache in the first place (or whether you are
-willing to rebuild Apache to get SSL).
+on how you installed Apache httpd in the first place (or whether you are
+willing to rebuild httpd to get SSL).
 
-If you installed a binary distribution of Apache, your best bet
+If you installed a binary distribution of httpd, your best bet
 is to return to the place from which you acquired that binary
 distribution and try to find the necessary files for adding SSL to
 it.
 
-If you built Apache yourself from source, just add
+If you built httpd yourself from source, just add
 **--enable-ssl** to the **./configure** arguments when
-you build Apache to include SSL as one of the built-in modules.
+you build httpd to include SSL as one of the built-in modules.
 
 If configure doesn't find your openssl installation you have to
 use **--with-ssl=** with the path to your openssl installation.
@@ -88,17 +100,17 @@ package.
 Consult Chapters :ref:`Chapter_Installation`, **Installation**, and
 :ref:`Chapter_Common_modules`, **Adding Common Modules**, for more
 information on installing third-party modules, particularly if you
-have installed a binary distribution of Apache rather than building it
+have installed a binary distribution of httpd rather than building it
 yourself from the source code.
 
-If you are attempting to install SSL on Apache for Windows, there is a
+If you are attempting to install SSL on httpd for Windows, there is a
 discussion of this in the Compiling on Windows document, which you can
 find at
 http://httpd.apache.org/docs/2.4/platform/win_compiling.html
-for Apache 2.4.
+for httpd 2.4.
 
-Finally, note that the Apache SSL modules are an interface
-between Apache and the OpenSSL libraries, which you must install
+Finally, note that the httpd SSL modules are an interface
+between httpd and the OpenSSL libraries, which you must install
 before any of this can work. You can obtain the OpenSSL libraries from
 http://www.openssl.org. Although you may already
 have these libraries installed on your server, it is recommended that
@@ -115,21 +127,21 @@ Discussion
 So, why is this so complicated? Well, there are a variety of reasons,
 most of which revolve around the legality of encryption. For a long
 time, encryption has been a restricted technology in the United
-States. Because Apache is primarily based out of the United States,
+States. Because httpd is primarily based out of the United States,
 there is a great deal of caution regarding distributing encryption
 technology with the package. Even though major changes have been made
-in the laws, permitting SSL to be shipped with Apache 2.x, there are
+in the laws, permitting SSL to be shipped with httpd 2.x, there are
 still some gray areas that make it problematic to ship compiled binary
 distributions of Apache httpd with SSL enabled in some countries.
 
 This makes the situation particularly unpleasant on Microsoft Windows,
 where most people do not have a compiler readily available to them,
 and so must attempt to acquire binary builds from third parties to
-enable SSL on their Apache server on Windows. The URL given previously
-for compiling Apache 2.x with SSL on Windows assumes that you do have
+enable SSL on their httpd on Windows. The URL given previously
+for compiling httpd 2.x with SSL on Windows assumes that you do have
 a compiler. Check
 http://httpd.apache.org/docs/2.4/platform/windows.html
-for details on how to install your Apache server on Windows.
+for details on how to install your httpd on Windows.
 
 
 .. _See_Also_id138460:
@@ -157,7 +169,7 @@ Problem
 ~~~~~~~
 
 
-You want to install Apache with SSL on Microsoft Windows.
+You want to install httpd with SSL on Microsoft Windows.
 
 
 Solution
@@ -172,7 +184,6 @@ Obtain binary distribution from any of the following:
 
 * Apache Lounge from http://www.apachelounge.com/download/
 
-* BitNami WAMP Stack from http://bitnami.com/stack/wamp
 
 * WampServer from http://www.wampserver.com/
 
@@ -184,7 +195,7 @@ Discussion
 
 
 As was mentioned in the previous recipe, it is certainly possible to
-build Apache with SSL from source on Microsoft Windows.  However, to
+build httpd with SSL from source on Microsoft Windows.  However, to
 be honest, this is beyond the expertise of most of us.
 
 So, save yourself some pain, take advantage of the great work that has
@@ -216,14 +227,13 @@ Solution
 Use the **openssl** command-line program that comes with OpenSSL:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting7_d1e12878" data-type="programlisting">
-<code class="prompt">% </code><strong><code> openssl genrsa -out server.key 2048</code></strong>
-<code class="prompt">% </code><strong><code> openssl req -new -key server.key -out server.csr</code></strong>
-<code class="prompt">% </code><strong><code> openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt</code></strong></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
 
-Then move these files to your Apache server's configuration directory,
+   %  openssl genrsa -out server.key 2048
+   %  openssl req -new -key server.key -out server.csr
+   %  openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+Then move these files to your httpd's configuration directory,
 such as **/www/conf/**, and then add the following lines in your
 **httpd.conf** configuration file:
 
@@ -252,16 +262,16 @@ Generating the key is a multistep process, but it is fairly simple.
 .. _Generating_the_private_key_id138712:
 
 Generating the private key
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 
-In the first step, we generate the private key. SSL is a
+In the first step, you generate the private key. SSL is a
 private/public key encryption system, with the private key residing on
 the server and the public key going out with each connection to the
 server and encrypting data sent back to the server.
 
 The first argument passed to the **openssl** program tells **openssl**
-that we want to generate an RSA key (**genrsa**), which is an
+that you want to generate an RSA key (**genrsa**), which is an
 encryption algorithm that all major browsers support.
 
 You may, if you wish, specify an argument telling **openssl** what to
@@ -276,7 +286,7 @@ you should consider installing a random number generator, such as
 **egd**. You can find out more information about this on the OpenSSL Web
 site at http://www.openssl.org/docs/crypto/RAND_egd.html.
 
-The ``-out`` argument specifies the name of the key file that we will
+The ``-out`` argument specifies the name of the key file that you will
 generate. This file will be created in the directory in which you are
 running the command, unless you provide a full path for this
 argument. Naming the key file after the hostname on which it will be
@@ -285,7 +295,7 @@ file is not actually important.
 
 And, finally, an argument of 2048 is specified, which tells **openssl**
 the size of the private key to generate in bit. 2048 is a safe
-value at the time of this writing.
+value for most deployments.
 
 Your output should look something like:
 
@@ -301,7 +311,7 @@ Your output should look something like:
 .. _Generating_the_certificate_signing_request_id138871:
 
 Generating the certificate signing request
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 
 The next step of the process is to generate a certificate signing
@@ -326,7 +336,7 @@ This is a bit of an oversimplification of the process but conveys
 enough of it for the purposes of this recipe.
 
 The alternative is that you sign the certificate yourself, which is
-what we'll be doing in the coming steps.
+what you'll be doing in the coming steps.
 
 The arguments to this command specify the key for which the
 certificate is being generated (the -key argument) and the name of the
@@ -345,19 +355,19 @@ connect to your Web site.
 The questions will look like the following:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting7_d1e13021" data-type="programlisting">Country Name (2 letter code) [GB]: <strong><code>EX</code></strong>
-State or Province Name (full name) [Berkshire]: <strong><code>CO</code></strong>
-Locality Name (eg, city) [Newbury]: <strong><code>Example City</code></strong>
-Organization Name (eg, company) [My Company Ltd]: <strong><code>Institute of Examples</code></strong>
-Organizational Unit Name (eg, section) []: <strong><code>Demonstration Services</code></strong>
-Common Name (eg, your name or your server's hostname) []: <strong><code>www.example.com</code></strong>
-Email Address []: <strong><code>big-cheese@example.com</code></strong>
-Please enter the following 'extra' attributes
-to be sent with your certificate request
-A challenge password []:
-An optional company name []:</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: text
+
+   Country Name (2 letter code) [GB]: EX
+   State or Province Name (full name) [Berkshire]: CO
+   Locality Name (eg, city) [Newbury]: Example City
+   Organization Name (eg, company) [My Company Ltd]: Institute of Examples
+   Organizational Unit Name (eg, section) []: Demonstration Services
+   Common Name (eg, your name or your server's hostname) []: www.example.com
+   Email Address []: big-cheese@example.com
+   Please enter the following 'extra' attributes
+   to be sent with your certificate request
+   A challenge password []:
+   An optional company name []:
 
 All of these values are optional, with the exception of the Common
 Name. You must supply the correct value here, which is the hostname of
@@ -368,36 +378,34 @@ warning message each time a user connects to your Web site.
 
 
 Removing the passphrase
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 
-If, in the first step, we put a passphrase on the private key,
-we will have to remove it.
+If, in the first step, you put a passphrase on the private key,
+you will have to remove it.
 
 The private is encrypted if you used one option like
 **-des3** to encrypt it or if the openssl you are using 
 does that by default.
 The key encrypted so that only someone with the passphrase can read
 the contents of the key.  A side-effect of this is that every time you
-start up your Apache server, you will need to type in the
+start up your httpd, you will need to type in the
 passprase. This is extremely inconvenient, as it means that starting
 up the Web server always requires a manual step. This is particularly
-a problem for reboots or other automated restarts of the Apache
-server, when there might not be a human handy to type in the
+a problem for reboots or other automated restarts of httpd,
+when there might not be a human handy to type in the
 passphrase.
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting7_d1e13021" data-type="programlisting">
-<code class="prompt">%</code><strong><code> cp server.key server.key.org</code></strong>
-<code class="prompt">%</code><strong><code> openssl rsa -in server.key.org -out server.key</code></strong>
-</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
+
+   % cp server.key server.key.org
+   % openssl rsa -in server.key.org -out server.key
 
 
-Therefore, we're going to remove the passphrase from the key so that
+Therefore, you're going to remove the passphrase from the key so that
 this isn't an issue.
 
-The key is copied to a backup location just in case we screw something
+The key is copied to a backup location just in case you screw something
 up, and then the command is issued to remove the passphrase, resulting
 in an unencrupted key. You must remember to change the permissions on
 the file so that only root can read this file. Failure to do so may
@@ -411,7 +419,7 @@ the passpharse from an external program.
 .. _Signing_your_key_id138959:
 
 Signing your certificate
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 
 If you choose not to send the CSR to a Certificate Authority, and,
@@ -431,8 +439,8 @@ sign your public key and send you the resulting certificate, putting
 their stamp of approval on it and verifying to the world that you are
 legitimate.
 
-In the example given, we sign the key with the key itself, which is a
-little silly, as it basically means that we trust ourselves. However,
+In the example given, the command signs the key with the key itself, which is a
+little silly, as it basically means that you trust yourself. However,
 for the purposes of the actual SSL encryption, this is sufficient.
 
 If you prefer, you can use the **CA.pl** script that comes with OpenSSL
@@ -471,7 +479,7 @@ If this step goes well, you should see some output like the following:
 .. _Configuring_the_server_id139081:
 
 Configuring the server
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 
 Once you have generated the key and certificate, you can use them on
@@ -482,16 +490,16 @@ solution.
 .. _The_easy_way_id139102:
 
 The easy way
-^^^^^^^^^^^^
+------------
 
 
-Now that we've gone through the long and painful way of doing this,
+Now that I've gone through the long and painful way of doing this,
 you should know that there is a simpler way. OpenSSL comes with a
 handy script, called **CA.pl**, which simplifies the process of creating
 keys. The use of **CA.pl** is described in
 :ref:`Generating_a_Trusted_CA_id139220` so you can see it in action. It
 is useful, however, to know some of what is going on behind the
-script. At least, we tend to think so.  It also gives you considerably
+script. At least, I tend to think so.  It also gives you considerably
 more control as to how the certificate is made.
 
 
@@ -532,13 +540,12 @@ Solution
 Issue the following commands:
 
 
-++++++++++++++++++++++++++++++++++++++
-<pre id="I_programlisting7_d1e13160" data-type="programlisting">
-<code class="prompt">%</code> <strong><code>CA.pl -newca</code></strong>
-<code class="prompt">%</code> <strong><code>CA.pl -newreq</code></strong>
-<code class="prompt">%</code> <strong><code>CA.pl -sign</code></strong>
-<code class="prompt">%</code> <strong><code>CA.pl -pkcs12</code></strong></pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
+
+   % CA.pl -newca
+   % CA.pl -newreq
+   % CA.pl -sign
+   % CA.pl -pkcs12
 
 
 .. _Discussion_id139326:
@@ -581,11 +588,11 @@ same purpose as **demoCA/cacert.pem** for certain other browsers.
 .. _Importing_the_CA_id139466:
 
 Importing the CA
-^^^^^^^^^^^^^^^^
+----------------
 
 
-If your users are using Internet Explorer, you need to create a
-special file for them to import. Use the following command:
+To create a DER-format certificate file for importing into
+browsers, use the following command:
 
 
 .. code-block:: text
@@ -726,9 +733,7 @@ So, the entire setup might look something like this:
 
 .. code-block:: text
 
-   NameVirtualHost *
-   
-   <VirtualHost *>
+   <VirtualHost *:80>
        ServerName regular.example.com
        DocumentRoot /www/docs
    
@@ -762,7 +767,7 @@ SSL, the **RewriteRule** is invoked only if they are not.  In that case,
 the request is redirected to a request for the same content but using
 HTTPS instead of HTTP.
 
-Note that we strongly advise to use HTTPS for your whole server.
+Note that I strongly advise using HTTPS for your whole server.
 
 
 .. _See_Also_id140073:
@@ -864,13 +869,13 @@ perspective.
 
 Server Name Indication (SNI) is the extension to the SSL protocol
 to allow to use several SSL hosts on a single IP address. Basically
-the client will send the SNI in the Hello TLS message and Apache
+the client will send the SNI in the Hello TLS message and httpd
 httpd will know which certificate/key pair to use for the SSL
 encrypted connection.
 
 If not using SNI you can only run one SSL host
 **per** IP address and port. This has to do with the way that SSL works,
-and is not a limitation specifically of Apache. Attempting to run
+and is not a limitation specifically of httpd. Attempting to run
 multiple SSL hosts on the same IP address and port will result in
 warning messages being displayed by the browser, because it will be
 receiving the wrong certificate.
@@ -879,7 +884,7 @@ One other possible answer is to use a wildcard certificate. This is
 covered in the next recipe.
 
 Finally, if you don't care about the warning messages, you can set up
-name-based virtual hosts in the usual way, and simply have Apache use
+name-based virtual hosts in the usual way, and simply have httpd use
 the same certificate for all of them.
 
 Discussion
@@ -896,12 +901,12 @@ virtual host and use the corresponding certificate.
 
 There are basically three types of solutions. Either you ignore the
 problem, you find a way to use one certificate on multiple hostnames,
-or you use more IP addresses or ports. We'll discuss each of these in
+or you use more IP addresses or ports. I'll discuss each of these in
 turn.
 
 
 Ignore the problem
-^^^^^^^^^^^^^^^^^^
+------------------
 
 
 In some situations, you may be content to ignore the problem. For test
@@ -937,7 +942,7 @@ Web site and performing tasks like taking credit card transactions.
 
 
 Use one certificate on several hosts
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 
 It is possible to use a single certificate on multiple hostnames if
@@ -946,7 +951,7 @@ wildcard certificate, and is discussed in the next recipe.
 
 
 Use Server Name Indication
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 
 The recommended solution is that you use SNI and configure
@@ -956,7 +961,6 @@ Something like:
 
 .. code-block:: text
 
-   NameVirtualHost *:443
    <VirtualHost *:443>
      ServerName www.example.com
      # Other SSL directives here
@@ -995,7 +999,7 @@ Solution
 
 
 Use a wildcard certificate, which works for any name within a
-particular domain, such as "*.example.com."
+particular domain, such as "\*.example.com."
 
 
 Discussion
@@ -1065,102 +1069,97 @@ The tools like certbot or certbot-auto provided by the EFF will
 add the mod_ssl directives to the Apache httpd configuration
 to load the signed Certificate and the corresponding chain.
 Install certbot and its apache plugin.
-For example (here on fedora/centos, on debian use **apt install**):
+For example (here on Fedora/RHEL, on Debian use **apt install**):
 
-++++++++++++++++++++++++++++++++++++++
-<pre data-type="programlisting">
-<code class="prompt">% </code><strong><code> yum install certbot certbot-apache</code></strong>
-</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: bash
+
+   %  dnf install certbot certbot-apache
 
 Make sure your Apache httpd server is correctly configured and uses a self signed certificate.
 Check :ref:`Generating_SSL_Certificates_id138549` above.
 Check that you have a valid **ServeName** directive in your http.conf
 Then run **certbot -i apache**
 
-++++++++++++++++++++++++++++++++++++++
-<pre data-type="programlisting">
-<code class="prompt">% </code><strong><code> certbot -i apache</code></strong>
-Saving debug log to /var/log/letsencrypt/letsencrypt.log
+.. code-block:: bash
 
-How would you like to authenticate with the ACME CA?
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-1: Apache Web Server plugin - Beta (apache)
-2: Spin up a temporary webserver (standalone)
-3: Place files in webroot directory (webroot)
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Select the appropriate number [1-3] then [enter] (press 'c' to cancel): <strong><code>1</code></strong>
-Plugins selected: Authenticator apache, Installer apache
-Enter email address (used for urgent renewal and security notices) (Enter 'c' to
-cancel): <strong><code>big-cheese@example.com</code></strong>
+   %  certbot -i apache
+   Saving debug log to /var/log/letsencrypt/letsencrypt.log
 
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Please read the Terms of Service at
-https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf. You must
-agree in order to register with the ACME server at
-https://acme-v02.api.letsencrypt.org/directory
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(A)gree/(C)ancel: <strong><code>A</code></strong>
+   How would you like to authenticate with the ACME CA?
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   1: Apache Web Server plugin - Beta (apache)
+   2: Spin up a temporary webserver (standalone)
+   3: Place files in webroot directory (webroot)
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Select the appropriate number [1-3] then [enter] (press 'c' to cancel): 1
+   Plugins selected: Authenticator apache, Installer apache
+   Enter email address (used for urgent renewal and security notices) (Enter 'c' to
+   cancel): big-cheese@example.com
 
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Would you be willing to share your email address with the Electronic Frontier
-Foundation, a founding partner of the Let's Encrypt project and the non-profit
-organization that develops Certbot? We'd like to send you email about our work
-encrypting the web, EFF news, campaigns, and ways to support digital freedom.
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(Y)es/(N)o: <strong><code>Y</code></strong>
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Please read the Terms of Service at
+   https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf. You must
+   agree in order to register with the ACME server at
+   https://acme-v02.api.letsencrypt.org/directory
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   (A)gree/(C)ancel: A
 
-Which names would you like to activate HTTPS for?
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-1: www.example.com
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Select the appropriate numbers separated by commas and/or spaces, or leave input
-blank to select all options shown (Enter 'c' to cancel): <strong><code>1</code></strong>
-Obtaining a new certificate
-Performing the following challenges:
-http-01 challenge for www.example.com
-Waiting for verification...
-Cleaning up challenges
-Deploying Certificate to VirtualHost /etc/httpd/conf.d/ssl.conf
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Would you be willing to share your email address with the Electronic Frontier
+   Foundation, a founding partner of the Let's Encrypt project and the non-profit
+   organization that develops Certbot? We'd like to send you email about our work
+   encrypting the web, EFF news, campaigns, and ways to support digital freedom.
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   (Y)es/(N)o: Y
 
-Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-1: No redirect - Make no further changes to the webserver configuration.
-2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
-new sites, or if you're confident your site works on HTTPS. You can undo this
-change by editing your web server's configuration.
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Select the appropriate number [1-2] then [enter] (press 'c' to cancel): <strong><code>2</code></strong>
-Redirecting vhost in /etc/httpd/conf/httpd.conf to ssl vhost in /etc/httpd/conf.d/ssl.conf
+   Which names would you like to activate HTTPS for?
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   1: www.example.com
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Select the appropriate numbers separated by commas and/or spaces, or leave input
+   blank to select all options shown (Enter 'c' to cancel): 1
+   Obtaining a new certificate
+   Performing the following challenges:
+   http-01 challenge for www.example.com
+   Waiting for verification...
+   Cleaning up challenges
+   Deploying Certificate to VirtualHost /etc/httpd/conf.d/ssl.conf
 
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Congratulations! You have successfully enabled https://www.example.com
+   Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   1: No redirect - Make no further changes to the webserver configuration.
+   2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
+   new sites, or if you're confident your site works on HTTPS. You can undo this
+   change by editing your web server's configuration.
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
+   Redirecting vhost in /etc/httpd/conf/httpd.conf to ssl vhost in /etc/httpd/conf.d/ssl.conf
 
-You should test your configuration at:
-https://www.ssllabs.com/ssltest/analyze.html?d=www.example.com
-* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Congratulations! You have successfully enabled https://www.example.com
 
-IMPORTANT NOTES:
- - Congratulations! Your certificate and chain have been saved at:
-   /etc/letsencrypt/live/www.example.com/fullchain.pem
-   Your key file has been saved at:
-   /etc/letsencrypt/live/www.example.com/privkey.pem
-   Your cert will expire on YYYY-MM-DD. To obtain a new or tweaked
-   version of this certificate in the future, simply run certbot again
-   with the "certonly" option. To non-interactively renew **all** of
-   your certificates, run "certbot renew"
- - Your account credentials have been saved in your Certbot
-   configuration directory at /etc/letsencrypt. You should make a
-   secure backup of this folder now. This configuration directory will
-   also contain certificates and private keys obtained by Certbot so
-   making regular backups of this folder is ideal.
- - If you like Certbot, please consider supporting our work by:
+   You should test your configuration at:
+   https://www.ssllabs.com/ssltest/analyze.html?d=www.example.com
+   * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
-   Donating to EFF:                    https://eff.org/donate-le
+   IMPORTANT NOTES:
+    - Congratulations! Your certificate and chain have been saved at:
+      /etc/letsencrypt/live/www.example.com/fullchain.pem
+      Your key file has been saved at:
+      /etc/letsencrypt/live/www.example.com/privkey.pem
+      Your cert will expire on YYYY-MM-DD. To obtain a new or tweaked
+      version of this certificate in the future, simply run certbot again
+      with the "certonly" option. To non-interactively renew **all** of
+      your certificates, run "certbot renew"
+    - Your account credentials have been saved in your Certbot
+      configuration directory at /etc/letsencrypt. You should make a
+      secure backup of this folder now. This configuration directory will
+      also contain certificates and private keys obtained by Certbot so
+      making regular backups of this folder is ideal.
+    - If you like Certbot, please consider supporting our work by:
 
-</pre>
-++++++++++++++++++++++++++++++++++++++
+      Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+      Donating to EFF:                    https://eff.org/donate-le
 
 So you will receive an email expiry alert from Let's Encrypt so you can renew
 your certificate using **certbot renew** before it expires.
@@ -1256,21 +1255,17 @@ So the whole configuration at the time of the writing is:
 
 If the link to the Terms of Service has changed you will get a message like:
 
-++++++++++++++++++++++++++++++++++++++
-<pre data-type="programlisting">
-[Tue Mar 05 16:59:26.723162 2019] [md:error] [pid 17783:tid 3052403520] (70008)Partial results are valid but processing is incomplete: www.example.com: the CA requires you to accept the terms-of-service as specified in &#60;https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf&#62;. Please read the document that you find at that URL and, if you agree to the conditions, configure "MDCertificateAgreement url" with exactly that URL in your Apache. Then (graceful) restart the server to activate.
-</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: text
+
+   [Tue Mar 05 16:59:26.723162 2019] [md:error] [pid 17783:tid 3052403520] (70008)Partial results are valid but processing is incomplete: www.example.com: the CA requires you to accept the terms-of-service as specified in <https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf>. Please read the document that you find at that URL and, if you agree to the conditions, configure "MDCertificateAgreement url" with exactly that URL in your Apache. Then (graceful) restart the server to activate.
 
 
 Adjust httpd.conf and Restart httpd and let's encrypt certificate will be installed.
 You get something like:
 
-++++++++++++++++++++++++++++++++++++++
-<pre data-type="programlisting">
-[Tue Mar 05 17:07:24.269380 2019] [md:notice] [pid 18157:tid 3054275392] AH10059: The Managed Domain www.example.org has been setup and changes will be activated on next (graceful) server restart.
-</pre>
-++++++++++++++++++++++++++++++++++++++
+.. code-block:: text
+
+   [Tue Mar 05 17:07:24.269380 2019] [md:notice] [pid 18157:tid 3054275392] AH10059: The Managed Domain www.example.org has been setup and changes will be activated on next (graceful) server restart.
 
 
 Restart httpd one more time and it will using your certificate signed by Let's Encrypt.
@@ -1335,6 +1330,400 @@ See Also
 * https://httpd.apache.org/docs/2.4/mod/mod_http2.html
 
 * https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_acme_mod_md:
+
+Automatic certificates with ACME and mod_md
+-------------------------------------------
+
+.. index:: ACME
+.. index:: mod_md
+.. index:: Let's Encrypt
+.. index:: Automatic certificates
+.. index:: Managed domains
+.. index:: MDomain
+.. index:: MDContactEmail
+.. index:: MDCertificateAgreement
+
+.. _Problem_Recipe_acme_mod_md:
+
+Problem
+~~~~~~~
+
+
+You want Apache httpd to obtain and renew TLS certificates
+automatically from Let's Encrypt (or another ACME provider) using
+:module:`mod_md`, without manual certificate management or cron jobs.
+
+
+.. _Solution_Recipe_acme_mod_md:
+
+Solution
+~~~~~~~~
+
+
+Enable :module:`mod_md` and :module:`mod_ssl`, then declare your
+managed domains in the server configuration:
+
+.. code-block:: apache
+
+   LoadModule md_module modules/mod_md.so
+   LoadModule ssl_module modules/mod_ssl.so
+
+   MDContactEmail admin@example.com
+   MDCertificateAgreement accepted
+   MDomain example.com www.example.com
+
+   <VirtualHost *:443>
+       ServerName example.com
+       ServerAlias www.example.com
+       DocumentRoot /var/www/example
+       SSLEngine on
+       # No SSLCertificateFile / SSLCertificateKeyFile needed —
+       # mod_md supplies them automatically
+   </VirtualHost>
+
+   # Required: a port-80 listener for the http-01 challenge
+   <VirtualHost *:80>
+       ServerName example.com
+       ServerAlias www.example.com
+       DocumentRoot /var/www/example
+   </VirtualHost>
+
+Restart httpd (a full restart is needed the first time, not just a
+graceful reload):
+
+.. code-block:: bash
+
+   $ sudo apachectl stop
+   $ sudo apachectl start
+
+On the first start, :module:`mod_md` contacts Let's Encrypt, proves
+domain ownership via the ``http-01`` challenge, and stores the
+certificate in its managed directory (by default
+:file:`{ServerRoot}/md/`). Subsequent renewals happen automatically
+in the background—the module renews certificates when they reach 33%
+of remaining lifetime (about 30 days before expiry for Let's
+Encrypt's 90-day certificates).
+
+
+.. _Discussion_Recipe_acme_mod_md:
+
+Discussion
+~~~~~~~~~~
+
+
+**How mod_md works**
+
+:module:`mod_md` implements the ACME (Automatic Certificate Management
+Environment) protocol, the same protocol used by Certbot and other
+Let's Encrypt clients. The difference is that ``mod_md`` is built into
+httpd—no external tools or cron jobs are required.
+
+The module's lifecycle:
+
+1. On startup, ``mod_md`` checks whether each managed domain has a
+   valid certificate. If not, it begins the ACME sign-up process.
+2. For the ``http-01`` challenge, Let's Encrypt makes an HTTP request
+   to ``http://yourdomain/.well-known/acme-challenge/<token>``.
+   ``mod_md`` intercepts this internally—you don't need to configure
+   a special ``Alias`` or ``Location`` block.
+3. Once the challenge is verified, ``mod_md`` downloads the signed
+   certificate and chain, and stores them in the ``MDStoreDir``
+   (default: :file:`{ServerRoot}/md/`).
+4. On the next server restart or graceful reload, httpd picks up the
+   new certificate.
+5. When the certificate approaches expiry (controlled by
+   ``MDRenewWindow``, default 33%), ``mod_md`` automatically repeats
+   the process.
+
+**Key directives**
+
+``MDomain``
+    Declares one or more domain names as a managed group. ``mod_md``
+    requests a single certificate covering all listed names. With the
+    default ``auto`` mode, ``ServerAlias`` values from associated
+    virtual hosts are automatically included.
+
+``MDContactEmail``
+    The email address registered with the CA. Let's Encrypt uses this
+    to send expiry warnings. Available since httpd 2.4.42. For older
+    versions, use ``ServerAdmin``.
+
+``MDCertificateAgreement accepted``
+    Confirms you accept the CA's terms of service.
+
+``MDRenewWindow``
+    Controls how early renewal begins. The default ``33%`` means
+    renewal starts when one-third of the certificate's lifetime
+    remains. You can also specify an absolute duration, for example
+    ``21d`` (21 days before expiry).
+
+``MDCertificateAuthority``
+    Defaults to ``letsencrypt``. You can point this to another ACME
+    provider or to the Let's Encrypt staging server for testing:
+
+    .. code-block:: apache
+
+       MDCertificateAuthority https://acme-staging-v02.api.letsencrypt.org/directory
+
+``MDPortMap``
+    If your server sits behind a reverse proxy or firewall that maps
+    external ports to different internal ports, use ``MDPortMap`` to
+    tell ``mod_md`` how to translate. For example, if external port 80
+    maps to internal port 8080:
+
+    .. code-block:: apache
+
+       MDPortMap http:8080 https:8443
+
+**The https-only challenge (tls-alpn-01)**
+
+If your server doesn't listen on port 80, ``mod_md`` can use the
+``tls-alpn-01`` challenge instead, which operates over port 443.
+This requires :module:`mod_ssl` and the ``acme-tls/1`` ALPN
+protocol, which httpd supports natively.
+
+**Wildcard certificates**
+
+For wildcard certificates (e.g., ``*.example.com``), the only
+supported challenge type is ``dns-01``, which requires you to
+configure a DNS update script via ``MDChallengeDns01``:
+
+.. code-block:: apache
+
+   MDomain example.com *.example.com
+   MDChallengeDns01 /usr/local/bin/dns-update.sh
+
+**Monitoring and notifications**
+
+Use ``MDMessageCmd`` to run a script when certificates are renewed,
+about to expire, or encounter errors:
+
+.. code-block:: apache
+
+   MDMessageCmd /usr/local/bin/md-notify.sh
+
+The script receives the event type (``renewed``, ``expiring``,
+``errored``) and the domain name as arguments.
+
+.. tip::
+
+   Always test with the Let's Encrypt staging server first. The
+   production server has strict rate limits (50 certificates per
+   domain per week). The staging server is unlimited and issues
+   certificates that are not trusted by browsers but are useful
+   for verifying your configuration.
+
+
+.. _See_Also_Recipe_acme_mod_md:
+
+See Also
+~~~~~~~~
+
+
+* https://httpd.apache.org/docs/current/mod/mod_md.html
+
+* https://letsencrypt.org/docs/ — Let's Encrypt documentation
+
+* :ref:`Generating_SSL_Certificates_id138549` — manual certificate
+  generation when automated renewal is not an option
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_sni_troubleshooting:
+
+SNI troubleshooting for multiple SSL virtual hosts
+--------------------------------------------------
+
+.. index:: SNI
+.. index:: Server Name Indication
+.. index:: Multiple SSL virtual hosts
+.. index:: SSL troubleshooting
+.. index:: SSLStrictSNIVHostCheck
+.. index:: Wrong certificate
+
+.. _Problem_Recipe_sni_troubleshooting:
+
+Problem
+~~~~~~~
+
+
+You are hosting multiple SSL virtual hosts on a single IP address and
+some clients receive the wrong certificate, or you see certificate
+mismatch warnings in the browser.
+
+
+.. _Solution_Recipe_sni_troubleshooting:
+
+Solution
+~~~~~~~~
+
+
+First, verify that each ``<VirtualHost>`` block has the correct
+``ServerName`` and a matching certificate. A minimal two-site
+configuration looks like:
+
+.. code-block:: apache
+
+   <VirtualHost *:443>
+       ServerName alpha.example.com
+       DocumentRoot /var/www/alpha
+       SSLEngine on
+       SSLCertificateFile    /etc/ssl/alpha.example.com.crt
+       SSLCertificateKeyFile /etc/ssl/alpha.example.com.key
+   </VirtualHost>
+
+   <VirtualHost *:443>
+       ServerName beta.example.com
+       DocumentRoot /var/www/beta
+       SSLEngine on
+       SSLCertificateFile    /etc/ssl/beta.example.com.crt
+       SSLCertificateKeyFile /etc/ssl/beta.example.com.key
+   </VirtualHost>
+
+To diagnose which certificate a client actually receives, use
+``openssl s_client`` with the ``-servername`` flag to send the SNI
+hostname:
+
+.. code-block:: bash
+
+   # Request the certificate for alpha
+   $ openssl s_client -connect 203.0.113.10:443 -servername alpha.example.com </dev/null 2>/dev/null | openssl x509 -noout -subject -dates
+
+   # Request the certificate for beta
+   $ openssl s_client -connect 203.0.113.10:443 -servername beta.example.com </dev/null 2>/dev/null | openssl x509 -noout -subject -dates
+
+If the wrong certificate is returned for a given ``-servername``,
+check the following:
+
+1. Ensure ``ServerName`` in each ``<VirtualHost>`` exactly matches the
+   hostname clients use (and the certificate's CN or SAN).
+
+2. Verify that the **first** ``<VirtualHost>`` block on the
+   ``*:443`` address is the one whose certificate you want
+   non-SNI clients to receive (this is the default/fallback
+   virtual host).
+
+3. Increase the ``LogLevel`` to see SNI matching decisions:
+
+   .. code-block:: apache
+
+      LogLevel ssl:debug
+
+4. Optionally, reject clients that don't send an SNI hostname:
+
+   .. code-block:: apache
+
+      SSLStrictSNIVHostCheck on
+
+
+.. _Discussion_Recipe_sni_troubleshooting:
+
+Discussion
+~~~~~~~~~~
+
+
+**What SNI does**
+
+Server Name Indication (SNI) is a TLS extension that lets the client
+include the requested hostname in the initial TLS handshake
+(``ClientHello``). Without SNI, the server must choose a certificate
+*before* it knows which hostname the client wants—because the HTTP
+``Host`` header hasn't been sent yet (it's inside the encrypted
+stream). On a server with multiple SSL virtual hosts sharing one IP
+address, this means the server would always serve the *first*
+virtual host's certificate, leading to mismatches.
+
+With SNI, the server reads the hostname from the ``ClientHello`` and
+selects the matching virtual host and certificate before completing
+the handshake. All modern browsers and TLS libraries support SNI.
+
+**The default virtual host fallback**
+
+When a client does not send SNI (very rare today, but still possible
+with certain IoT devices, old Java versions, or custom TLS clients),
+httpd falls back to the *first* ``<VirtualHost>`` block defined for
+that IP:port combination. This is the "default" SSL virtual host.
+
+If you want all your sites to fail gracefully for non-SNI clients,
+make the first virtual host one that serves a generic certificate
+(such as a wildcard ``*.example.com``) and a helpful error page.
+
+**SSLStrictSNIVHostCheck**
+
+The ``SSLStrictSNIVHostCheck`` directive controls whether non-SNI
+clients can access name-based SSL virtual hosts:
+
+``SSLStrictSNIVHostCheck off`` (default)
+    Non-SNI clients fall through to the default virtual host. They
+    receive that host's certificate, which may not match the hostname
+    they intended to reach.
+
+``SSLStrictSNIVHostCheck on``
+    Non-SNI clients are rejected with a TLS handshake failure. Use
+    this when you want to enforce that every client must send an SNI
+    hostname. When set in the *default* virtual host, it prevents
+    all non-SNI access. When set in a *specific* virtual host, only
+    that host rejects non-SNI clients.
+
+**Common pitfalls**
+
+*Duplicate ServerName values*: If two virtual hosts share the same
+``ServerName``, httpd cannot distinguish them and the first one wins.
+Always use unique names.
+
+*Missing ServerName*: A ``<VirtualHost>`` without a ``ServerName``
+inherits the global ``ServerName``, which is almost certainly not what
+you want for a multi-site setup.
+
+*Certificate SAN mismatch*: Even if ``ServerName`` is correct, the
+certificate must list the hostname in its Subject Alternative Names
+(SAN). Modern CAs and tools like Let's Encrypt always populate the
+SAN field, but self-signed certificates generated with simple
+``openssl`` commands sometimes omit it.
+
+*Port mismatch*: SNI matching uses both IP and port. If you listen on
+a non-standard port (e.g., ``8443``), the ``<VirtualHost>`` must use
+that same port.
+
+**Debugging with openssl s_client**
+
+The ``-servername`` flag is essential for testing. Without it,
+``openssl s_client`` does *not* send an SNI hostname by default
+(in older OpenSSL versions), and you'll always see the default
+virtual host's certificate. Always include it:
+
+.. code-block:: bash
+
+   $ openssl s_client -connect server:443 -servername target.example.com
+
+Look for the ``subject`` and ``issuer`` lines in the output to
+confirm you received the expected certificate.
+
+
+.. _See_Also_Recipe_sni_troubleshooting:
+
+See Also
+~~~~~~~~
+
+
+* https://httpd.apache.org/docs/current/ssl/ssl_faq.html
+
+* https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslstrictsnivhostcheck
+
+* https://httpd.apache.org/docs/current/vhosts/name-based.html
+  — name-based virtual host documentation
+
 
 Summary
 -------

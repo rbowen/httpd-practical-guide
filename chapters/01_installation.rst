@@ -1,3 +1,6 @@
+.. raw:: latex
+
+   \part{Getting Started}
 
 .. _Chapter_Installation:
 
@@ -5,22 +8,29 @@
 Installation
 ============
 
+.. epigraph::
+
+   We built this city on rock and roll.
+
+   -- Starship, *We Built This City*
+
+
 .. index:: Installation
 
 .. index:: stanza or stanzata; see containers
 
 
-For this Cookbook to be useful, you need to install the Apache Web
-server software. So what better way to start than with a set of recipes
+For this book to be useful, you need to install the Apache HTTP Server
+software. So what better way to start than with a set of recipes
 that deal with the installation?
 
 Because most Open Source projects deliver source code, rather than
 binaries -- that is, executable files -- there are always
 third parties that provide a variety of packages for installing the
 product. As a result, there are a number of different ways that you
-might end up installing the Apache HTTP server.
+might end up installing the Apache httpd.
 
-We'll cover the most common ones in this chapter. The differences may be
+I'll cover the most common ones in this chapter. The differences may be
 subtle, but they end up being important to understand before you
 move on to future chapters, as they affect things like where files
 get put, where configuration directives get put, and what the
@@ -38,11 +48,11 @@ be in certain places, other than those that you have chosen.
 While earlier editions of this book strongly recommended that you always
 build from source, times have changed. Many web server
 administrators have tens or hundreds of servers to maintain, rather
-than one. And security bugs on software such as the Apache HTTP
-server need to be addressed in hours, rather than weeks or months,
+than one. And security bugs on software such as httpd
+need to be addressed in hours, rather than weeks or months,
 if you want your servers to remain uncompromised. These, and many
 other reasons, have changed the landscape of server maintenance, and
-we now recommend that, unless you have a compelling reason to do
+I now recommend that, unless you have a compelling reason to do
 otherwise, you install **via** the packages that are available for your
 particular operating system distribution of choice.
 
@@ -50,8 +60,8 @@ Such compelling reasons include, for example, actively hacking on the
 httpd source code, or writing your own modules for httpd.
 
 This chapter can be roughly divided into four parts. The first set of
-recipes deal with installing (and uninstalling) the Apache HTTP server
-from various packages. Next, we discuss installing from source.  The
+recipes deal with installing (and uninstalling) httpd
+from various packages. Next, I discuss installing from source.  The
 third set of recipes are about starting and stopping the server once
 it's installed. Finally, there are several recipes dealing with some
 basic configuration, and other things you'll need to know to get
@@ -74,7 +84,7 @@ Problem
 ~~~~~~~
 
 
-You want to know which version of the Apache HTTP server is the right
+You want to know which version of httpd is the right
 one for you.
 
 
@@ -92,10 +102,8 @@ product fixes problems that were found in earlier releases. So, it's
 always our position that the latest version of the server is the one
 that you should be running.
 
-As of this writing, that means the latest release of the 2.4.x
-branch, which, right now, is 2.4.25, and is almost certainly
-something later than that now. When 2.6 is released, we will
-recommend that you upgrade to 2.6.
+That means the latest release of the 2.4.x branch. Check
+https://httpd.apache.org/download.cgi for the current release number.
 
 
 .. _Discussion_Which_Version:
@@ -104,22 +112,14 @@ Discussion
 ~~~~~~~~~~
 
 
-This question is not always quite as simple as we would like it
-to be. We want to give the One Right Answer, but there are sometimes
+This question is not always quite as simple as one would like it
+to be. I want to give the One Right Answer, but there are sometimes
 very good reasons for sticking with an older version of the software.
 However, these reasons are less frequently valid than they were a few
 years ago.
 
-At the time of this writing, there may still be a few Linux
-distributions which have 2.2 as their default version when you
-install httpd packages, and, in those cases, upgrading to 2.4 can be
-a convoluted process, or require that you install from source. This
-be undesirable in some cases. These are becoming very infrequent,
-though, and the authors aren't actually aware of any popular Linux
-variants that are still in this category.
-
-And, there are certainly times when you are running a custom module
-which is only available for 2.2. In these cases, of course you
+There are certainly times when you are running a custom module
+which is only available for an older version. In these cases, of course you
 have to stick with what works. But make sure you have a good reason.
 
 Finally, if you have a large install base running an older version of
@@ -131,17 +131,8 @@ effort.
 
 If, however, you are doing a new Web server installation, there
 is absolutely no good reason not to do with the latest version of the
-product. You'll benefit from the experience gained in
-the 2.2 and 2.0 days, and you'll get the new features that come 
-with the 2.4 server, as well as the better-implemented old features.
-
-
-.. warning::
-
-   The 2.0 and 2.2 versions of the server have been EOLed, and are no
-   longer receiving patches - including security patches. We therefore
-   strongly encourage you to move off of these versions if at all
-   possible.
+product. You'll benefit from all of the bug fixes, security
+patches, and new features that come with the latest release.
 
 
 .. _See_Also_Which_Version:
@@ -152,7 +143,8 @@ See Also
 
 * https://httpd.apache.org/docs/2.4/new_features_2_4.html
           
-* .. todo:: Update book reference URL
+* The Apache HTTP Server download page at
+  https://httpd.apache.org/download.cgi
 
 
 .. _Recipe_Package_or_source:
@@ -173,7 +165,7 @@ Problem
 ~~~~~~~
 
 
-You need to decide whether to install the Apache HTTP server from
+You need to decide whether to install httpd from
 source, or to use a package provided for your particular Operating
 System (OS).
 
@@ -194,9 +186,9 @@ Discussion
 ~~~~~~~~~~
 
 
-As mentioned in the introduction, we have, in earlier editions of this
-book, been strong advocates of building from source every time.
-However, the landcape of server management has changed in the last
+As mentioned in the introduction, I have, in earlier editions of this
+book, been a strong advocate of building from source every time.
+However, the landscape of server management has changed in the last
 few years. Most of us are responsible not just for one server, but
 for many, and those servers have many different tasks. Attempting to
 keep all of these servers updates has become a full-time job, and
@@ -211,11 +203,11 @@ than one person has to maintain a server, and doesn't know, or agree
 with, your preferences.
 
 Installing from packages ensures that all of your servers are set up
-the same way. It insures that if someone else needs to work on your
+the same way. It ensures that if someone else needs to work on your
 server, they don't have to guess where things are located.
 
 Perhaps more importantly, it ensures that updating a server requires
-nothing more than an **apt-get update** or **yum update**. This will
+nothing more than ``apt update`` or ``dnf update``. This will
 obtain necessary dependencies (which can change from one version to
 another), and take care of all of the details of getting files
 installed and configured.
@@ -229,13 +221,12 @@ a community that can help you when things go wrong. If you roll your
 own, when things break, you'll probably be told to switch to a tested,
 supported, packaged version.
 
-There is one specific certain scenario in which we recommend that you
+There is one specific certain scenario in which I recommend that you
 build from source. This is if you're actively involved in code development
-of the Apache HTTP server. In that case, you're likely running out
-of **svn head** - that is, the latest version of the code that is
-being actively worked on by the httpd developers. And you'll want to
-build and test changes as you work on them. Of course, if that's the
-situation you're in, you probably don't need this chapter.
+of httpd. In that case, you're likely building from the latest development branch on
+GitHub (https://github.com/apache/httpd). You'll want to build and
+test changes as you work on them. If that's your situation, you
+probably don't need this chapter.
 
 
 .. _See_Also_Package_or_source:
@@ -268,7 +259,7 @@ Problem
 
 
 There are several MPMs (Multi-Processing Modules) available when you
-install the Apache HTTP server, and you're not sure which one you
+install httpd, and you're not sure which one you
 should choose.
 
 
@@ -283,8 +274,6 @@ the default MPM for your particular platform.
 
 These defaults are:
 
-* Netware - mpm_netware
-* OS/2 - mpmt_os2
 * Unix - event, worker, or prefork, depending on platform
   capabilities. In most cases, the default is event.
 * Windows - mpm_winnt
@@ -297,7 +286,7 @@ Discussion
 
 
 MPMs - Multi-Processing Modules - are the code that determines how the
-Apache HTTP server responds to multiple requests at the same
+httpd responds to multiple requests at the same
 time. Some of these handle multiprocessing with threads, while others
 run multiple processes, each of which handles requests. And some MPMs
 use a mixture of both approaches.
@@ -315,7 +304,7 @@ based on platform capabilities, and on your particular preferences or
 needs.
 
 Here, 'Unix' is used to mean Unix-like operating systems, such as
-Linux, BSD, Solaris, Mac OS X, etc.
+Linux, BSD, Solaris, macOS, etc.
 
 In the case of Unix, the decision as to which MPM is installed is
 based on two questions:
@@ -368,208 +357,6 @@ See Also
 * https://httpd.apache.org/docs/mpm.html
 
 
-.. _Recipe_Install_puppet:
-
-Installing with the Puppet Apache module
-----------------------------------------
-
-.. index:: Installation,Puppet
-
-.. index:: Installing with the Puppet Apache module
-
-.. index:: PuppetForge
-
-.. index:: Puppet,apache module
-
-.. index:: Puppet Labs
-
-.. index:: puppet user
-
-
-.. _Problem_Install_puppet:
-
-Problem
-~~~~~~~
-
-
-You want to install the Apache Web server using the Apache module from
-Puppet Labs.
-
-
-.. tip::
-
-   Be sure to check the PuppetForge **puppetlabs/apache** page at
-   https://forge.puppet.com/puppetlabs/apache
-   to ensure that you choose a version of the module that's
-   compatible with your existing Puppet installation.
-
-
-.. _Solution_Install_puppet:
-
-Solution
-~~~~~~~~
-
-
-On your Puppet server, log in as the ``puppet`` user, change to the
-diectory in which your other Puppet modules are installed, and use the
-**puppet module** command to download and install the **apache** module
-from PuppetForge.
-
-
-.. code-block:: text
-
-   % sudo -H su -l -s /bin/bash puppet
-   % cd /etc/puppet/environments/production/modules
-   % puppet module install puppetlabs-apache --target-dir .
-
-
-and add an appropriate invocation of the **apache** class to your host's
-manifest.  For example,
-
-
-.. code-block:: text
-
-   node myweb.example.com {
-     class { '::apache':
-       serveradmin   => 'webmaster@myweb.example.com',
-     }
-     ::apache::vhost { 'example.com':
-       docroot	  => '/var/www/example.com/html',
-       servername    => 'myweb.example.com',
-       serveraliases => [
-         'example.com',
-       ],
-   }
-
-
-and then running the Puppet agent on the host.
-
-
-.. tip::
-
-   As mentioned in :ref:`apacheckbk-PUPPET-1-NOTE-1`, it is considered by many
-   to be a 'best practice' to **always** prefix Puppet class invocations,
-   facts, and global variables with '**``::``**' to ensure proper scoping.
-
-
-.. _Discussion_Install_puppet:
-
-Discussion
-~~~~~~~~~~
-
-
-This will use most of the module defaults, which include
-
-* setting ``ServerRoot`` to **``/etc/httpd``**
-* setting ``DocumentRoot`` to **``/var/www/html``**
-* starting the server
-* marking the server to be started at system boot
-
-
-.. note::
-
-   The ``puppet`` user needs to be able to access the files in its
-   configuration tree, so the easiest solution is for all files and
-   directories in it to be owned by the user itself.  Whether you install
-   the module as the ``puppet`` user or as some other (such as ``root``),
-   make sure the files are accessible by the ``puppet`` user after the
-   installation.
-
-
-.. _See_Also_Install_puppet:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Chapter_Puppet`, **Puppet**
-* :ref:`Recipe_Uninstall_puppet`
-
-
-.. _Recipe_Uninstall_puppet:
-
-Removing Apache installed with Puppet
--------------------------------------
-
-.. index:: Uninstall,Puppet
-
-.. index:: Removing Apache installed with Puppet
-
-
-.. _Problem_Uninstall_puppet:
-
-Problem
-~~~~~~~
-
-
-You're using the Puppet ``apache`` module to manage your Apache HTTP
-server service, and you wish to remove it.
-
-
-.. _Solution_Uninstall_puppet:
-
-Solution
-~~~~~~~~
-
-
-On your Puppet server, edit whatever manifest or Puppet file you use
-to invoke the ``apache`` class, and change the ``package_ensure``
-parameter is set to ``absent``.
-
-For example, in your host's manifest, change
-
-
-.. code-block:: text
-
-   class { '::apache':
-       #
-       # class parameters
-       #
-   }
-
-
-with
-
-
-.. code-block:: text
-
-   class { '::apache':
-     package_ensure => absent,
-   }
-
-
-The next time the puppet agent runs, the Web server package should be
-removed from your host.
-
-
-.. _Discussion_Uninstall_puppet:
-
-Discussion
-~~~~~~~~~~
-
-
-The basic ``apache`` Puppet module provides the ``package_ensure``
-attribute to allow you to control what version, if any, of the Web
-server package is installed.  Its default value is ``installed``, but
-you can change it to ``absent`` if you want the package removed.
-
-
-.. note::
-
-   Be sure to review **all** of your Puppet references to the ``apache``
-   module, because some of them may fail if the package has been removed.
-
-
-.. _See_Also_Uninstall_puppet:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Chapter_Puppet`, **Puppet**
-* :ref:`Recipe_Install_puppet`
-
-
 .. _Recipe_Install_redhat:
 
 Installing on RPM-based Linux distributions
@@ -579,13 +366,9 @@ Installing on RPM-based Linux distributions
 
 .. index:: Installation,RPM
 
-.. index:: yum
-
 .. index:: dnf
 
 .. index:: RPM
-
-.. index:: CentOS
 
 .. index:: Fedora
 
@@ -600,9 +383,9 @@ Problem
 ~~~~~~~
 
 
-You want to install or upgrade the Apache Web server on a Linux
-distribution which is RPM-based, such as CentOS, Fedora, or
-Red Hat Enterprise Linux.
+You want to install or upgrade httpd on a Linux
+distribution which is RPM-based, such as Fedora, AlmaLinux, Rocky Linux, or
+Red Hat Enterprise Linux (RHEL).
 
 
 .. _Solution_Install_redhat:
@@ -611,22 +394,21 @@ Solution
 ~~~~~~~~
 
 
-Use the **yum** utility to install the necessary packages:
+Use the **dnf** utility to install the necessary packages:
 
 
 .. code-block:: text
 
-   % sudo yum install httpd
+   % sudo dnf install httpd
 
 
-If ``httpd`` is already installed, **yum** will respond with a message
+If ``httpd`` is already installed, **dnf** will respond with a message
 something like:
 
 
 .. code-block:: text
 
-   Package httpd-2.4.6-45.el7.centos.x86_64 already installed and latest
-   version
+   Package httpd-2.4.x already installed.
    Nothing to do
 
 
@@ -636,7 +418,7 @@ To upgrade an existing install, use the ``update`` command, rather than
 
 .. code-block:: text
 
-   % sudo yum update httpd
+   % sudo dnf update httpd
 
 
 .. _Discussion_Install_redhat:
@@ -645,32 +427,21 @@ Discussion
 ~~~~~~~~~~
 
 
-The **yum** utility manages package installation on Linux distributions in
-the Red Hat family - that is, primarily, Fedora, CentOS and Red Hat
+The **dnf** utility manages package installation on Linux distributions in
+the Red Hat family - that is, primarily, Fedora, AlmaLinux, Rocky Linux, and Red Hat
 Enterprise Linux (RHEL). It knows where to fetch the latest versions of
 packages, and it keeps track of what you've got installed, as well as
 dependencies between different packages.
 
 
-.. note::
-
-   In the most recent versions of Fedora, the **yum** utility has
-   been replaced with a new tool called **dnf**, which performs the same
-   job. Future versions of RHEL and CentOS will follow this change.
-
-   Fortunately, the syntax for using **dnf** is almost identical to that of
-   **yum**, so the recipe given here will still work. The output will be
-   slightly different, but the outcomes will be the same.
-
-
 In addition to the **httpd** packages, you may wish to install several
 packages, including **httpd-devel**, **httpd-manual**, and **httpd-tools**.
-**httpd-devel** contains programs related to developing the Apache Web
-server, as well as utilities such as **apxs**, which you might use to
+**httpd-devel** contains programs related to developing httpd,
+as well as utilities such as **apxs**, which you might use to
 install third-party modules. **httpd-manual** contains the
 documentation (**i.e.**, the manual) for the server. And **httpd-tools**
-contains a variety of tools that are useful in managing your Apache
-Web server, such as **ab**, the performance tester, **htpasswd**, which
+contains a variety of tools that are useful in managing your httpd,
+such as **ab**, the performance tester, **htpasswd**, which
 allows you to create password files for authentication, and
 **logresolve**, which is used for resolving IP addresses in server log
 files.
@@ -678,17 +449,17 @@ files.
 
 .. code-block:: text
 
-   % sudo yum install httpd httpd-devel httpd-manual httpd-tools
+   % sudo dnf install httpd httpd-devel httpd-manual httpd-tools
 
 
-Note that packages of the Apache Web server have to be prepared by
+Note that packages of httpd have to be prepared by
 members of the various Linux distribution communities, and so may
-lag behind the latest version of the Apache Web server released by
+lag behind the latest version of httpd released by
 the httpd project. 
 
 Decisions about where to place files on your system are made by the
 packagers for the various platforms, and may vary from examples in this
-book. For a full description of where CentOS, Fedora, and RHEL
+book. For a full description of where Fedora and RHEL
 packages place files and directories, you should consult
 https://wiki.apache.org/httpd/DistrosDefaultLayout.
 
@@ -700,8 +471,6 @@ See Also
 
 
 * https://wiki.apache.org/httpd/DistrosDefaultLayout
-
-* **``man yum``**
 
 * **``man dnf``**
 
@@ -717,9 +486,7 @@ Uninstalling on RPM-based distributions
 
 .. index:: Uninstall,RPM
 
-.. index:: yum
-
-.. index:: CentOS
+.. index:: dnf
 
 .. index:: Fedora
 
@@ -734,9 +501,9 @@ Problem
 ~~~~~~~
 
 
-You want to uninstall the Apache http server from a system running an
-RPM-based distribution, such as CentOS, Fedora, or Red Hat Enterprse
-Linux.
+You want to uninstall httpd from a system running an
+RPM-based distribution, such as Fedora, AlmaLinux, Rocky Linux, or Red Hat Enterprise
+Linux (RHEL).
 
 
 .. _Solution_Uninstall_redhat:
@@ -745,12 +512,12 @@ Solution
 ~~~~~~~~
 
 
-Use the **yum** utility to remove the package
+Use the **dnf** utility to remove the package
 
 
 .. code-block:: text
 
-   % sudo yum erase httpd
+   % sudo dnf remove httpd
 
 
 .. _Discussion_Uninstall_redhat:
@@ -762,10 +529,10 @@ Discussion
 The above command will remove the **httpd** package, and 
 anything else you may have installed which depends on it.
 
-The **yum** utility, as mentioned above in
+The **dnf** utility, as mentioned above in
 :ref:`Discussion_Install_redhat`, manages package installation, and also
 keeps track of package dependencies. If you've installed supplementary
-packages such as **httpd-manual** or **httpd-devel**, **yum** will uninstall
+packages such as **httpd-manual** or **httpd-devel**, **dnf** will uninstall
 them when you uninstall **httpd**, because they depend upon it, and
 cannot function without it.
 
@@ -779,7 +546,7 @@ See Also
 ~~~~~~~~
 
 
-* **man yum**
+* **man dnf**
 
 * :ref:`Recipe_Install_redhat`
 
@@ -807,7 +574,7 @@ Problem
 
 
 You have a computer running Debian, or one of the Debian-based
-distributions, such as Ubuntu, and wish to install Apache.
+distributions, such as Ubuntu, and wish to install httpd.
 
 
 .. _Solution_Install_debian:
@@ -844,7 +611,7 @@ Debian has its own unique arragement of configuration files,
 which is unlike that of any other distribution. Both modules and sites
 (virtual hosts) are arranged in subdirectories so that they can be
 enabled or disabled at will using utilities that come with Debian's
-version of Apache. For example, to enable a particular module, you
+version of httpd. For example, to enable a particular module, you
 will use the **a2enmod** command, which
 makes the appropriate changes to the server configuration file to
 cause that module to be loaded. For example:
@@ -943,8 +710,8 @@ See Also
 
 .. _Recipe_Install_Windows:
 
-Installing Apache on Microsoft Windows
---------------------------------------
+Installing httpd on Microsoft Windows
+-------------------------------------
 
 .. index:: Install,Microsoft Windows
 
@@ -953,8 +720,6 @@ Installing Apache on Microsoft Windows
 .. index:: Microsoft Windows,Install
 
 .. index:: WAMP
-
-.. index:: Bitnami
 
 .. index:: Installing Apache on Microsoft Windows
 
@@ -965,7 +730,7 @@ Problem
 ~~~~~~~
 
 
-You want to install the Apache Web server software on a Windows platform.
+You want to install httpd software on a Windows platform.
 
 
 .. _apacheckbk-CHP-1-NOTE-69:
@@ -973,7 +738,7 @@ You want to install the Apache Web server software on a Windows platform.
 
 .. tip::
 
-   If you already have Apache installed on your Windows system,
+   If you already have httpd installed on your Windows system,
    remove it before installing a new version. Failure to do this
    results in unpredictable behavior. See :ref:`Recipe_Uninstall_windows`.
 
@@ -994,18 +759,18 @@ similar. You download the installation package, and double-click on it
 to launch it, and then make various decisions about how it will be
 installed.
 
-For example, if you select the Bitnami WAMP distribution, you'll be
+For example, if you select a WAMP distribution, you'll be
 led through a series of steps to install httpd, and various other
 supporting packages, and configure it.
 
 
-.. _First_screen_of_Bitnami_WAMP_install:
+.. _First_screen_of_WAMP_install:
 
 
 .. figure:: ../images/install_windows_bitnami_01.png
-   :alt: First screen of Bitnami WAMP install
+   :alt: First screen of a WAMP install
 
-   First screen of Bitnami WAMP install
+   First screen of a WAMP install
 
 
 .. _Discussion_Install_Windows:
@@ -1019,7 +784,7 @@ source code, rather than compiled executables. That's why there are
 third-party packages to install on various platforms.
 
 On Microsoft Windows, as with Linux, there are several third-party
-distributions of the Apache web server, and these are listed on the
+distributions of httpd, and these are listed on the
 download page at 
 https://httpd.apache.org/docs/platform/windows.html#down
 
@@ -1027,14 +792,14 @@ Since the httpd project does not officially endorse one particular
 distribution over another, there are several vendors listed on that
 page, in alphabetical order.
 
-For the purpose of this recipe, we've picked one - the Bitnami
-distribution - but the installation process shown here will be very
+For the purpose of this recipe, I've picked one of these
+distributions, but the installation process will be very
 similar for the other packages listed.
 
-The Bitnami package is what is called a 'WAMP' (Windows, Apache, MySQL, PHP)
-distribution: an integrated package containing Apache httpd, MySQL, and PHP, for the
-Windows platform. Some of the other packages contain only Apache httpd
-binaries, and some are WAMP distributions like Bitnami's.
+Some of these are 'WAMP' (Windows, Apache, MySQL, PHP)
+distributions: integrated packages containing Apache httpd, MySQL, and PHP, for the
+Windows platform. Others contain only the Apache httpd
+binaries.
 
 
 .. _See_Also_Install_Windows:
@@ -1056,8 +821,6 @@ Uninstalling on Microsoft Windows
 
 .. index:: Microsoft Windows,Uninstall
 
-.. index:: Bitnami
-
 .. index:: Uninstalling in Microsoft Windows
 
 
@@ -1077,7 +840,7 @@ Solution
 ~~~~~~~~
 
 
-On Windows, Apache can typically be removed like any other
+On Windows, httpd can typically be removed like any other
 MSI-installed software. Go to the 'Add/Remove Programs'
 portion of your Control Panel, select the entry for the version of
 the Apache HTTP Server which you have installed,
@@ -1088,14 +851,13 @@ and press the 'Remove' button.
 
 
 .. figure:: ../images/uninstall_windows.png
-   :alt: Uninstalling the Apache software
+   :alt: Uninstalling httpd
 
-   Uninstalling the Apache software
+   Uninstalling httpd
 
 
-The screenshot above shows uninstallation of the Bitnami WAMP Stack
-distribution of the Apache http server, which is what we used for the
-installation example in the recipe above, but the process will be the
+The screenshot above shows uninstallation of a WAMP Stack
+distribution of httpd, but the process will be the
 same for other packages.
 
 
@@ -1135,16 +897,16 @@ See Also
 
 .. _Recipe_Install_OSX:
 
-Installing on Mac OS X
-----------------------
+Installing on macOS
+-------------------
 
-.. index:: Installation,Mac OS X
+.. index:: Installation,macOS
 
-.. index:: Mac OS X,Install
+.. index:: macOS,Install
 
-.. index:: OS X,Install
+.. index:: macOS,Install
 
-.. index:: Installing on Mac OS X
+.. index:: Installing on macOS
 
 
 .. _Problem_Install_OSX:
@@ -1153,7 +915,7 @@ Problem
 ~~~~~~~
 
 
-You want to install Apache http server on Mac OS X.
+You want to install httpd on macOS.
 
 
 .. _Solution_Install_OSX:
@@ -1162,7 +924,7 @@ Solution
 ~~~~~~~~
 
 
-Apache httpd is installed by default on Mac OS X. To start it up, open
+Apache httpd is installed by default on macOS. To start it up, open
 the Terminal app, and type:
 
 
@@ -1177,8 +939,7 @@ Discussion
 ~~~~~~~~~~
 
 
-Apache httpd has been installed by default on every version of Mac OS
-X, and is kept up to date by the system update that runs regularly, so
+Apache httpd has been installed by default on macOS, and is kept up to date by the system update that runs regularly, so
 you don't actually have to install it yourself.
 
 However, if you want to install a different version of httpd, or
@@ -1189,7 +950,7 @@ One is to download and build the source code yourself (See
 :ref:`Recipe_Downloading` and :ref:`Recipe_Build_from_source`.
 
 Another option is to use one of the third-party package managers which
-is available for OS X.
+is available for macOS.
 
 One of these is Homebrew, which may be
 found at http://brew.sh/. Once you've installed Homebrew
@@ -1231,16 +992,16 @@ See Also
 
 .. _Recipe_Uninstall_OSX:
 
-Uninstalling on Mac OS X
-------------------------
+Uninstalling on macOS
+---------------------
 
-.. index:: Uninstallation,Mac OS X
+.. index:: Uninstallation,macOS
 
-.. index:: Mac OS X,Uninstall
+.. index:: macOS,Uninstall
 
-.. index:: OS X,Uninstall
+.. index:: macOS,Uninstall
 
-.. index:: Uninstalling on Mac OS X
+.. index:: Uninstalling on macOS
 
 
 .. _Problem_Uninstall_OSX:
@@ -1248,7 +1009,7 @@ Uninstalling on Mac OS X
 Problem
 ~~~~~~~
 
-You want to disable Apache httpd that is installed your OS X system.
+You want to disable Apache httpd that is installed on your macOS system.
 
 
 .. _Solution_Uninstall_OSX:
@@ -1257,7 +1018,7 @@ Solution
 ~~~~~~~~
 
 
-To disable the Apache httpd installation on your Mac OS X
+To disable the Apache httpd installation on your macOS
 installation, type the following in a Terminal window:
 
 
@@ -1272,7 +1033,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The Apache HTTP server is installed by default on Mac OS X, as
+httpd is installed by default on macOS, as
 mentioned in :ref:`Recipe_Install_OSX`. If you've configured it to run by
 default, and wish to uninstall it, you need to tell **launchctl**, the
 service manager, not to start it any more at boot. This is
@@ -1295,8 +1056,8 @@ See Also
 
 .. _Recipe_Uninstalling_Apache:
 
-Uninstalling Apache
--------------------
+Uninstalling httpd
+------------------
 
 .. index:: Uninstall
 
@@ -1311,7 +1072,7 @@ Problem
 ~~~~~~~
 
 
-You have the Apache software installed on your system, and you
+You have httpd installed on your system, and you
       want to remove it, but it wasn't installed **via** one of the
       standard methods.
 
@@ -1343,10 +1104,10 @@ Discussion
 
 
 Unfortunately, there's no generic works-for-all removal method for the
-Apache http server, because there are so many different ways that
+httpd, because there are so many different ways that
 you can install it.
 
-We have provided recipes for the most common packaging systems. For
+I have provided recipes for the most common packaging systems. For
 RPM-based packages, see :ref:`Recipe_Uninstall_redhat`. For
 Debian-based packages, see :ref:`Recipe_Uninstall_debian`. And to
 uninstall on Windows, see :ref:`Recipe_Uninstall_windows`.
@@ -1451,8 +1212,8 @@ See Also
 
 .. _Recipe_Downloading:
 
-Downloading the Apache Sources
-------------------------------
+Downloading the httpd Sources
+-----------------------------
 
 .. index:: Downloading
 
@@ -1486,8 +1247,8 @@ using the **tar** utility.
    % tar vzxf httpd-2.4.34.tar.gz
 
 
-Alternatively, you can obtain the source directly from revision
-control (svn).
+Alternatively, you can obtain the source directly from version
+control (Git).
 
 
 .. _Discussion_Downloading:
@@ -1497,14 +1258,14 @@ Discussion
 
 
 There are, in fact, a number of different ways to obtain the source
-  code for the Apache http server. These include the method shown
+  code for httpd. These include the method shown
   above, obtaining a source package for your particular OS, and getting
   it straight from revision control. The most common of these is to
   get it from the httpd download site.
 
 The page at https://httpd.apache.org/download.cgi lists the
-  latest releases of the Apache web server, and provides links to the
-  mirror site that is geographically closest to you. Apache downloads
+  latest releases of httpd, and provides links to the
+  mirror site that is geographically closest to you. httpd downloads
   are backed by a large network of mirror sites, located around the
   world to spread the load and make downloads faster. So, when you
   click on one of the file download links, you'll notice that the file
@@ -1534,7 +1295,7 @@ The ``v`` argument says to be verbose - that is, tell us everything that
 The ``z`` argument says to undo the zip compression that has been
   applied to the archive.
 
-``x`` indicates that we wish to extract the archive.
+``x`` indicates that you wish to extract the archive.
 
 Finally, ``f`` indicates that the next argument is the name of a file -
 in this case, **httpd-2.4.34.tar.gz**.
@@ -1554,10 +1315,10 @@ If your version of **tar**
 
 For the next steps, go to the recipe :ref:`Recipe_Build_from_source`.
 
-Another option is to obtain the source directly from revision control.
+Another option is to obtain the source directly from version control.
   All of the Apache httpd source code is developed in public, in a
-  revision control system called Subversion, or **svn**. To obtain the
-  source directly from revision control, see
+  Git repository hosted on GitHub. To obtain the
+  source directly from version control, see
   :ref:`Recipe_Source_from_svn`.
 
 No matter how you obtained the source, the directory tree will be
@@ -1576,7 +1337,7 @@ See Also
 
 * :ref:`Recipe_Install_Windows`
 
-* Apache mirror sites: https://www.apache.org/mirrors/
+* httpd mirror sites: https://www.apache.org/mirrors/
 
 * How to become a mirror site: https://www.apache.org/info/how-to-mirror.html
 
@@ -1609,7 +1370,7 @@ Problem
 ~~~~~~~
 
 
-You've downloaded the Apache web server from a mirror server, and want
+You've downloaded httpd from a mirror server, and want
 to be certain that it's unmodified from the original release.
 
 
@@ -1648,7 +1409,7 @@ Discussion
 
 Next to each download link, there are three additional links, which
 assist in ensuring that the file that you are downloading is in fact
-the one that you intend to be downloading. While the Apache mirror
+the one that you intend to be downloading. While the httpd mirror
 sites are presumed to be trusted sources for downloads, sometimes
 files on mirror sites get changed in some way, malicious or
 otherwise, and it's best to be safe.
@@ -1694,7 +1455,7 @@ which is a cryptographic file that represents that person's
 identity. A full discussion of the mathematical details of PGP can
 be found at https://en.wikipedia.org/wiki/Pretty_Good_Privacy
 
-For the sake of simplicity, however, we'll just say that a PGP key is
+For the sake of simplicity, however, I'll just say that a PGP key is
 like a seal, which people used in simpler times to mark a letter and
 ensure that it came from them. It's more secure than that, though,
 as it is validated by a pass code, and by sophisticated encryption.
@@ -1731,7 +1492,7 @@ server:
 This particular key belongs to Jim Jagielski, who is the individual
   who made this particular release of httpd.
 
-Now that we have the key, we'll try again to verify the signature:
+Now that you have the key, you'll try again to verify the signature:
 
 
 .. code-block:: text
@@ -1748,7 +1509,7 @@ Now that we have the key, we'll try again to verify the signature:
 
 
 Well, that looks almost right. It says that the signature is good,
-  which is what we cared about. That means that the file that you
+  which is what you cared about. That means that the file that you
   downloaded matches the signature file that you downloaded, and
   you've verified that you have a good (trustworthy) file.
 
@@ -1867,16 +1628,16 @@ See Also
 
 .. _Recipe_Source_from_svn:
 
-Obtaining the source from revision control
-------------------------------------------
+Obtaining the source from version control
+-----------------------------------------
 
-.. index:: Subversion
+.. index:: Git
 
-.. index:: svn
+.. index:: GitHub
 
-.. index:: Revision control
+.. index:: Version control
 
-.. index:: Obtaining the source from revision control
+.. index:: Obtaining the source from version control
 
 
 .. _Problem_Source_from_svn:
@@ -1895,22 +1656,22 @@ Solution
 
 
 For the very latest, up-to-the-minute development source code (not
-guaranteed to actually be funcional), check out svn HEAD using the
+guaranteed to actually be functional), clone the ``trunk`` branch using the
 following:
 
 
 .. code-block:: text
 
-   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
+   git clone https://github.com/apache/httpd.git httpd-trunk
 
 
-To obtain a particular release branch, such as 2.4 or 2.2, you would
+To obtain a particular release branch, such as 2.4.x, you would
 instead use a command like:
 
 
 .. code-block:: text
 
-   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/ httpd-2.4
+   git clone --branch 2.4.x https://github.com/apache/httpd.git httpd-2.4
 
 
 .. _Discussion_Source_from_svn:
@@ -1919,20 +1680,19 @@ Discussion
 ~~~~~~~~~~
 
 
-The Apache httpd source code is developed in a source control
-management system (or SCM) called Subversion, or svn. SCMs (also
-called Revision Control Systems) allow for tracking of all changes -
+The Apache httpd source code is developed in a Git repository
+hosted on GitHub. Git is a distributed version control system
+which allows for tracking of all changes -
 who changed what, and why - so that it can be easily determined what
 changed between one version of the software and another, and changes
 can be rolled back if necessary.
 
-You can read a lot more about revision control, and about Subversion
-in particular, at
-https://subversion.apache.org/features.html
+You can read a lot more about Git at
+https://git-scm.com/
 
 If you're interested in following the latest development of the
-server, you want to follow trunk, which is where active development
-occurs.
+server, you want to follow the ``trunk`` branch, which is where active
+development occurs.
 
 On the other hand, when the software is released for general
 consumption, a branch is created, where only bug fixes, and stable
@@ -1941,41 +1701,31 @@ functional at any given moment, and, of course, move much more slowly
 than the active development in trunk.
 
 For a complete list of the available release branches, see
-https://svn.apache.org/repos/asf/httpd/httpd/branches/
+https://github.com/apache/httpd/branches
 
-Finally, there are tags, which represent specific release version
+Tags represent specific release version
 numbers. Tags are immutable - that is, once a release has been made,
 it is never changed again, as it marks a particular point in the
 history of development.
 
-You can find the names of the release branches used in the source tree 
-  either by visiting 
-  https://svn.apache.org/viewvc/httpd/httpd/branches/
-  in your browser, or with the command:
+You can find the names of the release branches and tags at
+  https://github.com/apache/httpd
+  or with the commands:
 
 
 .. code-block:: text
 
-   svn ls https://svn.apache.org/repos/asf/httpd/httpd/branches/
+   git branch -r
+   git tag
 
 
-If you wanted to check out the source code for a particular release,
-for example, the 2.4.17 release, you would do the following:
-
-
-.. code-block:: text
-
-   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/tags/2.4.17/ httpd-2.17
-
-
-You can find the names of the tags used in the source tree either by 
-    visiting https://svn.apache.org/viewvc/httpd/httpd/tags/
-    in your browser, or with the command:
+If you wanted to check out the source code for a particular release
+tag, for example, the 2.4.62 release, you would do the following:
 
 
 .. code-block:: text
 
-   svn ls https://svn.apache.org/repos/asf/httpd/httpd/tags/
+   git clone --branch 2.4.62 https://github.com/apache/httpd.git httpd-2.4.62
 
 
 .. _apacheckbk-CHP-1-NOTE-71:
@@ -1990,14 +1740,14 @@ You can find the names of the tags used in the source tree either by
    so use these to work with a particular release version.
 
 
-If you choose to obtain the sources using the Subversion method,
+If you choose to obtain the sources using Git,
     you can keep your sources up-to-date by executing the following
     command from the top level of the source directory:
 
 
 .. code-block:: text
 
-   svn update
+   git pull
 
 
 This will update or fetch any files that have been changed or
@@ -2014,7 +1764,7 @@ To build these various checkouts into a running server, see
 
 If you're interested in making changes to the source code, and
 contributing those back to the httpd project, see the recipes in the
-chapter :ref:`Chapter_Contributing_to_apache`, *Contributing to Apache
+chapter :ref:`Chapter_Contributing_to_apache`, *Contributing to httpd
 httpd*.
 
 
@@ -2029,8 +1779,8 @@ See Also
 
 .. _Recipe_Build_from_source:
 
-Building Apache from the Sources
---------------------------------
+Building httpd from the Sources
+-------------------------------
 
 .. index:: Source,build
 
@@ -2045,7 +1795,7 @@ Problem
 ~~~~~~~
 
 
-You want to build your Apache Web server from the sources
+You want to build your httpd from the sources
       directly rather than installing it from a prepackaged kit.
 
 
@@ -2055,8 +1805,8 @@ Solution
 ~~~~~~~~
 
 
-Assuming that you already have the Apache source tree—whether
-you installed it from a tarball, Subversion, or some distribution
+Assuming that you already have the httpd source tree—whether
+you installed it from a tarball, Git, or some distribution
 package, the following commands—executed in the top directory of the
 tree, builds the server package with most of the standard modules as
 DSOs:
@@ -2093,16 +1843,16 @@ time-consuming, but it's essential if you intend to make any changes
 to the source code. It gives you much more control over things, such
 as the use of shareable object libraries and the database routines
 available to modules. Building from source is also **de rigeur** 
-if you're developing your own Apache modules.
+if you're developing your own httpd modules.
 
 If you want to build the modules statically into the server,
 replace any occurrences of
-``--enable-mods-shared=``**``list``**
+``--enable-mods-shared=list``
 with
-``--enable-mods=``**``list``**.
+``--enable-mods=list``.
 
 The options to the **configure** script are many and varied; if
-you haven't used it before to build Apache, the document at
+you haven't used it before to build httpd, the document at
 https://httpd.apache.org/docs/install.html is a
 good crash course. The default options generally produce a
 working server, although the filesystem locations and module choices
@@ -2111,7 +1861,7 @@ don't want or omit some you do. (See
 :ref:`Chapter_Common_modules`, **Adding Common Modules**, for some examples.)
 
 The **buildconf** command creates the **configure** script, and
-is only strictly necessary if obtained the source from svn (see
+is only strictly necessary if you obtained the source from Git (see
 :ref:`Recipe_Source_from_svn`). If you downloaded the source in a release
 tarball, on the other hand, the **configure** script is already part of
 the package.
@@ -2119,20 +1869,19 @@ the package.
 **buildconf** itself has a number of dependencies. In particular, you'll
 need to have **libtool** and **autoconf** installed, and you'll probably
 need to have a checkout of APR, which you can obtain by typing the
-following at the root directory of your httpd svn working copy:
+following at the root directory of your httpd source tree:
 
 
 .. code-block:: text
 
-   svn co https://svn.apache.org/repos/asf/apr/apr/tags/1.6.3 srclib/apr
+   git clone https://github.com/apache/apr.git srclib/apr
 
 
 .. note::
 
-   In the example here, I have picked the 1.6.3 tag of APR, which is the
-   current release at the time that I'm writing this. We encourage you to
-   look at https://apr.apache.org/ to determine what the current release
-   is at the time that you're reading this.
+   The above command clones the APR source repository. You can check
+   https://apr.apache.org/ for the latest release version and check out
+   a specific tag if needed.
 
 
 When you run **configure**, it will check the system for various
@@ -2225,7 +1974,7 @@ Here are some of the most important and useful options that you
 
 Currently the predefined layouts include:
 
-* Apache 
+* httpd 
 
 * beos 
 
@@ -2239,7 +1988,7 @@ Currently the predefined layouts include:
 
 * GNU 
 
-* Mac OS X Server 
+* macOS 
 
 * OpenBSD 
 
@@ -2290,15 +2039,14 @@ layouts.
 ``--with-apr``, ``--with-apr-util``:: 
               If you have multiple versions of the Apache Portable
               Runtime library and utilities installed—as you might if
-              you build Apache on a system with Subversion
+              you build httpd on a system with other APR-dependent software
               installed—you can use these options to ensure that the
-              Apache server is built with a compatible APR version.
+              httpd is built with a compatible APR version.
 
 ``--with-included-apr``:: 
         This option is a nice shorthand way of specifying the
         compatible bundled version of APR should be used. 
-        This option is not available prior to Apache version 2.2.
-
+        
 ``--with-mpm``:: 
         The Multi-Processing Model, or MPM, defines how the server
         handles requests by setting the relationship between threads and
@@ -2347,7 +2095,7 @@ script itself:
 
 
 However, for more detailed understanding you need to consult the
-Apache documentation itself—or look at the source code.
+httpd documentation itself—or look at the source code.
 
 
 .. _See_Also_Building_from_source_advanced:
@@ -2363,8 +2111,8 @@ See Also
 
 .. _Recipe_Starting_stopping:
 
-Starting, Stopping, and Restarting Apache
------------------------------------------
+Starting, Stopping, and Restarting httpd
+----------------------------------------
 
 .. index:: Starting
 
@@ -2397,7 +2145,7 @@ Solution
 ~~~~~~~~
 
 
-On Unixish systems, including Linux and Mac OS X, use the **apachectl** script.
+On Unixish systems, including Linux and macOS, use the **apachectl** script.
 On Microsoft Windows, there will usually be items in the start menu
 for controlling the server, but the exact nature and layout of those
 tools will vary from one packaging to another.
@@ -2415,7 +2163,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The basic Apache package includes tools to make it easy to
+The basic httpd package includes tools to make it easy to
 control the server. For Unixish systems, this is usually a script
 called **apachectl**, but prepackaged
 distributions may replace or rename it. For example, on
@@ -2455,7 +2203,7 @@ line. The options of interest are:
         servers without any clients being aware of it.
 
 Finally, note that **apachectl** is just a script that passes arguments
-to **httpd**, the main Apache HTTP server binary. You may directly
+to **httpd**, the main httpd binary. You may directly
 invoke **httpd** with any of the above options using the ``-k`` flag
 (**e.g.**, **``httpd -k restart``**), and other options are also available.
 
@@ -2473,29 +2221,29 @@ are available in the command line tools.
 
 
 .. figure:: ../images/windows_menu.png
-   :alt: Using the Start menu to control Apache
+   :alt: Using the Start menu to control httpd
 
-   Using the Start menu to control Apache
+   Using the Start menu to control httpd
 
 
-Additionally, the Bitnami WAMP Stack package includes a
+Some WAMP Stack packages include a
 general-purpose control panel app which can be used to control your
-Apache http server, as well as MySQL, the database component that is
+httpd, as well as MySQL, the database component that is
 bundled with it as part of the WAMP (Windows, Apache, MySQL, PHP)
 stack.
 
 
-.. _Bitnami_control_panel:
+.. _WAMP_control_panel:
 
 
 .. figure:: ../images/windows_control_panel.png
-   :alt: Using the Bitnami control panel
+   :alt: Using the WAMP control panel
 
-   Using the Bitnami control panel
+   Using the WAMP control panel
 
 
 From this screen, you can access the service control panel, which has a
-simple interface to start and stop the Apache http server and the
+simple interface to start and stop httpd and the
 MySQL server.
 
 
@@ -2503,9 +2251,9 @@ MySQL server.
 
 
 .. figure:: ../images/windows_service_manager.png
-   :alt: Using the Bitnami service control panel
+   :alt: Using the WAMP service control panel
 
-   Using the Bitnami service control panel
+   Using the WAMP service control panel
 
 
 Finally, the standard command-line options are also available on
@@ -2540,8 +2288,8 @@ See Also
 
 .. _Recipe_Starting_at_boot:
 
-Starting Apache at Boot
------------------------
+Starting httpd at Boot
+----------------------
 
 .. index:: Starting,at boot
 
@@ -2552,7 +2300,7 @@ Problem
 ~~~~~~~
 
 
-You want your Apache Web server to start automatically when your
+You want your httpd to start automatically when your
 system boots up.
 
 
@@ -2565,7 +2313,7 @@ Solution
 Modern operating systems have facilities to start services on startup.
 The exact mechanism for this will vary from one platform
 to another, and may also vary depending on the exact way you installed
-the Apache web server.
+httpd.
 
 .. index:: Windows,Starting at boot
 
@@ -2579,26 +2327,24 @@ On most Windows packages of Apache httpd, there will be the option to
 install httpd as a Windows Service, which is then managed at startup
 and shutdown by the operating system itself.
 
-For example, in the Bitnami WAMP Stack install, which has been used in
-some of the recipes in this chapter, you'll see 'Install Bitnami WAMP
-Stack as service' in the program menu.
+For example, in the WAMP Stack install used in
+some of the recipes in this chapter, you'll see an 'Install as
+service' option in the program menu.
 
 
-.. _Install_Bitnami_WAMP_Stack_as_service:
+.. _Install_WAMP_Stack_as_service:
 
 
 .. figure:: ../images/service.png
-   :alt: Install Bitnami WAMP Stack as a service
+   :alt: Install WAMP Stack as a service
 
-   Install Bitnami WAMP Stack as a service
+   Install WAMP Stack as a service
 
 
 Once you've done that, it will automatically start on boot, and can
 also be started or stopped from the Windows service manager.
 
 On Unix systems, this will vary by platform.
-
-.. index:: CentOS,Starting at boot
 
 .. index:: RHEL,Starting at boot
 
@@ -2612,7 +2358,7 @@ On Unix systems, this will vary by platform.
 
 .. index:: Commands,systemctl
 
-For RPM-based installations (CentOS, Fedora, and RHEL), use the
+For RPM-based installations (Fedora, AlmaLinux, Rocky Linux, and RHEL), use the
 **systemctl** utility to enable the service to start at boot:
 
 
@@ -2621,30 +2367,12 @@ For RPM-based installations (CentOS, Fedora, and RHEL), use the
    % sudo systemctl enable httpd
 
 
-For older RPM-based systems (Fedora 20 and earlier, CentOS and RHEL
-before 7), use the **chkconfig** utility instead:
-
-
-.. code-block:: text
-
-   % sudo chkconfig httpd on
-
-
 .. index:: Debian,Starting at boot
 
 .. index:: Ubuntu,Starting at boot
 
-For older Debian systems (including Ubuntu), use the **update-rc.d** utility
-to do the same:
-
-
-.. code-block:: text
-
-   % sudo update-rc.d apache2 defaults
-
-
-However, newer Debian/Ubuntu distributions also use systemd, and so
-you'll use ``systemctl``:
+For Debian and Ubuntu, which also use systemd, you'll
+use ``systemctl``:
 
 
 .. code-block:: text
@@ -2652,7 +2380,7 @@ you'll use ``systemctl``:
    % sudo systemctl enable apache2
 
 
-On Mac OS X, if you want to have the default installed Apache httpd
+On macOS, if you want to have the default installed Apache httpd
 start on system startup, you need to tell ``launchctl``, the service
 manager, that it should be loaded by default:
 
@@ -2704,7 +2432,7 @@ Problem
 ~~~~~~~
 
 
-You built your Apache Web server software from the source, and
+You built your httpd software from the source, and
 now you want to upgrade it while keeping all the same configuration
 options.
 
@@ -2723,10 +2451,7 @@ created by your build of the earlier version.
 .. warning::
 
    This technique is primarily intended for use when upgrading
-   within the same major version series, such as from 2.2.28 to 2.2.29,
-   or from 2.4.8 to 2.4.10. Attempting to use it to apply older
-   configuration options to a newer major version (such as from 2.2.29
-   to 2.4.10) may not work reliably.
+   within the same major version series, such as from 2.4.8 to 2.4.10.
 
 
 For example, suppose you built and installed version 2.4.8 long
@@ -2799,7 +2524,7 @@ Problem
 ~~~~~~~
 
 
-You've installed the Apache Web server, whether from source or
+You've installed httpd, whether from source or
   an installation kit, but you're not sure where all the files have been
   put.
 
@@ -2977,6 +2702,397 @@ See Also
 
 * https://httpd.apache.org/docs/programs/configure.html
 
+.. _Recipe_docker:
+
+Running httpd in a Docker container
+-----------------------------------
+
+.. index:: Docker
+.. index:: Container
+.. index:: httpd Docker image
+
+.. _Problem_Recipe_docker:
+
+Problem
+~~~~~~~
+
+
+You want to run Apache httpd inside a Docker container for easy deployment and reproducibility.
+
+
+.. _Solution_Recipe_docker:
+
+Solution
+~~~~~~~~
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+Use the official ``httpd`` Docker image from Docker Hub. The simplest
+approach is to run the image directly, mounting your local content
+into the container:
+
+.. code-block:: bash
+
+   $ docker run -d --name my-httpd -p 8080:80 \
+       -v /path/to/your/site:/usr/local/apache2/htdocs/:ro \
+       httpd:2.4
+
+For a more reproducible setup, create a :file:`Dockerfile` that copies
+your content and configuration into the image:
+
+.. code-block:: text
+
+   FROM httpd:2.4
+   COPY ./my-site/ /usr/local/apache2/htdocs/
+   COPY ./my-httpd.conf /usr/local/apache2/conf/httpd.conf
+
+Build and run it:
+
+.. code-block:: bash
+
+   $ docker build -t my-httpd-app .
+   $ docker run -d --name my-httpd -p 8080:80 my-httpd-app
+
+
+.. _Discussion_Recipe_docker:
+
+Discussion
+~~~~~~~~~~
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+The official ``httpd`` image on Docker Hub
+(https://hub.docker.com/_/httpd) is maintained by the Docker
+community and provides a minimal Apache httpd installation based on
+Debian. It's available in several variants:
+
+- ``httpd:2.4`` — the current stable release, updated with each new
+  2.4.x point release. This is the tag you should use.
+- ``httpd:2.4-alpine`` — a smaller image based on Alpine Linux,
+  useful when image size matters.
+
+**Volume mounts.** The ``-v`` flag in the ``docker run`` command
+mounts a host directory into the container. The ``:ro`` suffix makes
+the mount read-only, which is good practice for serving static
+content. The key paths inside the container are:
+
+- :file:`/usr/local/apache2/htdocs/` — the ``DocumentRoot``
+- :file:`/usr/local/apache2/conf/httpd.conf` — the main
+  configuration file
+- :file:`/usr/local/apache2/conf/extra/` — supplemental
+  configuration files (SSL, virtual hosts, etc.)
+- :file:`/usr/local/apache2/logs/` — log files
+
+**Custom configuration.** To start with the default configuration
+and customize it, first extract the file from a running container:
+
+.. code-block:: bash
+
+   $ docker run --rm httpd:2.4 cat /usr/local/apache2/conf/httpd.conf \
+       > my-httpd.conf
+
+Edit that file locally, then copy it into your image via the
+:file:`Dockerfile` or mount it at runtime.
+
+**SSL/TLS.** For HTTPS, you'll need to uncomment the SSL
+lines in the configuration file and mount your certificates into the
+container. See :ref:`Chapter_SSL_and_TLS` for details on configuring
+SSL.
+
+**Logging.** By default, the official image sends access and error
+logs to ``stdout`` and ``stderr``, which makes them accessible via
+``docker logs``. If you need file-based logs for tools that
+parse them, mount a volume on :file:`/usr/local/apache2/logs/`.
+
+
+.. _See_Also_Recipe_docker:
+
+See Also
+~~~~~~~~
+
+
+* https://hub.docker.com/_/httpd
+
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_systemd_integration:
+
+Integrating Apache with systemd
+--------------------------------
+
+.. index:: mod_systemd
+
+.. index:: systemd
+
+.. index:: systemctl
+
+.. index:: journalctl
+
+.. index:: sd_notify
+
+.. index:: Commands,systemctl
+
+.. index:: Commands,journalctl
+
+
+.. _Problem_systemd_integration:
+
+Problem
+~~~~~~~
+
+
+You are running httpd on a modern Linux distribution that uses
+systemd, and you want proper integration -- reliable startup
+notification, clean shutdown behavior, status reporting, and
+journal-based logging.
+
+
+.. _Solution_systemd_integration:
+
+Solution
+~~~~~~~~
+
+
+Load :module:`mod_systemd` in your server configuration:
+
+.. code-block:: apache
+
+   LoadModule systemd_module modules/mod_systemd.so
+
+Then define a systemd service unit file. On most distributions that
+ship httpd as a package, this file is already provided. If you built
+from source, create the file
+:file:`/etc/systemd/system/httpd.service`:
+
+.. code-block:: text
+
+   [Unit]
+   Description=The Apache HTTP Server
+   After=network.target
+
+   [Service]
+   Type=notify
+   ExecStart=/usr/local/apache2/bin/httpd -D FOREGROUND -k start
+   ExecReload=/usr/local/apache2/bin/httpd -k graceful
+   KillMode=mixed
+
+   [Install]
+   WantedBy=multi-user.target
+
+After creating or modifying the unit file, reload the systemd
+daemon so that it picks up the changes:
+
+.. code-block:: bash
+
+   sudo systemctl daemon-reload
+
+You can now manage the server with ``systemctl``:
+
+.. code-block:: bash
+
+   sudo systemctl start httpd
+   sudo systemctl stop httpd
+   sudo systemctl reload httpd
+   sudo systemctl restart httpd
+   sudo systemctl status httpd
+
+Enable the service to start automatically at boot:
+
+.. code-block:: bash
+
+   sudo systemctl enable httpd
+
+And view server log output via the journal:
+
+.. code-block:: bash
+
+   journalctl -u httpd
+   journalctl -u httpd -f
+
+
+.. _Discussion_systemd_integration:
+
+Discussion
+~~~~~~~~~~
+
+
+On the vast majority of current Linux distributions -- Fedora, RHEL,
+CentOS Stream, Debian, Ubuntu, SUSE, Arch, and many others -- systemd
+is the init system and service manager. The :module:`mod_systemd`
+module provides the integration layer between httpd and systemd,
+using the ``sd_notify`` protocol to communicate process state.
+
+**How sd_notify works**
+
+When httpd is managed by systemd with ``Type=notify``, systemd does
+not consider the service "started" until the process explicitly
+signals readiness via the ``sd_notify`` protocol. Without
+:module:`mod_systemd`, systemd has no way to know when httpd has
+finished initialization and is actually ready to serve requests. The
+module sends this readiness notification, as well as ongoing status
+updates, so that ``systemctl status`` can display useful information
+about the running server.
+
+**The unit file explained**
+
+Several settings in the unit file deserve attention:
+
+``Type=notify``
+   Tells systemd to wait for an ``sd_notify`` readiness signal from
+   the service before marking it as active. This is what
+   :module:`mod_systemd` provides.
+
+``ExecStart=/usr/local/apache2/bin/httpd -D FOREGROUND -k start``
+   Runs httpd in the foreground so that systemd can directly track the
+   main process. Adjust the path to match your installation -- on
+   RPM-based distributions, this is typically
+   :file:`/usr/sbin/httpd`; on Debian/Ubuntu, it is
+   :file:`/usr/sbin/apache2`.
+
+``ExecReload=/usr/local/apache2/bin/httpd -k graceful``
+   Maps ``systemctl reload`` to a graceful restart. This causes
+   httpd to re-read its configuration files while allowing in-flight
+   requests to complete before child processes are replaced. Again,
+   adjust the path to match your installation.
+
+``KillMode=mixed``
+   When stopping the service, systemd sends ``SIGTERM`` to the main
+   (parent) process only. If child processes are still running after
+   the configured ``TimeoutStopSec`` elapses, systemd sends
+   ``SIGKILL`` to the entire process group. This allows httpd's parent
+   process to coordinate an orderly shutdown of its children, falling
+   back to a forceful kill only if something is stuck.
+
+**systemctl commands and how they map to httpd signals**
+
+If you have been managing httpd with ``apachectl`` or direct signals
+(see :ref:`Recipe_Starting_stopping`), the ``systemctl`` equivalents
+are straightforward:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+
+   * - systemctl command
+     - Signal / action
+     - Behavior
+   * - ``systemctl start httpd``
+     - Starts the httpd process
+     - Equivalent to ``apachectl start``. systemd waits for the
+       ``sd_notify`` readiness signal before reporting the service
+       as active.
+   * - ``systemctl stop httpd``
+     - ``SIGTERM`` (via ``KillMode=mixed``)
+     - Sends ``SIGTERM`` to the parent process, which then
+       terminates its children. Equivalent to ``apachectl stop``.
+   * - ``systemctl reload httpd``
+     - Runs ``ExecReload`` (graceful restart)
+     - Re-reads configuration; in-flight requests complete
+       normally. Equivalent to ``apachectl graceful``.
+   * - ``systemctl restart httpd``
+     - Full stop then start
+     - Terminates all processes and starts fresh. Equivalent to
+       ``apachectl stop`` followed by ``apachectl start``. All
+       in-flight connections are dropped.
+
+The distinction between ``systemctl reload`` and ``systemctl restart``
+is important in production. A **reload** performs a graceful restart --
+children finish their current requests before exiting, and new
+children are spawned with the updated configuration. There is no
+interruption of service for clients. A **restart**, on the other hand,
+fully stops and then starts the server, which means a brief window
+during which the server is not listening and all active connections
+are terminated. Prefer ``systemctl reload`` whenever you have changed
+configuration and want to apply it without downtime.
+
+**Journal integration**
+
+When httpd runs under systemd, its standard output and standard error
+are captured by the systemd journal. You can view the logs with
+``journalctl``:
+
+.. code-block:: bash
+
+   # Show all httpd log entries
+   journalctl -u httpd
+
+   # Follow logs in real time (like tail -f)
+   journalctl -u httpd -f
+
+   # Show logs since the last boot
+   journalctl -u httpd -b
+
+   # Show logs from the last hour
+   journalctl -u httpd --since "1 hour ago"
+
+This is in addition to -- not a replacement for -- the log files
+configured with ``ErrorLog`` and ``CustomLog`` in your httpd
+configuration. The journal captures startup and shutdown messages,
+module loading errors, and anything written to stderr, which can be
+especially useful for diagnosing problems that occur before httpd has
+finished initializing and opened its own log files.
+
+**ExtendedStatus and server-status**
+
+Loading :module:`mod_systemd` automatically enables
+``ExtendedStatus``, which causes httpd to track detailed per-request
+statistics in the scoreboard. These statistics are what make the
+output of :module:`mod_status` (the ``server-status`` handler) useful.
+If you explicitly set ``ExtendedStatus Off`` in your configuration,
+the status information reported by :module:`mod_systemd` to systemd
+will be limited.
+
+**A note on Debian and Ubuntu**
+
+On Debian-based distributions, the service name is ``apache2`` rather
+than ``httpd``, and the unit file is
+:file:`/lib/systemd/system/apache2.service`. The ``systemctl``
+commands are the same, substituting ``apache2`` for ``httpd``:
+
+.. code-block:: bash
+
+   sudo systemctl reload apache2
+   journalctl -u apache2
+
+**Socket activation**
+
+Note that :module:`mod_systemd` does **not** provide support for
+systemd socket activation. The server manages its own listening
+sockets via the ``Listen`` directive.
+
+
+.. _See_Also_systemd_integration:
+
+See Also
+~~~~~~~~
+
+
+* :ref:`Recipe_Starting_stopping`
+
+* :ref:`Recipe_Starting_at_boot`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_systemd.html
+
+* https://httpd.apache.org/docs/2.4/stopping.html
+
+* ``man systemctl``
+
+* ``man journalctl``
+
+
 Summary
 -------
 
@@ -2984,7 +3100,7 @@ Summary
 There are, as you have seen in this chapter, a number of different
 ways you might choose to install Apache httpd. This presents
 difficulties througout the rest of the book - and in adminstering the
-Apache web server in general - because different installations have
+httpd in general - because different installations have
 different files in different places. Scripts, configuration files, and
 binary programs may be called different things from one system to
 another. This can make it difficult to follow instructions, without

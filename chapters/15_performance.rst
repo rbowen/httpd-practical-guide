@@ -1,9 +1,19 @@
+.. raw:: latex
+
+   \part{Operations}
 
 .. _Chapter_Performance_and_testing:
 
 =======================
 Performance and Testing
 =======================
+
+.. epigraph::
+
+   I feel the need — the need for speed.
+
+   -- Kenny Loggins, *Danger Zone* (via Top Gun)
+
 
 .. index:: Performance
 
@@ -12,9 +22,6 @@ Performance and Testing
 
 // TODO: Add recipe about Nikto and friends, either here or in the
 // security chapter.
-
-// TODO: Review EVERY recipe in this chapter carefuly. Update for
-// 2.2/2.4.
 
 Your Web site can probably be made to run faster if you are willing
 to make a few trade-offs and spend a little time benchmarking your site to
@@ -27,8 +34,8 @@ afford to give up and what you are willing to trade off. For example, in
 many cases, you may need to trade performance for security, or vice
 versa.
 
-In this chapter, we make some recommendations of things that you can
-change, and we warn against things that can cause substantial slow-downs.
+In this chapter, I make some recommendations of things that you can
+change, and I warn against things that can cause substantial slow-downs.
 Be aware that Web sites are very individual, and what may speed up one Web
 site may not necessarily speed up another Web site.
 
@@ -36,6 +43,13 @@ Topics covered include hardware considerations, configuration file
 changes, and dynamic content
 generation, which can all be factors in getting every ounce of performance
 out of your Web site.
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`event`, :module:`mod_cache`, :module:`mod_file_cache`,
+   :module:`mod_ratelimit`, :module:`mpm_common`, :module:`prefork`,
+   :module:`worker`
 
 
 .. _apacheckbk-CHP-11-NOTE-116:
@@ -57,6 +71,7 @@ out of your Web site.
 .. _Recipe_how-much-ram:
 
 Determining How Much Memory You Need
+------------------------------------
 
 
 .. _Problem_how-much-ram:
@@ -74,8 +89,8 @@ Solution
 ~~~~~~~~
 
 
-Find the instances of Apache in your process list, and determine
-an average memory footprint for an Apache process. Multiply this
+Find the instances of Apache HTTP Server in your process list, and determine
+an average memory footprint for an httpd process. Multiply this
 number by your peak load (maximum number of concurrent Web clients
 you'll be serving).
 
@@ -95,7 +110,7 @@ Determining how much memory you need is an inexact science, to
 say the least. In order to take an educated guess, you need to observe
 your server under load, and see how much memory it is using.
 
-The amount of memory used by one Apache process will vary
+The amount of memory used by one httpd process will vary
 greatly from one server to another, based on what modules you have
 installed and what the server is being called upon to do. Only by
 looking at your own server can you get an accurate estimate of what
@@ -105,21 +120,21 @@ Tools such as **top** and
 **ps** may be used to examine your
 process list and determine the size of processes. The
 server-status handler, provided by ``mod_status``, may be used to determine the
-total number of Apache processes running at a given time.
+total number of httpd processes running at a given time.
 
-If, for example, you determine that your Apache processes are
+If, for example, you determine that your httpd processes are
 using 4 MB of memory each, and under peak load, you find that you are
-running 125 Apache processes, then you will need, at a bare minimum,
+running 125 httpd processes, then you will need, at a bare minimum,
 500 MB of RAM in the server to handle this peak load. Remember that
 memory is also needed for the operating system, and any other
 applications and services that are running on the system, in addition
-to Apache. So in reality you will need more than this amount to handle
+to httpd. So in reality you will need more than this amount to handle
 this peak load.
 
 If, by contrast, you are unable to add more memory to the
 server, for whatever reason, you can use the same technique to figure
 out the maximum number of child processes that you are capable of
-serving at any one time, and use the **MaxClients** directive to limit Apache to that
+serving at any one time, and use the **MaxClients** directive to limit httpd to that
 many processes:
 
 
@@ -139,7 +154,8 @@ See Also
 
 .. _Recipe_benchmarking-ab:
 
-Benchmarking Apache with ab
+Benchmarking httpd with ab
+--------------------------
 
 
 .. _Problem_benchmarking-ab:
@@ -160,7 +176,7 @@ Solution
 
 Use **ab** (Apache bench), which
 you will find in the **bin**
-directory of your Apache installation:
+directory of your httpd installation:
 
 
 .. code-block:: text
@@ -174,7 +190,7 @@ Discussion
 ~~~~~~~~~~
 
 
-Apache bench is a command-line utility that comes with Apache
+Apache bench is a command-line utility that comes with httpd
 and lets you do very basic performance testing of your server. It is
 especially useful for making small changes to your configuration and
 testing server performance before and after the change.
@@ -248,6 +264,7 @@ See Also
 .. _Tuning_Keepalive_Settings_id149968:
 
 Tuning KeepAlive Settings
+-------------------------
 
 
 .. _Problem_id149983:
@@ -316,7 +333,7 @@ already expired, they will need
 to establish a new connection to the server for that next page.
 
 You also should be aware that if users load a resource from your
-site and then go away, Apache will still maintain that open connection
+site and then go away, httpd will still maintain that open connection
 for them for **KeepAliveTimeout**
 seconds, which makes that child process unable to serve any other
 requests during that time. Therefore, setting **KeepAliveTimeout** too high is just as
@@ -367,6 +384,7 @@ See Also
 .. _Avoiding_DNS_Lookups_id150548:
 
 Avoiding DNS Lookups
+--------------------
 
 
 .. _Problem_id150562:
@@ -410,7 +428,7 @@ address cannot be looked up at all, it can take up to a minute for the
 lookup to time out, during which time the child process that is doing
 the lookup cannot do anything else.
 
-There are a number of cases in which Apache will need to do DNS
+There are a number of cases in which httpd will need to do DNS
 lookups, and so the goal here is to completely avoid those
 situations.
 
@@ -418,15 +436,14 @@ situations.
 .. _HostNameLookups_id150732:
 
 HostNameLookups
-^^^^^^^^^^^^^^^
+---------------
 
 
-Before Apache 1.3, **HostNameLookups**, which determines whether
-Apache logs client IP addresses or hostnames, defaulted to
-on, meaning that each Apache log entry required a DNS lookup to convert the
-client IP address to a hostname to put in the logfile. Fortunately,
-that directive now defaults to off, and so this is
-primarily an admonition to leave it alone.
+**HostNameLookups** determines whether httpd logs client IP addresses
+or hostnames. It defaults to off, and this is primarily an admonition
+to leave it that way. When enabled, each httpd log entry requires a DNS
+lookup to convert the client IP address to a hostname — a significant
+performance cost.
 
 If you need to have these addresses converted to hostnames,
 this should be done by another program, preferably running on a
@@ -435,7 +452,7 @@ should copy the file to some other machine for the purpose of
 processing, so that the effort required to do this processing does
 not negatively effect your Web server's performance.
 
-Apache comes with a utility called **logresolve**, which will process your
+httpd comes with a utility called **logresolve**, which will process your
 logfile, replacing IP addresses with hostnames. Additionally, most
 logfile analysis tools will also perform this name resolution as
 part of the log analysis process.
@@ -443,12 +460,12 @@ part of the log analysis process.
 
 .. _Allow_and_Deny_from_hostnames_id150792:
 
-Allow and Deny from hostnames
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Host-based access control and DNS
+----------------------------------
 
 
-When you do host-based access control using the **Allow** from and **Deny** from directives,
-Apache takes additional precautions to make sure that the client is
+When you do host-based access control using ``Require host`` directives,
+httpd takes additional precautions to make sure that the client is
 not spoofing its hostname. In particular, it does a DNS lookup on
 the IP address of the client to obtain the name to compare against
 the access restriction. It then looks up the name that was obtained,
@@ -470,6 +487,7 @@ See Also
 .. _Optimizing_Symbolic_Links_id150895:
 
 Optimizing Symbolic Links
+-------------------------
 
 
 .. _Problem_id150910:
@@ -517,10 +535,10 @@ link. [#apacheckbk-CHP-11-FNOTE-2]_ When you **cd** into a
 directory, you don't need to be aware of whether that was a symlink or
 not. It just works.
 
-Apache, by contrast, has to consider whether each file and
+httpd, by contrast, has to consider whether each file and
 directory is a symlink or not, if the server is configured not to
 follow symlinks. And, additionally, if **Option** SymlinksIfOwnerMatch
-is turned on, Apache not only has to check if the particular file is a
+is turned on, httpd not only has to check if the particular file is a
 symlink, but also has to check the ownership of the link itself and of
 the target, in the event that it is a symlink. Although this enforces
 a certain security policy, it takes a substantial amount of time and
@@ -543,9 +561,9 @@ If you are concerned about performance, always use **Options**
 **FollowSymlinks**, and never use
 **Options**
 **SymlinksIfOwnerMatch**. **Options**
-**FollowSymlinks** permits Apache to
+**FollowSymlinks** permits httpd to
 follow symbolic links in the manner of most Unixish applications—that
-is, Apache does not even need to check to see if the file in question
+is, httpd does not even need to check to see if the file in question
 is a symlink or not.
 
 
@@ -561,7 +579,7 @@ See Also
 .. _Recipe_Performance_impact_of_htaccess_files:
 
 Performance impact of htaccess files
-
+------------------------------------
 .. index:: .htaccess,Performance
 
 .. index:: htaccess,Performance
@@ -586,7 +604,7 @@ Solution
 
 
 Turn on **AllowOverride** only in
-directories where it is required, and tell Apache not to waste time
+directories where it is required, and tell httpd not to waste time
 looking for **.htaccess** files elsewhere:
 
 
@@ -606,13 +624,13 @@ Discussion
 
 
 **.htaccess** files can cause a
-substantial reduction in Apache's performance, because it must check
+substantial reduction in httpd's performance, because it must check
 for a **.htaccess** in every
 directory along the path to the requested file to be assured of
 getting all of the relevant configuration overrides. This is necessary
-because Apache configuration directives apply not only to the
+because httpd configuration directives apply not only to the
 directory in which they are set, but also to all subdirectories. Thus,
-we must check for **.htaccess** files
+httpd must check for **.htaccess** files
 in parent directories, as well as in the current directory, to find
 any directives that would trickle down the current directory.
 
@@ -700,9 +718,9 @@ Finally, note that as hard drive performance improves, and the prevalance
 of SSD (Solid State Drive) increases, the performance impact of these
 additional file accesses drops. Many people report that benchmarking
 the use of unnecessary ``.htaccess`` files does not result in the kind
-of performance degradation we saw just a few years ago.
+of performance degradation that was common just a few years ago.
 
-We still recommend avoiding the use of ``.htaccess`` files whenever
+I still recommend avoiding the use of ``.htaccess`` files whenever
 possible, for the simple reason that it makes it so much more
 difficult to troubleshoot problems when you have to look in multiple
 places to determine what configuration is actually in effect.
@@ -724,6 +742,7 @@ See Also
 .. _Disabling_Content_Negotiation_id151667:
 
 Disabling Content Negotiation
+-----------------------------
 
 
 .. _Problem_id151681:
@@ -764,14 +783,14 @@ for example, you have a multilingual Web site—you should use the
 type-map handler, rather than
 the MultiViews method.
 
-When MultiViews is used, Apache needs to get a
+When MultiViews is used, httpd needs to get a
 directory listing each time a request is made. The resource requested
 is compared to the directory listing to see what variants of that
 resource might exist. For example, if **index.html** is requested, the variants
 **index.html.en** and **index.html.fr** might exist to satisfy that
 request. Each matching variant is compared with the user's
 preferences, expressed in the various ``Accept`` headers passed by the client. This
-information allows Apache to determine which resource is best suited
+information allows httpd to determine which resource is best suited
 to the user's needs.
 
 However, this process can be very time-consuming, particularly
@@ -779,7 +798,7 @@ for large directories or resources with large numbers of variants. By
 putting the information in a **.var**
 file and allowing the type-map handler to be used
 instead, you eliminate the requirement to get a directory listing, and
-greatly reduce the amount of work that Apache must do to determine the
+greatly reduce the amount of work that httpd must do to determine the
 correct variant to send to the user.
 
 The **.var** file just needs to
@@ -891,6 +910,7 @@ See Also
 .. _Optimizing_Process_Creation_id152208:
 
 Optimizing Process Creation
+---------------------------
 
 
 .. _Problem_id152223:
@@ -899,8 +919,7 @@ Problem
 ~~~~~~~
 
 
-You're using Apache 1.3, or Apache 2.0 with the **prefork** MPM, and you want to tune **MinSpareServers** and **MaxSpareServers** to the best settings for
-        your Web site.
+You're using the **prefork** MPM and want to tune **MinSpareServers** and **MaxSpareServers** to the best settings for your Web site.
 
 
 .. _Solution_id152289:
@@ -924,8 +943,8 @@ The **MinSpareServers** and
 the size of the server pool so that incoming requests will always have
 a child process waiting to serve them. In particular, if there are
 fewer than **MinSpareServers** idle
-processes, Apache will create more processes until that minimum is
-reached. Similarly, if there are ever more than **MaxSpareServers** processes, Apache will kill
+processes, httpd will create more processes until that minimum is
+reached. Similarly, if there are ever more than **MaxSpareServers** processes, httpd will kill
 off processes until there are fewer than that maximum. These things
 will happen as the site traffic fluctuates on a normal day.
 
@@ -944,7 +963,7 @@ output. (See :ref:`Recipe_mod_status`.)
 
 You also should set **MaxClients** to a value such that you don't
 run out of server resources during heavy server loads. For example, if
-your average Apache process consumes 2 MB of memory and you have a
+your average httpd process consumes 2 MB of memory and you have a
 total of 256 MB of RAM available, allowing a little bit of memory for
 other processes, you probably don't want to set **MaxClients** any higher than about 120. If you
 run out of RAM and start using swap space, your server performance
@@ -966,7 +985,7 @@ See Also
 .. _Tuning_Thread_Creation_id152525:
 
 Tuning Thread Creation
-
+----------------------
 
 .. _Problem_id152539:
 
@@ -974,8 +993,7 @@ Problem
 ~~~~~~~
 
 
-You're using Apache 2.0 with one of the threaded MPMs, and you
-        want to optimize the settings for the number of threads.
+You're using one of the threaded MPMs and want to optimize the settings for the number of threads.
 
 
 .. _Solution_id152586:
@@ -993,33 +1011,31 @@ Discussion
 ~~~~~~~~~~
 
 
-The various threaded MPMs on Apache 2.0 handle thread creation
-        somewhat differently. In Apache 1.3, the Windows and Netware versions
-        are threaded, whereas the Unixish version is not. Tuning the thread
-        creation values will vary from one of these versions to
+The various threaded MPMs handle thread creation
+        somewhat differently. Tuning the thread
+        creation values will vary from one platform to
         another.
 
 
 .. _Setting_the_number_of_threads_on_single-child_MPMs_id152627:
 
 Setting the number of threads on single-child MPMs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------
 
 
-On MPMs that run Apache with a single threaded child process,
-          such as the Windows MPM (``mpm_winnt``) and the Windows and Netware
-          versions of Apache 1.3, there are a fixed number of threads in the
+On MPMs that run httpd with a single threaded child process,
+          such as the Windows MPM (``mpm_winnt``), there are a fixed number of threads in the
           child process. This number is controlled by the **ThreadsPerChild** directive and must be
           large enough to handle the peak traffic of the site on any given
           day. There really is no performance tuning that can be done here, as
-          this number is fixed throughout the lifetime of the Apache
+          this number is fixed throughout the lifetime of the httpd
           process.
 
 
 .. _Number_of_threads_when_using_the_worker_MPM_id152686:
 
 Number of threads when using the worker MPM
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 
 The **worker** MPM has a
@@ -1044,10 +1060,10 @@ The **MinSpareThreads** and
           clients will always have an idle thread waiting to serve their
           request. The **ThreadsPerChild**
           directive indicates how many threads are in each child process so
-          when the number of available idle threads drops below **MinSpareThreads**, Apache will launch a new
+          when the number of available idle threads drops below **MinSpareThreads**, httpd will launch a new
           child process populated with **ThreadsPerChild** threads. Similarly, when
           server load is reduced and the number of idle threads is greater
-          than **MaxSpareThreads**, Apache will
+          than **MaxSpareThreads**, httpd will
           kill off one or more child processes to reduce the idle pool to that
           number or less.
 
@@ -1071,26 +1087,6 @@ The values of **MaxClients**
           multiplied by **ThreadsPerChild**.
 
 
-.. _Setting_the_number_of_threads_when_using_Netware_or_the_id152878:
-
-Setting the number of threads when using netware or the perchild MPM
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Whereas with most of the other MPMs the **MinSpareThreads** and **MaxSpareThreads** directives are
-          server-wide, in the **perchild**
-          and **netware** MPMs, these
-          directives are assessed per
-          child process. Of course, with the **netware** MPM, there is only one child
-          process, so it amounts to the same thing.
-
-With the **netware** MPM,
-          threads are created and reaped as needed to keep the number of spare
-          threads between the limits imposed by **MinSpareThreads** and **MaxSpareThreads**. The
-          total number of threads must be kept at all times below the limit
-          imposed by the **MaxThreads**
-          directive.
-
 
 .. _See_Also_id153083:
 
@@ -1104,6 +1100,7 @@ See Also
 .. _Caching_Frequently_Viewed_Files_id153126:
 
 Caching Frequently Viewed Files
+-------------------------------
 
 
 .. _Problem_id153140:
@@ -1147,7 +1144,7 @@ other hand, opens the file and caches the file handle, saving time on subsequent
 opens.
 
 This functionality is provided by the ``mod_file_cache`` module, which is labelled as
-experimental, and is not built into Apache by default. To enable this
+experimental, and is not built into httpd by default. To enable this
 module, you need to specify the ``--enable-file-cache``
 flag to ``configure`` when building Apache httpd. ``mod_file_cache`` provides
 both the ``MMapFile`` and ``CacheFile`` directives.
@@ -1196,7 +1193,7 @@ See Also
 .. _Distributing_Load_Evenly_Between_Several_Servers_id153837:
 
 Distributing Load Evenly Between Several Servers
-
+-------------------------------------------------
 
 .. _Problem_id153852:
 
@@ -1315,6 +1312,7 @@ See Also
 .. _Caching_Directory_Listings_id154056:
 
 Caching Directory Listings
+--------------------------
 
 
 .. _Problem_id154071:
@@ -1348,7 +1346,7 @@ Discussion
 ~~~~~~~~~~
 
 
-When sending a directory listing to a client, Apache has to open
+When sending a directory listing to a client, httpd has to open
         that directory, obtain a directory listing, and determine various
         attributes of the files contained therein. This is very time
         consuming, and it would be nice to avoid this when possible.
@@ -1388,6 +1386,7 @@ See Also
 .. _Speeding_Up_Perl_CGI_Programs_with_mod_perl_id154280:
 
 Speeding Up Perl CGI Programs with mod_perl
+-------------------------------------------
 
 
 .. _Problem_id154295:
@@ -1412,32 +1411,7 @@ If you have the ``mod_perl``
         gives you a big performance boost, without having to modify your CGI
         code.
 
-There are two slightly different ways to do this.
-
-For Apache 1.3 and ``mod_perl`` version 1:
-
-
-.. code-block:: text
-
-   Alias /cgi-perl/ /usr/local/apache/cgi-bin/
-   <Location /cgi-perl>
-       Options ExecCGI
-       SetHandler perl-script
-       PerlHandler Apache::PerlRun
-       PerlSendHeader On
-   </Location>
-   
-   Alias /perl/ /usr/local/apache/cgi-bin/
-   <Location /perl>
-       Options ExecCGI
-       SetHandler perl-script
-       PerlHandler Apache::Registry
-       PerlSendHeader On
-   </Location>
-
-
-For Apache 2.0 and ``mod_perl``
-        version 2, the syntax changes slightly:
+With ``mod_perl`` version 2, the configuration is:
 
 
 .. code-block:: text
@@ -1528,6 +1502,7 @@ See Also
 .. _I_sect111_d1e18571:
 
 Caching Dynamic Content
+-----------------------
 
 
 Problem
@@ -1542,18 +1517,7 @@ Solution
 ~~~~~~~~
 
 
-In Apache 2.2, use the following recipe:
-
-
-.. code-block:: text
-
-   CacheEnable disk / 
-   CacheRoot /var/www/cache
-   CacheIgnoreCacheControl On
-   CacheDefaultExpire 600
-
-
-In 2.3 and later, you can use something like this:
+Use the following configuration:
 
 
 .. code-block:: text
@@ -1581,32 +1545,14 @@ was requested. If you're doing this several times per second, you're
 probably causing your server a great deal more work than is really
 necessary.
 
-The recipes above solve this problem in two slightly different
-ways. The solution for 2.3 is better, but, as of this writing, 2.3
-hasn't been released yet, so it's not a terribly practical solution
-yet.
-
-The recipe for Apache 2.2 takes the approach of disabling cache
-control—that is, it tells Apache to ignore the request made by the
-dynamic content that it not be cached, and caches it anyway. Then, for
-good measure, a default cache expiration time of 5 minutes (600
-seconds) is set, so that any content that is cached will be retained
-at least that long.
-
-The solution for 2.3 is slightly more elegant. It sets a minimum
+This configuration sets a minimum
 cache expiration time of five minutes, as well as setting the default
 expiration time. This ensures that all content is cached at least for
 five minutes, but the content itself may specify a longer time, if
-desired. The main difference here is that in the 2.2 solution if the
-content itself sends a request that it be cached longer this will be
-ignored, whereas in the 2.3 solution it will be honored.
-
-You'll first see the 2.3 solution working when the 2.4 version
-of the server is released. 2.3 is a development branch, and it will be
-called 2.4 when it is ready for general use.
+desired.
 
 Make sure that the directory specified as the CacheRoot exists
-and is writeable by the Apache user.
+and is writeable by the httpd user.
 
 
 .. _See_Also_new9:
@@ -1621,6 +1567,7 @@ See Also
 .. _Recipe_mod_ratelimit:
 
 mod_ratelimit
+-------------
 
 .. index:: mod_ratelimit
 
@@ -1691,7 +1638,7 @@ See Also
 .. _Recipe_mod_dialup:
 
 mod_dialup
-
+----------
 
 .. _Problem_mod_dialup:
 
@@ -1720,6 +1667,7 @@ See Also
 .. _Recipe_nikto:
 
 Security scanning with Nikto
+----------------------------
 
 
 .. _Problem_nikto:
@@ -1746,13 +1694,972 @@ See Also
 ~~~~~~~~
 
 
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_http2:
+
+Enabling HTTP/2 (mod_http2)
+---------------------------
+
+.. index:: HTTP/2
+.. index:: mod_http2
+.. index:: h2
+.. index:: Protocol upgrade
+
+.. _Problem_Recipe_http2:
+
+Problem
+~~~~~~~
+
+
+You want to enable HTTP/2 on your server to take advantage of multiplexed streams, header compression, and server push.
+
+
+.. _Solution_Recipe_http2:
+
+Solution
+~~~~~~~~
+
+
+Enable :module:`mod_http2` and add ``h2`` (and optionally ``h2c``) to the
+``Protocols`` directive. For HTTPS virtual hosts (the most common case):
+
+.. code-block:: apache
+
+   LoadModule http2_module modules/mod_http2.so
+
+   <VirtualHost *:443>
+       ServerName www.example.com
+       Protocols h2 http/1.1
+
+       SSLEngine on
+       SSLCertificateFile    /etc/tls/certs/example.com.crt
+       SSLCertificateKeyFile /etc/tls/private/example.com.key
+   </VirtualHost>
+
+To also allow cleartext HTTP/2 (``h2c``) on port 80 — which most
+browsers do not support but command-line clients like ``curl`` and
+``nghttp`` do:
+
+.. code-block:: apache
+
+   <VirtualHost *:80>
+       ServerName www.example.com
+       Protocols h2c http/1.1
+   </VirtualHost>
+
+Or, enable all variants in a single server context:
+
+.. code-block:: apache
+
+   Protocols h2 h2c http/1.1
+
+
+.. _Discussion_Recipe_http2:
+
+Discussion
+~~~~~~~~~~
+
+
+HTTP/2 (RFC 7540) is the evolution of HTTP/1.1. It introduces
+multiplexed streams over a single TCP connection, header compression
+(HPACK), and optional server push — all without changing HTTP semantics.
+From the application's perspective, requests and responses still have
+methods, headers, and bodies; only the wire format changes.
+
+**TLS is effectively required.** The HTTP/2 specification permits
+cleartext HTTP/2 (``h2c``), but every major browser requires TLS for
+HTTP/2. In practice, this means you need a valid TLS certificate and a
+TLS library that supports the ALPN (Application-Layer Protocol
+Negotiation) extension — OpenSSL 1.0.2 or later. The ``h2`` protocol
+identifier is negotiated via ALPN during the TLS handshake.
+
+**Protocol ordering matters.** The ``Protocols`` directive lists
+protocols in preference order. Placing ``h2`` before ``http/1.1`` tells
+Apache to prefer HTTP/2 when the client supports it:
+
+.. code-block:: apache
+
+   Protocols h2 http/1.1
+
+If you reverse the order, HTTP/1.1 will be preferred and clients will
+rarely use HTTP/2. You can override server ordering entirely with:
+
+.. code-block:: apache
+
+   ProtocolsHonorOrder Off
+
+which lets the client's preference win.
+
+**MPM considerations.** HTTP/2 is supported on all MPMs, but the
+``prefork`` MPM imposes severe limitations — it can process only one
+HTTP/2 stream at a time per connection, negating the multiplexing
+benefit. Use the ``event`` or ``worker`` MPM for production HTTP/2
+deployments.
+
+**Cipher suite requirements.** Even though :module:`mod_http2` does not
+enforce a specific cipher suite, browsers do. The HTTP/2 specification
+includes a cipher blocklist to ensure strong TLS. Browsers will silently
+fall back to HTTP/1.1 if the negotiated cipher is on the blocklist. Make
+sure your ``SSLCipherSuite`` is configured with modern, strong ciphers.
+
+**Server push.** HTTP/2 allows the server to proactively send resources
+the client will need. Apache supports push via ``Link`` response headers
+with ``rel=preload``:
+
+.. code-block:: apache
+
+   Header add Link "</style.css>;rel=preload"
+
+or via :module:`mod_http2`'s ``H2PushResource`` directive:
+
+.. code-block:: apache
+
+   <Location "/index.html">
+       H2PushResource /style.css
+       H2PushResource /app.js
+   </Location>
+
+Push can reduce perceived page load times by eliminating the round trip
+the client would spend discovering and requesting sub-resources.
+However, pushed resources that are already in the client's cache waste
+bandwidth — use push judiciously and monitor its effect.
+
+**Verifying HTTP/2 is active.** Use ``curl`` with the ``--http2`` flag:
+
+.. code-block:: text
+
+   curl -vso /dev/null --http2 https://www.example.com/ 2>&1 | grep ALPN
+
+You should see ``ALPN: server accepted h2``. In Chrome, navigate to
+``chrome://net-internals/#http2`` to see active HTTP/2 sessions.
+
+
+.. _See_Also_Recipe_http2:
+
+See Also
+~~~~~~~~
+
+
+* https://httpd.apache.org/docs/current/howto/http2.html
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_brotli:
+
+Brotli compression (mod_brotli)
+-------------------------------
+
+.. index:: Brotli
+.. index:: mod_brotli
+.. index:: Compression
+
+.. _Problem_Recipe_brotli:
+
+Problem
+~~~~~~~
+
+
+You want to serve compressed responses using the Brotli algorithm for better compression ratios than gzip.
+
+
+.. _Solution_Recipe_brotli:
+
+Solution
+~~~~~~~~
+
+
+Enable :module:`mod_brotli` and use ``AddOutputFilterByType`` to
+compress common text-based content types:
+
+.. code-block:: apache
+
+   LoadModule brotli_module modules/mod_brotli.so
+
+   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml
+   AddOutputFilterByType BROTLI_COMPRESS text/css text/javascript
+   AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
+   AddOutputFilterByType BROTLI_COMPRESS application/xml application/xhtml+xml
+   AddOutputFilterByType BROTLI_COMPRESS image/svg+xml
+
+To serve Brotli alongside ``mod_deflate`` (gzip), load both modules and
+let the client's ``Accept-Encoding`` header determine which is used:
+
+.. code-block:: apache
+
+   LoadModule brotli_module  modules/mod_brotli.so
+   LoadModule deflate_module modules/mod_deflate.so
+
+   # Brotli takes precedence when the client supports it
+   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css
+   AddOutputFilterByType BROTLI_COMPRESS text/javascript application/javascript application/json
+
+   # Fallback to gzip for clients that don't support Brotli
+   AddOutputFilterByType DEFLATE text/html text/plain text/css
+   AddOutputFilterByType DEFLATE text/javascript application/javascript application/json
+
+
+.. _Discussion_Recipe_brotli:
+
+Discussion
+~~~~~~~~~~
+
+
+Brotli is a general-purpose compression algorithm developed by Google
+that typically achieves 15–25% better compression ratios than gzip
+(deflate) on text-based web content. All modern browsers support Brotli
+via the ``Accept-Encoding: br`` request header, and
+:module:`mod_brotli` is included with Apache HTTP Server 2.4.26 and
+later.
+
+**How it works.** When :module:`mod_brotli` is active and a client sends
+``Accept-Encoding: br``, Apache compresses the response body on the fly
+using the Brotli algorithm and adds ``Content-Encoding: br`` to the
+response. The client decompresses transparently. Apache also sends a
+``Vary: Accept-Encoding`` header so that intermediate caches store
+separate copies for clients that do and do not support Brotli.
+
+**Brotli vs. deflate (gzip).** Brotli was designed with web content in
+mind. It uses a static dictionary of common HTML, CSS, and JavaScript
+strings, which gives it a compression advantage for typical web pages.
+The trade-off is that Brotli at high quality levels is slower to compress
+than gzip. For dynamic content served on every request, a moderate
+quality level (the default of 5) offers a good balance between
+compression ratio and CPU cost:
+
+.. code-block:: apache
+
+   # Default quality is 5; range is 0–11
+   BrotliCompressionQuality 5
+
+For pre-compressed static assets, you can use quality 11 (maximum
+compression) offline and serve the pre-compressed files directly.
+
+**Serving pre-compressed content.** For large static assets (CSS, JS,
+fonts), you can compress files ahead of time with the ``brotli``
+command-line tool and serve them directly, avoiding the CPU cost of
+on-the-fly compression. Use :module:`mod_rewrite` to serve ``.br``
+variants when they exist:
+
+.. code-block:: apache
+
+   RewriteEngine On
+   RewriteCond "%{HTTP:Accept-encoding}" "br"
+   RewriteCond "%{REQUEST_FILENAME}.br" "-s"
+   RewriteRule "^(.*)\.(css|js)$" "$1.$2.br" [QSA]
+
+   # Set the correct content type and encoding
+   RewriteRule "\.css\.br$" "-" [T=text/css,E=no-brotli:1]
+   RewriteRule "\.js\.br$"  "-" [T=text/javascript,E=no-brotli:1]
+
+   <FilesMatch "\.(css|js)\.br$">
+       Header append Content-Encoding br
+       Header append Vary Accept-Encoding
+   </FilesMatch>
+
+**Excluding binary content.** Do not compress already-compressed formats
+like JPEG, PNG, GIF, WOFF2, or ZIP files — compressing them wastes CPU
+for negligible (or negative) size reduction. The
+``AddOutputFilterByType`` approach shown in the Solution automatically
+limits compression to the MIME types you specify.
+
+**ETag handling.** By default, :module:`mod_brotli` appends a suffix to
+the ``ETag`` header on compressed responses (``BrotliAlterETag
+AddSuffix``). This means compressed and uncompressed versions have
+different ETags, which is correct for caches but prevents ``304 Not
+Modified`` responses when a client switches between compressed and
+uncompressed requests for the same resource. If this is a concern,
+you can change the behavior with the ``BrotliAlterETag`` directive.
+
+.. warning::
+
+   Serving compressed content over TLS can make your application
+   vulnerable to the BREACH family of attacks, which exploit
+   compression to extract secrets from encrypted responses. If your
+   pages include sensitive tokens (e.g., CSRF tokens) in the response
+   body, consider the BREACH mitigations described in the
+   :module:`mod_brotli` documentation.
+
+
+.. _See_Also_Recipe_brotli:
+
+See Also
+~~~~~~~~
+
+
+* https://httpd.apache.org/docs/current/mod/mod_brotli.html
+
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_disk-caching:
+
+Setting Up HTTP Content Caching
+-------------------------------
+
+.. index:: caching
+.. index:: mod_cache
+.. index:: mod_cache_disk
+.. index:: CacheEnable
+.. index:: CacheRoot
+.. index:: CacheDirLevels
+.. index:: CacheDirLength
+.. index:: CacheQuickHandler
+.. index:: htcacheclean
+
+
+.. _Problem_disk-caching:
+
+Problem
+~~~~~~~
+
+You want to reduce the load on your server and speed up response times
+by caching frequently requested content on disk, so that subsequent
+requests can be served without re-generating or re-fetching the
+content.
+
+
+.. _Solution_disk-caching:
+
+Solution
+~~~~~~~~
+
+Enable :module:`mod_cache` and :module:`mod_cache_disk` to store
+cacheable responses in a directory structure on disk:
+
+.. code-block:: apache
+
+   # Load the caching modules
+   LoadModule cache_module modules/mod_cache.so
+   LoadModule cache_disk_module modules/mod_cache_disk.so
+
+   # Set the disk cache root directory
+   CacheRoot "/var/cache/apache"
+
+   # Enable disk caching for all content
+   CacheEnable disk "/"
+
+   # Configure the cache directory structure
+   CacheDirLevels 2
+   CacheDirLength 1
+
+   # Keep cached entries for at most one week
+   CacheMaxExpire 604800
+
+   # Set a sensible default expiry for content without explicit headers
+   CacheDefaultExpire 3600
+
+Set up ``htcacheclean`` to run as a daemon and keep the cache size
+under control:
+
+.. code-block:: text
+
+   htcacheclean -d30 -p/var/cache/apache -l500M -n
+
+
+.. _Discussion_disk-caching:
+
+Discussion
+~~~~~~~~~~
+
+The :module:`mod_cache` module implements an RFC 2616-compliant HTTP
+cache. It understands ``Cache-Control`` headers, ``Expires`` headers,
+conditional requests with ``If-Modified-Since`` and ``ETag``, and
+content negotiation via the ``Vary`` header. When a cached response is
+still fresh, it is served directly without contacting the origin server
+or running any content handlers, which can dramatically reduce server
+load.
+
+:module:`mod_cache_disk` provides the disk-based storage backend. It
+stores cached response headers and bodies as separate files, organized
+under the ``CacheRoot`` directory in a structure derived from the MD5
+hash of the requested URL.
+
+The ``CacheDirLevels`` and ``CacheDirLength`` directives control the
+depth and width of this directory tree. With ``CacheDirLevels 2`` and
+``CacheDirLength 1``, a URL whose hash begins with ``aB`` would be
+stored under :file:`/var/cache/apache/a/B/`. This keeps any single
+directory from accumulating too many files, which would slow down
+filesystem lookups. The product of ``CacheDirLevels`` and
+``CacheDirLength`` must not exceed 20. For most sites, levels of 2 and
+length of 1 is a sensible starting point.
+
+**Quick handler versus normal handler**
+
+By default, ``CacheQuickHandler`` is set to ``on``, which means the
+cache runs very early in request processing — before authentication,
+authorization, and output filters are applied. This gives you the best
+possible performance, but it means that cached content will be served
+even to clients who might not be authorized to view it.
+
+If you need the cache to respect per-directory access control, or if
+you want to control where caching sits within the output filter chain,
+disable the quick handler:
+
+.. code-block:: apache
+
+   CacheQuickHandler off
+
+With the quick handler disabled, you can also control exactly where
+caching occurs relative to other filters, such as compression. For
+example, to cache content *before* ``mod_deflate`` compresses it (so
+that a single cached copy can be served to clients regardless of their
+``Accept-Encoding`` header):
+
+.. code-block:: apache
+
+   CacheQuickHandler off
+   AddOutputFilterByType CACHE;DEFLATE text/html text/plain text/css
+
+To cache the already-compressed output instead (saving CPU on
+subsequent requests, at the cost of storing one copy per
+``Accept-Encoding`` variation):
+
+.. code-block:: apache
+
+   CacheQuickHandler off
+   AddOutputFilterByType DEFLATE;CACHE text/html text/plain text/css
+
+**Cache size maintenance with htcacheclean**
+
+:module:`mod_cache_disk` does not manage the size of its cache
+directory. Over time, the cache will grow without bound unless you run
+the ``htcacheclean`` utility. The recommended approach is to run it as
+a daemon:
+
+.. code-block:: text
+
+   htcacheclean -d30 -p/var/cache/apache -l500M -n
+
+In this invocation:
+
+- ``-d30`` sets the cleaning interval to 30 minutes
+- ``-p/var/cache/apache`` specifies the cache root (must match ``CacheRoot``)
+- ``-l500M`` limits the cache to 500 megabytes
+- ``-n`` makes the daemon run nicely (lower scheduling priority)
+
+You can also limit by inode count with ``-L``, which is useful on
+filesystems with limited inode allocation:
+
+.. code-block:: text
+
+   htcacheclean -d30 -p/var/cache/apache -l500M -L300000
+
+On ``systemd``-based systems, you may wish to create a service unit for
+``htcacheclean`` so that it starts automatically at boot and is
+monitored by the init system.
+
+**Selectively disabling caching**
+
+Not everything should be cached. Dynamic content, authenticated
+responses, and resources with ``Cache-Control: no-store`` are
+automatically excluded by the RFC 2616-compliant logic in
+:module:`mod_cache`. You can also explicitly exclude URL paths:
+
+.. code-block:: apache
+
+   CacheDisable "/admin"
+   CacheDisable "/api/v1"
+
+Alternatively, use the ``no-cache`` environment variable for
+fine-grained control within ``<Location>`` or ``<Directory>`` blocks:
+
+.. code-block:: apache
+
+   <Location "/user/profile">
+       SetEnv no-cache 1
+   </Location>
+
+**Common pitfall: empty cache directory**
+
+A frequently asked question on the Apache mailing list is "my cache
+directory stays empty." This is almost always caused by one of the
+following:
+
+1. The ``CacheRoot`` directory does not exist, or is not writable by
+   the Apache user.
+2. The origin responses lack ``Expires`` or ``Cache-Control`` headers,
+   and ``CacheDefaultExpire`` has not been set.
+3. The origin response includes ``Cache-Control: private`` or
+   ``Cache-Control: no-store``, which prevents caching.
+
+Check the response headers with ``curl -I`` to verify that the origin
+content is cacheable, and ensure the cache directory has proper
+ownership and permissions.
+
+
+.. _See_Also_disk-caching:
+
+See Also
+~~~~~~~~
+
+* The :module:`mod_cache` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_cache.html
+
+* The :module:`mod_cache_disk` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_cache_disk.html
+
+* The Apache Caching Guide at
+  https://httpd.apache.org/docs/current/caching.html
+
+* The ``htcacheclean`` manual page at
+  https://httpd.apache.org/docs/current/programs/htcacheclean.html
+
+* :ref:`Configuring_a_Caching_Proxy_Server_id148610`
+
+
+.. _Recipe_browser-caching-expires:
+
+Controlling Browser Caching with Expiration Headers
+---------------------------------------------------
+
+.. index:: mod_expires
+.. index:: ExpiresActive
+.. index:: ExpiresByType
+.. index:: ExpiresDefault
+.. index:: Expires header
+.. index:: Cache-Control header
+.. index:: browser caching
+
+
+.. _Problem_browser-caching-expires:
+
+Problem
+~~~~~~~
+
+You want to instruct browsers and downstream caches to keep copies of
+your static assets — images, stylesheets, JavaScript files — for a
+specified period, reducing redundant requests and improving page load
+times for returning visitors.
+
+
+.. _Solution_browser-caching-expires:
+
+Solution
+~~~~~~~~
+
+Enable :module:`mod_expires` and configure expiration policies by MIME
+type:
+
+.. code-block:: apache
+
+   LoadModule expires_module modules/mod_expires.so
+
+   ExpiresActive On
+
+   # Default: 1 hour from access
+   ExpiresDefault "access plus 1 hour"
+
+   # HTML: keep for 10 minutes (changes more frequently)
+   ExpiresByType text/html "access plus 10 minutes"
+
+   # CSS and JavaScript: keep for 1 month
+   ExpiresByType text/css "access plus 1 month"
+   ExpiresByType application/javascript "access plus 1 month"
+
+   # Images: keep for 1 year
+   ExpiresByType image/jpeg "access plus 1 year"
+   ExpiresByType image/png "access plus 1 year"
+   ExpiresByType image/gif "access plus 1 year"
+   ExpiresByType image/svg+xml "access plus 1 year"
+   ExpiresByType image/webp "access plus 1 year"
+
+   # Web fonts: keep for 1 year
+   ExpiresByType font/woff2 "access plus 1 year"
+   ExpiresByType font/woff "access plus 1 year"
+   ExpiresByType application/font-woff "access plus 1 year"
+   ExpiresByType application/font-woff2 "access plus 1 year"
+
+   # Favicon and icons
+   ExpiresByType image/x-icon "access plus 1 year"
+
+   # PDF and other documents
+   ExpiresByType application/pdf "access plus 1 month"
+
+
+.. _Discussion_browser-caching-expires:
+
+Discussion
+~~~~~~~~~~
+
+When a browser fetches a resource, it checks for caching instructions
+in the HTTP response headers. Without explicit instructions, the browser
+must guess — and guesses vary between browsers. By providing explicit
+expiration headers, you take control of how long clients keep their
+cached copies, eliminating unnecessary round-trips to your server.
+
+:module:`mod_expires` sets two headers on each response:
+
+- ``Expires`` — an absolute date/time after which the content is
+  considered stale
+- ``Cache-Control: max-age=N`` — the number of seconds the content
+  remains fresh, relative to the time of the request
+
+Modern browsers use ``Cache-Control: max-age`` preferentially, but
+:module:`mod_expires` sets both headers for compatibility with older
+HTTP/1.0 caches that only understand ``Expires``.
+
+**Access-based versus modification-based expiry**
+
+The ``ExpiresByType`` directive supports two base times:
+
+- ``access`` (equivalent to ``now``) — the expiry is calculated from
+  the time the client made the request
+- ``modification`` — the expiry is calculated from the last
+  modification time of the file on disk
+
+For static assets served from disk, ``access`` is almost always the
+right choice. The ``modification`` mode can be useful when you want the
+cache lifetime to be proportional to how recently a file was updated,
+but be aware that it does not work for dynamically generated content,
+which has no meaningful modification time.
+
+The interval syntax supports a readable combination of time units:
+
+.. code-block:: apache
+
+   ExpiresByType text/html "access plus 1 month 15 days 2 hours"
+   ExpiresByType image/gif "modification plus 5 hours 3 minutes"
+
+**Interaction with Cache-Control headers set elsewhere**
+
+If another module or a CGI script already sets ``Cache-Control`` or
+``Expires`` headers on a response, :module:`mod_expires` will not
+override them. This means that if your application framework sends
+``Cache-Control: no-cache`` on API responses, :module:`mod_expires`
+will not interfere.
+
+To add ``Cache-Control`` directives beyond what :module:`mod_expires`
+generates — for example, ``public``, ``immutable``, or
+``must-revalidate`` — use :module:`mod_headers`:
+
+.. code-block:: apache
+
+   <FilesMatch "\.(css|js|png|jpg|gif|svg|woff2)$">
+       Header set Cache-Control "public, immutable"
+   </FilesMatch>
+
+The ``immutable`` directive tells modern browsers that the resource
+will never change at this URL, preventing even conditional revalidation
+requests. This works best when you use cache-busting filenames or query
+strings (for example, :file:`style.a3f2b1.css` or
+:file:`script.js?v=20240115`).
+
+**Recommended strategy for static asset caching**
+
+A common and effective approach is the combination of long cache
+lifetimes with versioned filenames:
+
+1. Set images, CSS, JavaScript, and fonts to expire in one year
+   (the maximum recommended by HTTP/1.1 standards).
+
+2. Use build tools to include a content hash or version number in
+   the filename, so that when the content changes, the URL changes,
+   and browsers fetch the new version.
+
+3. Set HTML documents to a short cache lifetime (minutes to hours),
+   since they contain the references to the versioned assets and
+   need to update promptly.
+
+This strategy gives you the best of both worlds: returning visitors
+load cached assets instantly, while content updates are picked up as
+soon as the HTML document is refreshed.
+
+**Per-directory configuration**
+
+Because ``ExpiresActive``, ``ExpiresByType``, and ``ExpiresDefault``
+are valid in :file:`.htaccess` files (when ``AllowOverride Indexes`` is
+set), individual directories or applications can provide their own
+caching policies. For example, a WordPress uploads directory might have:
+
+.. code-block:: apache
+
+   # .htaccess in /wp-content/uploads/
+   ExpiresActive On
+   ExpiresDefault "access plus 1 year"
+
+
+.. _See_Also_browser-caching-expires:
+
+See Also
+~~~~~~~~
+
+* The :module:`mod_expires` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_expires.html
+
+* The :module:`mod_headers` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_headers.html
+
+* RFC 7234 (HTTP/1.1 Caching), Section 5.2 — Cache-Control:
+  https://www.rfc-editor.org/rfc/rfc7234#section-5.2
+
+* Google's web performance guidance on HTTP caching:
+  https://web.dev/articles/http-cache
+
+
+.. _Recipe_troubleshooting-cache:
+
+Troubleshooting Cache Behavior
+------------------------------
+
+.. index:: caching; troubleshooting
+.. index:: X-Cache header
+.. index:: CacheHeader
+.. index:: CacheDetailHeader
+.. index:: mod_cache; debugging
+.. index:: mod_deflate; cache interaction
+.. index:: no-cache environment variable
+.. index:: cache-status
+
+
+.. _Problem_troubleshooting-cache:
+
+Problem
+~~~~~~~
+
+Your cache is not behaving as expected — content that should be cached
+is not being served from cache, content that should not be cached is
+being served stale, or you cannot tell whether caching is working at
+all.
+
+
+.. _Solution_troubleshooting-cache:
+
+Solution
+~~~~~~~~
+
+Enable the ``CacheHeader`` and ``CacheDetailHeader`` directives to add
+diagnostic headers to every response:
+
+.. code-block:: apache
+
+   CacheHeader on
+   CacheDetailHeader on
+
+Then inspect the response headers with ``curl``:
+
+.. code-block:: text
+
+   curl -s -D- -o /dev/null http://www.example.com/page.html
+
+Look for the ``X-Cache`` and ``X-Cache-Detail`` headers in the
+response:
+
+.. code-block:: text
+
+   X-Cache: HIT from localhost
+   X-Cache-Detail: "cache hit" from localhost
+
+Or, if the content was not served from cache:
+
+.. code-block:: text
+
+   X-Cache: MISS from localhost
+   X-Cache-Detail: "url not cached: no expiry information" from localhost
+
+
+.. _Discussion_troubleshooting-cache:
+
+Discussion
+~~~~~~~~~~
+
+Caching problems generally fall into a few categories: content not
+being cached when it should be, stale content being served when it
+should not be, and unexpected interactions between caching and other
+modules. The diagnostic headers provided by :module:`mod_cache` are the
+most direct way to understand what the cache is doing.
+
+**Understanding the X-Cache header**
+
+The ``CacheHeader on`` directive adds an ``X-Cache`` header to every
+response, with one of three values:
+
+- ``HIT`` — the response was served from cache and was fresh
+- ``REVALIDATE`` — the cached response was stale but was successfully
+  revalidated with the origin (the origin returned 304 Not Modified)
+- ``MISS`` — the response was fetched from the origin and not served
+  from cache
+
+The ``CacheDetailHeader on`` directive adds a companion
+``X-Cache-Detail`` header with a human-readable explanation of the
+caching decision. This is invaluable for understanding *why* a
+particular response was or was not cached.
+
+.. warning::
+
+   Disable ``CacheHeader`` and ``CacheDetailHeader`` in production.
+   These headers expose internal server behavior and cache topology
+   information that could be useful to an attacker.
+
+**Logging cache decisions**
+
+:module:`mod_cache` writes its caching decision to the
+``cache-status`` subprocess environment variable, which you can include
+in your access log:
+
+.. code-block:: apache
+
+   LogFormat "%h %l %u %t \"%r\" %>s %b \"%{cache-status}e\"" cache_log
+   CustomLog "logs/cache.log" cache_log
+
+For more granular logging, use the four sub-variables to write separate
+logs for cache hits, misses, revalidations, and invalidations:
+
+.. code-block:: apache
+
+   CustomLog "logs/cache-hit.log" common env=cache-hit
+   CustomLog "logs/cache-miss.log" common env=cache-miss
+   CustomLog "logs/cache-revalidate.log" common env=cache-revalidate
+   CustomLog "logs/cache-invalidate.log" common env=cache-invalidate
+
+**Cache interaction with mod_deflate**
+
+A frequently reported issue on the Apache HTTP Server mailing list is
+unexpected behavior when :module:`mod_cache` and :module:`mod_deflate`
+are both active. The interaction depends on the ``CacheQuickHandler``
+setting and filter ordering.
+
+When ``CacheQuickHandler on`` (the default), the cache runs before any
+output filters, including :module:`mod_deflate`. The cache stores the
+uncompressed response. When the cached response is served, it bypasses
+all filters, so ``mod_deflate`` never compresses it. This means
+clients receive the uncompressed version from cache, even if they
+support compression.
+
+To get caching and compression working together properly, disable the
+quick handler and explicitly order the filters:
+
+.. code-block:: apache
+
+   # Cache the uncompressed version, compress on delivery
+   CacheQuickHandler off
+   AddOutputFilterByType CACHE;DEFLATE text/html text/plain text/css
+
+With this ordering, :module:`mod_cache` stores the uncompressed content
+(one cached copy serves all clients), and :module:`mod_deflate`
+compresses the output on each delivery. If your server's CPU is not the
+bottleneck but disk I/O is, you might prefer the reverse — cache the
+compressed version:
+
+.. code-block:: apache
+
+   # Compress first, then cache the compressed version
+   CacheQuickHandler off
+   AddOutputFilterByType DEFLATE;CACHE text/html text/plain text/css
+
+Be aware that when you cache the compressed version, the cache stores a
+separate entry for each ``Vary: Accept-Encoding`` variation. Clients
+that do not support compression will need their own cache entry.
+
+**When NOT to cache**
+
+Not all content should be cached, and :module:`mod_cache` respects the
+HTTP caching rules by default. However, some cases require explicit
+attention:
+
+*Authenticated content:* When ``CacheQuickHandler`` is ``on`` (the
+default), the cache runs before authentication. If authenticated
+content is inadvertently cached, it will be served to unauthenticated
+users. Either disable caching for authenticated paths, or set
+``CacheQuickHandler off`` so that authentication runs first:
+
+.. code-block:: apache
+
+   # Option 1: Exclude authenticated paths from caching
+   CacheDisable "/members"
+   CacheDisable "/admin"
+
+   # Option 2: Let authentication run before caching
+   CacheQuickHandler off
+   <Location "/members">
+       AuthType Basic
+       AuthName "Members Only"
+       AuthBasicProvider file
+       AuthUserFile /etc/apache2/htpasswd
+       Require valid-user
+   </Location>
+
+*Dynamic API responses:* REST APIs that return user-specific data
+should not be cached. If your API does not already send
+``Cache-Control: no-store``, either add it with :module:`mod_headers`
+or exclude the API paths:
+
+.. code-block:: apache
+
+   <Location "/api">
+       Header set Cache-Control "no-store"
+   </Location>
+
+*Content behind Set-Cookie:* Responses that set cookies are typically
+not cached by default, because the ``Set-Cookie`` header creates a
+``Vary`` condition. If you explicitly want to cache such responses while
+stripping the cookie header from the cached copy, use
+``CacheIgnoreHeaders``:
+
+.. code-block:: apache
+
+   CacheIgnoreHeaders Set-Cookie
+
+Use this with extreme caution — it can cause one user's session cookie
+to be served to another user.
+
+**The thundering herd problem**
+
+When a popular cached resource expires, many simultaneous requests may
+hit the origin server at once while the cache refreshes. Enable the
+cache lock to serialize refresh requests:
+
+.. code-block:: apache
+
+   CacheLock on
+   CacheLockPath "/tmp/mod_cache-lock"
+   CacheLockMaxAge 5
+
+With the lock enabled, only the first request to a stale resource is
+forwarded to the origin. Subsequent requests receive the stale content
+until the first request completes, at which point the freshened response
+is served from cache.
+
+
+.. _See_Also_troubleshooting-cache:
+
+See Also
+~~~~~~~~
+
+* The :module:`mod_cache` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_cache.html
+
+* The ``CacheHeader`` directive at
+  https://httpd.apache.org/docs/current/mod/mod_cache.html#cacheheader
+
+* The ``CacheDetailHeader`` directive at
+  https://httpd.apache.org/docs/current/mod/mod_cache.html#cachedetailheader
+
+* The Apache Caching Guide at
+  https://httpd.apache.org/docs/current/caching.html
+
+* :ref:`Recipe_disk-caching`
+
+* :ref:`Recipe_browser-caching-expires`
+
+
 Summary
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. rubric:: Footnotes
 
 .. [#apacheckbk-CHP-11-FNOTE-1] For example, the owner of the IP address could very easily put a PTR record in his reverse-DNS zone, pointing his IP address at a name belonging to someone else.
-.. [#apacheckbk-CHP-11-FNOTE-2] Of course, this is not true at the filesystem level, but we're just talking about the practical user level.
+.. [#apacheckbk-CHP-11-FNOTE-2] Of course, this is not true at the filesystem level, but this discussion concerns only the practical user level.

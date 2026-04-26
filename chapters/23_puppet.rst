@@ -5,6 +5,14 @@
 Configuring Apache with Puppet
 ==============================
 
+.. epigraph::
+
+   | I've got no strings to hold me down,
+   | to make me fret, or make me frown.
+
+   -- Dickie Jones, *I've Got No Strings* (Pinocchio)
+
+
 .. index:: Puppet
 
 .. index:: Puppet,apache module
@@ -30,14 +38,14 @@ and it's quite replete with examples and explanations.
 
 .. tip::
 
-   .Check Version Compatibility!
-   ====
+   **Check Version Compatibility!**
+
    Before chraging ahead with any of these recipes, you should check the
    PuppetForge page and verify that the module is compatible with the
    version of Puppet you're using.  You may have to install an older
    version of the module if your Puppet environment is running somewhat
    behind the latest release.
-   ====
+
 
 
 This chapter does **not** provide a primer on how to install, configure,
@@ -50,8 +58,8 @@ often overlooked which can make debugging a **real** trial:
 .. _apacheckbk-PUPPET-1-NOTE-1:
 
 
-**Ensuring Proper Name Scoping**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ensuring Proper Name Scoping
+----------------------------
 
 
 .. warning::
@@ -60,7 +68,7 @@ often overlooked which can make debugging a **real** trial:
    good practice to use '**``::``**' as a prefix whenever refering to something
    that hasn't been defined in the current scope.  For example:
 
-   ** **Facts*::
+   **Facts**:
      Use ``$::fqdn`` or ``$::operatingsystemrelease`` (or, if being
      interpolated in strings, ``"${::fqdn}"`` or
      ``"${::operatingsystemrelease}"``) rather than just the bare ``$fqdn``
@@ -68,7 +76,7 @@ often overlooked which can make debugging a **real** trial:
      with no embedded '**``::``**' sequences to narrow their scope -- they're
      **always** global.
 
-   ** **Global parameters*::
+   **Global parameters**:
      (Such as set in the host's manifest or
      Foreman!footnoteref:[apacheckbk-PUPPET-1-FNOTE-1,Foreman
      (https://theforeman.org/) is a F/LOSS tool for managing
@@ -76,19 +84,21 @@ often overlooked which can make debugging a **real** trial:
      facts, these names are not namespaced, and should be treated the
      same way when referenced: ``$::gblvarname`` or ``"${::gblvarname}"``.
 
-   ** **Resource declarations and class/resource references*::
+   **Resource declarations and class/resource references**:
      It's entirely possible for a Puppet module to include a class or
      resource name that happens to be the same as a top-level Puppet
      module.  For this reason, you should **always** fully scope your
      references -- both internal to your module **and external** -- so
      Puppet will be sure which one you mean.  For example:
 
-     include ::mymodule::apache
-     class { '::apache':
-       require     => Class['::mymodule::apache'],
-     }
-     $mymodvar     =  $::mymodule::apache::somevar
-     $apachemodvar =  $::apache::somevar
+     .. code-block:: puppet
+
+        include ::mymodule::apache
+        class { '::apache':
+          require     => Class['::mymodule::apache'],
+        }
+        $mymodvar     =  $::mymodule::apache::somevar
+        $apachemodvar =  $::apache::somevar
 
 
 Now, on to the reipes!
@@ -97,10 +107,10 @@ Now, on to the reipes!
 .. _Recipe_Basic_Config:
 
 Basic Configuration
+-------------------
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Problem_Basic_Config:
 
@@ -108,8 +118,7 @@ Problem
 ~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Solution_Basic_Config:
 
@@ -117,8 +126,7 @@ Solution
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Discussion_Basic_Config:
 
@@ -126,8 +134,7 @@ Discussion
 ~~~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _See_Also_Basic_Config:
 
@@ -135,16 +142,15 @@ See Also
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Recipe_Server_Tokens:
 
 Specifying Server Tokens
+------------------------
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Problem_Server_Tokens:
 
@@ -152,8 +158,7 @@ Problem
 ~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Solution_Server_Tokens:
 
@@ -161,8 +166,7 @@ Solution
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Discussion_Server_Tokens:
 
@@ -170,8 +174,7 @@ Discussion
 ~~~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _See_Also_Server_Tokens:
 
@@ -179,20 +182,19 @@ See Also
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Recipe_VHosts:
 
 Virtual Hosts
+-------------
 
 .. index:: Virtual hosts
 
 .. index:: Vhosts
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Problem_VHosts:
 
@@ -200,8 +202,7 @@ Problem
 ~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Solution_VHosts:
 
@@ -209,8 +210,7 @@ Solution
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Discussion_VHosts:
 
@@ -218,8 +218,7 @@ Discussion
 ~~~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _See_Also_VHosts:
 
@@ -230,13 +229,12 @@ See Also
 * <<Chapter_Virtual_hosts>, **Virtual Hosts**
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Recipe_SSL:
 
 Setting Up SSL
-
+--------------
 .. index:: SSL
 
 .. index:: TLS
@@ -244,8 +242,7 @@ Setting Up SSL
 .. index:: Secure websites
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Problem_SSL:
 
@@ -253,8 +250,7 @@ Problem
 ~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Solution_SSL:
 
@@ -280,8 +276,7 @@ Solution
    }
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Discussion_SSL:
 
@@ -289,8 +284,7 @@ Discussion
 ~~~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _See_Also_SSL:
 
@@ -301,16 +295,15 @@ See Also
 * :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Recipe_Redirect_to_SSL:
 
 Redirecting all +http://+ requests to +https://+
+------------------------------------------------
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Problem_Redirect_to_SSL:
 
@@ -318,8 +311,7 @@ Problem
 ~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Solution_Redirect_to_SSL:
 
@@ -357,8 +349,7 @@ Discussion
 ~~~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _See_Also_Redirect_to_SSL:
 
@@ -370,16 +361,15 @@ See Also
 * :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Recipe_ModuleList:
 
 Managing the Module List
+------------------------
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Problem_ModuleList:
 
@@ -387,8 +377,7 @@ Problem
 ~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Solution_ModuleList:
 
@@ -396,8 +385,7 @@ Solution
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _Discussion_ModuleList:
 
@@ -405,8 +393,7 @@ Discussion
 ~~~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 .. _See_Also_ModuleList:
 
@@ -414,10 +401,9 @@ See Also
 ~~~~~~~~
 
 
-.. todo:: 
-
+.. todo:: Write this recipe.
 
 Summary
 
 
-.. todo:: 
+.. todo:: Write this recipe.

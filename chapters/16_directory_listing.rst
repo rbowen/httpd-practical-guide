@@ -5,6 +5,14 @@
 Directory Listing
 =================
 
+.. epigraph::
+
+   | We're not gonna take it. No, we ain't gonna take it.
+   | We're not gonna take it anymore.
+
+   -- Twisted Sister, *We're Not Gonna Take It*
+
+
 .. index:: Directory listing
 
 .. index:: mod_autoindex
@@ -20,6 +28,11 @@ The default Apache HTTP Server package includes a module, ``mod_autoindex``, for
 listing as a Web page. The default display is simple and informative, but
 the module provides all sorts of controls to let you tweak and customize
 the output.
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_autoindex`
 
 
 .. _Recipe_enabling-autoindex:
@@ -66,29 +79,27 @@ Discussion
 
 
 When a URL maps to a directory or folder in the filesystem,
-Apache will respond to the request in one of three ways:
+Apache httpd will respond to the request in one of three ways:
 
 
 #. If ``mod_dir`` is part of
-  the server configuration, **and**
-  the mapped directory is within the scope of a **DirectoryIndex** directive, 
-  **and** the server can find one of the files
-  identified in that directive, then the file will be used to
-  generate the response.
+   the server configuration, **and**
+   the mapped directory is within the scope of a **DirectoryIndex** directive, 
+   **and** the server can find one of the files
+   identified in that directive, then the file will be used to
+   generate the response.
 
-
-          
 #. If ``mod_autoindex`` is
-  part of the server configuration and the mapped directory is
-  within the scope of an **Options**
-  directive that has enabled the **Indexes** keyword, then the server will
-  construct a directory listing at runtime and supply it as the
-  response.
+   part of the server configuration and the mapped directory is
+   within the scope of an **Options**
+   directive that has enabled the **Indexes** keyword, then the server will
+   construct a directory listing at runtime and supply it as the
+   response.
 
 #. The server will return a 404 ("Resource Not Found") status.
           
 Enabling directory listings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 
 
 The real keys to enabling the server's ability to
@@ -123,7 +134,7 @@ exposure of your filesystem's contents.
 
 
 Disabling directory indexing below an enabled directory
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------
 
 
 There are two ways to work around this issue and
@@ -240,7 +251,7 @@ Discussion
 
 The 'fancy' formatting is the one that you're most used to
 seeing because it's the default setting in most configurations of
-Apache.
+httpd.
 
 The **HTMLTable** formtting is
 rather less common, and gives a slightly less plain look to the
@@ -1122,7 +1133,8 @@ Certain files should be ommitted from directory listings.
 Temporary files, swap files, and various other generated files don't
 need to be shown to users visiting your Web site. Revision control
 directories, such as the **CVS**
-directory created by CVS, or the **.svn** directory created by Subversion, also
+directory created by CVS, the **.svn** directory created by Subversion,
+or the **.git** directory created by Git, also
 should not be displayed, as they are unlikely to contain any
 information that would be of use to your visitors.
 
@@ -1284,8 +1296,7 @@ Discussion
 ~~~~~~~~~~
 
 
-In Apache 2.0.23, a number of new options were added to
-        ``mod_autoindex``, which allowed for more client control over the
+``mod_autoindex`` provides several options for client control over the
         output of directory listings. By inserting options in the ``QUERY_STRING`` of the URL, changes can be made
         to the sort order, output formatting, and, as shown in this recipe,
         the files that are shown in the listing.
@@ -1294,8 +1305,7 @@ Using the **?P=** ``QUERY_STRING``, the file listing is filtered
         by the supplied argument. For example, with a URL of: http://servname/directory/?P=a*, any file starting with
         **``a``** will be listed.
 
-Because this functionality is new with 2.0, there is no way to
-        achieve the same outcome with earlier versions of Apache.
+
 
 
 See Also
@@ -1599,7 +1609,7 @@ Solution
 ~~~~~~~~
 
 
-Add the following lines to the <Directory> container that defines the
+Add the following lines to the ``<Directory>`` container that defines the
 characteristics of your ``ScriptAlias``ed directory:
 
 
@@ -1635,7 +1645,7 @@ directory listings in such directories—or at least the use of
 pseudolistings provided by files named in a ``DirectoryIndex`` directive. To do this
 you need to override the special protections.
 
-To do this, we add the ``Indexes`` option to the directory in question,
+To do this, you add the ``Indexes`` option to the directory in question,
 even though it is usually explicitly excluded.
 
 Summary
@@ -1646,7 +1656,7 @@ Auto-indexed directories are very useful in many different scenarios,
 usually involving a large number of files which you want to make
 available for random browsing.
 
-In this chapter, we've discussed how to make these inexes more useful,
+In this chapter, I've discussed how to make these indexes more useful,
 more user-friendly, and more attractive.
 
 See also the ``mod_autoindex`` documentation at

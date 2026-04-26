@@ -1,9 +1,21 @@
+.. raw:: latex
+
+   \part{Core Configuration}
 
 .. _Chapter_Common_modules:
 
 =====================
 Adding Common Modules
 =====================
+
+.. epigraph::
+
+   | You can't always get what you want,
+   | but if you try sometimes, you just might find
+   | you get what you need.
+
+   -- The Rolling Stones, *You Can't Always Get What You Want*
+
 
 .. index:: Common modules
 
@@ -12,13 +24,13 @@ Adding Common Modules
 .. index:: Adding common modules
 
 
-A critical detail of the Apache http server is that it is modular.
+A critical detail of the Apache HTTP Server is that it is modular.
 There's a small core, and everything beyond the absolute basics is
 implemented in modules.
 
 The module API makes it fairly easy for anyone to create their own
 modules to perform whatever task, large or small. As a result, a large
-number of third-party modules have sprung up. By "third-party", we
+number of third-party modules have sprung up. By "third-party", I
 mean modules that are maintained and distributed separately from the
 main web server project. This is due to a variety of factors. Not
 everything is of interest to enough people to necessitate being part
@@ -38,16 +50,16 @@ Other modules, such as mod_perl, mod_security, or PHP, have a
 sufficient community around them that they exist as vibrant
 independent projects.
 
-In this chapter, we show how to install and configure several
+In this chapter, I show how to install and configure several
 third-party modules, ranging from the trivial (mod_pony) to the more
-useful. We'll show how to install them **via** packages, and from source.
+useful. I'll show how to install them **via** packages, and from source.
 
-This chapter does not cover writing your own modules. We feel that
-this is beyond the scope of this book. Instead we recommend Nick Kew's
-book, The Apache Modules book.
+This chapter does not cover writing your own modules. I feel that
+this is beyond the scope of this book. Instead I recommend Nick Kew's
+book, The Apache httpd Modules book.
 http://www.amazon.com/The-Apache-Modules-Book-Application/dp/0132409674
 
-We also recommend the online developer resource,
+I also recommend the online developer resource,
 http://httpd.apache.org/dev/ , and the API guide,
 http://ci.apache.org/projects/httpd/trunk/doxygen/
 
@@ -162,8 +174,8 @@ Discussion
 ~~~~~~~~~~
 
 
-Since the introduction of Apache httpd 2.0, installing modules has
-been pretty standard, and for most modules, the proces should be
+Installing modules has
+been pretty standard for a long time, and for most modules, the proces should be
 fairly easy.
 
 ``apxs`` is a tool that comes with the web server which facilitates
@@ -181,13 +193,13 @@ On Debian (or Ubuntu, and related distributions), install the
    apt-get install apache2-dev
 
 
-On CentOS, Fedora, and related distributions, install the
+On RPM-based distributions (Fedora, RHEL, AlmaLinux, Rocky Linux), install the
 ``httpd-devel`` package:
 
 
 .. code-block:: text
 
-   yum install httpd-devel
+   dnf install httpd-devel
 
 
 The ``-cia`` option to ``apxs`` is a shortcut for the options ``-c -i -a``,
@@ -233,7 +245,7 @@ Problem
 ~~~~~~~
 
 
-You want to use the PHP language on your Apache http server.
+You want to use the PHP language on your httpd.
 
 
 .. _Solution_Installing_PHP:
@@ -242,12 +254,12 @@ Solution
 ~~~~~~~~
 
 
-There are a few different ways to install PHP on your Apache server,
+There are a few different ways to install PHP on your httpd,
 depending on how you installed Apache httpd itself, and your needs and
 preferences.
 
 Look in :ref:`Chapter_Dynamic_content`, **Dynamic Content**, for discussion of the various ways
-to install and enable PHP on your Apache http server.
+to install and enable PHP on your httpd.
 
 
 .. _Discussion_Installing_PHP:
@@ -256,7 +268,7 @@ Discussion
 ~~~~~~~~~~
 
 
-We've devoted an entire chapter to the various ways of producing
+I've devoted an entire chapter to the various ways of producing
 dynamic content on Apache httpd, and PHP is a very important topic in
 that discussion.
 
@@ -310,7 +322,7 @@ Discussion
 ~~~~~~~~~~
 
 
-http://modules.apache.org/ is a site that allows authors of Apache
+http://modules.apache.org/ is a site that allows authors of httpd
 httpd modules to list their modules, and users to post reviews and
 comments about these modules.
 
@@ -367,7 +379,7 @@ Solution
 
 
 Download mod_pony.c from the module repository at
-http://svn.rcbowen.com/svn/public/mod_pony/
+https://github.com/rbowen/mod_pony
 
 Install and enable it using apxs, as described above:
 
@@ -425,7 +437,7 @@ See Also
 
 * mod_example and mod_example_hooks
 
-* http://svn.rcbowen.com/svn/public/mod_pony/
+* https://github.com/rbowen/mod_pony
 
 
 .. _Recipe_mod_security:
@@ -470,12 +482,12 @@ To install **via** packages on Ubuntu or Debian:
    $ sudo /etc/init.d/apache2 force-reload
 
 
-To install **via** packages on CentOS or Fedora:
+To install **via** packages on Fedora or RHEL:
 
 
 .. code-block:: text
 
-   $ sudo yum install mod_security
+   $ sudo dnf install mod_security
    $ sudo /etc/init.d/httpd restart
 
 
@@ -617,7 +629,7 @@ Discussion
 
 This chapter is primarily devoted to installing and enabling
 third-party modules. Because ``mod_security`` is a web application
-firewall, primarily focused on web application security, we've put the
+firewall, primarily focused on web application security, I've put the
 relevant recipes in the Security chapter.
 
 
@@ -646,8 +658,8 @@ Problem
 ~~~~~~~
 
 
-You are trying to install a third-party module, but the Apache
-Web server refuses to recognize it.
+You are trying to install a third-party module, but httpd
+refuses to recognize it.
 
 
 .. _Solution_module_broken:
@@ -657,7 +669,7 @@ Solution
 
 
 Consult the sources for the module, or its documentation, or ask
-the author, in order to determine which version of Apache the package
+the author, in order to determine which version of httpd the package
 supports.
 
 
@@ -667,7 +679,7 @@ Discussion
 ~~~~~~~~~~
 
 
-As significant changes are made to the Apache Web server,
+As significant changes are made to httpd,
 sometimes compatibility suffers as the API is changed. Although
 efforts are made to keep this sort of thing to a minimum, sometimes it
 is unavoidable.
@@ -681,10 +693,10 @@ they aren't compatible, the server refuses to load it.
 
 The development team tries to keep the magic number
 compatibility within major version numbers, but not across them. That
-is, a module built for Apache 2.2 **should** work
-with almost any 2.2 version of the server built after the module was,
-but it definitely won't work with a 2.0 server. Contrariwise, a 2.0
-module won't work with a 1.3 server under any circumstances.
+is, a module built for httpd 2.4 **should** work
+with almost any 2.4 version of the server built after the module was,
+but it won't work across major versions.
+
 
 
 .. _See_Also_module_broken:
@@ -693,7 +705,7 @@ See Also
 ~~~~~~~~
 
 
-* The Apache Modules Registry at http://modules.apache.org
+* The httpd Modules Registry at http://modules.apache.org
 
 
 .. _Recipe_Enabling_modules_debian:

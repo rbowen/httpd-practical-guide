@@ -1,12 +1,32 @@
 # Sphinx build output
 _build/
-_ext/__pycache__/
+build.log
+build_html.log
+build_latex.log
+
+# Python bytecode
+__pycache__/
+*.pyc
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Editor files
-*.swp
-*.swo
-*~
+# Sync script (contains server details)
+sync-files.sh
+
+# Research and audit files (not part of the book itself)
+ml_research/
+content_review_report.md
+recipe_audit_misplacement.md
+recipe_audit.md
+module_coverage_audit.md
+full_module_coverage_audit.md
+
+# Backup files from editing
+*.bak
+
+# Generated output (build from source)
+*.pdf
+*.epub
+*.azw3

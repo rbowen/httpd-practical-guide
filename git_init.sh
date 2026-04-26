@@ -1,24 +1,32 @@
 #!/bin/bash
+# Set up (or update) the git remote and push to GitHub.
+# Run this on matrim after syncing with sync-files.sh.
+#
+# First time: sets remote and pushes
+# Subsequent: just commits and pushes
+
 cd "$(dirname "$0")"
 
-# Initialize git
-git init
-echo "# Sphinx build output
-_build/
-_ext/__pycache__/
+REMOTE="git@github.com:rbowen/httpd-practical-guide.git"
 
-# OS files
-.DS_Store
-Thumbs.db
+# Check if remote is already set correctly
+CURRENT_REMOTE=$(git remote get-url origin 2>/dev/null)
 
-# Editor files
-*.swp
-*.swo
-*~" > .gitignore
+if [ -z "$CURRENT_REMOTE" ]; then
+    echo "Adding remote origin..."
+    git remote add origin "$REMOTE"
+elif [ "$CURRENT_REMOTE" != "$REMOTE" ]; then
+    echo "Updating remote origin from $CURRENT_REMOTE to $REMOTE..."
+    git remote set-url origin "$REMOTE"
+else
+    echo "Remote already set to $REMOTE"
+fi
 
+# Stage, commit, push
 git add -A
-git commit -m "Initial commit: Apache Cookbook 4e, converted from AsciiDoc 3e to Sphinx/RST"
+git commit -m "${1:-Update from working copy}"
+git branch -M main
+git push -u origin main
 
 echo ""
-echo "=== Git repo initialized ==="
-git log --oneline
+echo "Done! Repo at: https://github.com/rbowen/httpd-practical-guide"

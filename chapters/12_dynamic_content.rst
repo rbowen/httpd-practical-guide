@@ -1,3 +1,6 @@
+.. raw:: latex
+
+   \part{Applications}
 
 .. _Chapter_Dynamic_content:
 
@@ -25,7 +28,7 @@ for your Web site. They tend to be easy to write because you can write
 them in any language. Thus, you don't have to learn a new language to
 write CGI programs. Examples in this chapter will be given in a
 variety of languages, but it's not necessary that you know these
-languages in order to see how to configure Apache for their execution.
+languages in order to see how to configure Apache HTTP Server for their execution.
 
 Although CGI is no longer the preferred mechanism for generating
 dynamic content, it is the simplest, and understanding how CGI works
@@ -37,10 +40,16 @@ enjoy a great deal of popularity, because they provide many of the
 same functions as CGI programs but typically execute faster.
 
 
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_alias`, :module:`mod_cgi`, :module:`mod_mime`,
+   :module:`mod_suexec`
+
+
 .. _Recipe_ScriptAlias:
 
 Enabling a CGI directory
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 
 .. _Problem_ScriptAlias:
@@ -73,7 +82,7 @@ Discussion
 
 
 A CGI directory will usually be designated and enabled in your default
-configuration file when you install Apache. However, if you want to
+configuration file when you install Apache httpd. However, if you want to
 add additional directories where CGI programs are located, the
 **ScriptAlias** directive does this for you. You may have as many
 **ScriptAlias**'ed directories as you want.
@@ -114,8 +123,7 @@ you deny the use of **.htaccess** files in **cgi-bin** directories:
 .. code-block:: text
 
    <Directory /www/cgi-bin>
-       Order allow,deny
-       Allow from all
+       Require all granted
        AllowOverride None
    </Directory>
 
@@ -137,13 +145,13 @@ See Also
 
 * :ref:`Enabling_CGI_Scripts_in_Non-ScriptAliased_Directories_id140724`
 
-* http://httpd.apache.org/docs/2.0/mod/mod_alias.html
+* https://httpd.apache.org/docs/2.4/mod/mod_alias.html
 
 
 .. _Enabling_CGI_Scripts_in_Non-ScriptAliased_Directories_id140724:
 
 Enabling CGI Scripts in Non-ScriptAliased Directories
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------------------
 
 
 .. _Problem_id140738:
@@ -230,6 +238,7 @@ See Also
 .. _I_sect18_d1e13831:
 
 Specifying a Default Document in a CGI Directory
+------------------------------------------------
 
 
 Problem
@@ -274,8 +283,7 @@ following:
        SetHandler cgi-script
        DirectoryIndex index.pl
    
-       Order allow,deny
-       Allow from all
+       Require all granted
        AllowOverride none
    </Directory>
 
@@ -359,7 +367,7 @@ See Also
 .. _Using_Windows_File_Extensionsto_Launch_CGI_Programs_id141031:
 
 Using Windows File Extensions to Launch CGI Programs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------
 
 
 .. _Problem_id141045:
@@ -396,10 +404,10 @@ Discussion
 ~~~~~~~~~~
 
 
-Because Apache has its roots in the Unixish world, there are a number
+Because httpd has its roots in the Unixish world, there are a number
 of things that are done the Unixish way, even on Microsoft
 Windows. CGI execution is one of these things, but the
-**ScriptInterpreterSource** directive allows you to have Apache behave
+**ScriptInterpreterSource** directive allows you to have httpd behave
 more in the way to which Windows users are accustomed.
 
 Usually, on Windows, a file type is indicated by the file
@@ -432,12 +440,12 @@ the particular version desired may be invoked by using the appropriate
 
 However, you may be accustomed to Windows' usual way of executing a
 program based on the file extension, and this Unixism can be somewhat
-nonintuitive. Thus, in the early days of Apache on Windows, the
-**ScriptInterpreterSource** directive was added to make Apache behave
+nonintuitive. Thus, in the early days of httpd on Windows, the
+**ScriptInterpreterSource** directive was added to make httpd behave
 the way that Windows users expected.
 
 **ScriptInterpreterSource** may have one of three values. When set to
-the default value, **script**, Apache will look in the script itself for
+the default value, **script**, httpd will look in the script itself for
 the location of the interpreter that it is to use.
 
 When it is set to **registry**, it will look in the Windows registry for
@@ -468,13 +476,13 @@ See Also
 
 * :ref:`Using_Extensions_to_Identify_CGI_Scripts_id141365`
 
-* http://httpd.apache.org/docs/2.2/mod/core.html#ScriptInterpreterSource
+* https://httpd.apache.org/docs/2.4/mod/core.html#ScriptInterpreterSource
 
 
 .. _Using_Extensions_to_Identify_CGI_Scripts_id141365:
 
 Using Extensions to Identify CGI Scripts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 
 .. _Problem_id141379:
@@ -483,7 +491,7 @@ Problem
 ~~~~~~~
 
 
-You want Apache to know that all files with a particular extension
+You want httpd to know that all files with a particular extension
 should be treated as CGI scripts.
 
 
@@ -510,7 +518,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The **AddHandler** directive shown in this solution tells Apache that
+The **AddHandler** directive shown in this solution tells httpd that
 any files that have a **.cgi** extension should be treated as CGI
 scripts, and it should try to execute them rather than treat them as
 content to be sent.
@@ -546,7 +554,7 @@ The **FilesMatch** directive allows directives to be applied to any file
 that matches a particular pattern. In this case, a file with a file
 extension of **.cgi**. As mentioned above, a file may have several file
 extensions. Thus, rather than using a pattern of **\.cgi$**, which would
-require that the filename ended with **.cgi**, we use **\.cgi(\.|$)**. The
+require that the filename ended with **.cgi**, the pattern **\.cgi(\.|$)** is used instead. The
 **``(\.|$)``** regular expression syntax requires that **.cgi** be
 followed either by another **.**, or the end of the string.
 
@@ -563,6 +571,7 @@ See Also
 .. _Testing_That_CGI_Is_Set_Up_Correctly_id141582:
 
 Testing that CGI Is Set Up Correctly
+------------------------------------
 
 
 .. _Problem_id141596:
@@ -613,7 +622,7 @@ equivalent shell program may be substituted:
    echo It\'s working.
 
 
-And if you are running Apache on Windows, so that neither of the above
+And if you are running httpd on Windows, so that neither of the above
 options works for you, you could also try this with a batch file:
 
 
@@ -644,7 +653,7 @@ like the screen capture shown in :ref:`Your_CGI_program_worked_id141721`.
 
 The idea here is to start with the simplest possible CGI program to
 ensure that problems are not caused by other complexities in your
-code. We want to ensure that CGI is configured properly, not to verify
+code. The goal is to ensure that CGI is configured properly, not to verify
 the correctness of a particular CGI program.
 
 There are a variety of reasons why a particular CGI program might not
@@ -655,7 +664,7 @@ incorrect permissions on the files and directories in question.
 Fortunately, when something goes wrong with one of your CGI programs,
 an entry is made in your error log. Knowing where your error log is
 located is a prerequisite to solving any problem you have with your
-Apache server. The error messages that go to the browser, while
+httpd. The error messages that go to the browser, while
 vaguely useful, tend to be catch-all messages and usually don't
 contain any information specific to your actual problem.
 
@@ -729,10 +738,10 @@ the ``#!`` line is illegible.  The most common cause of this second
 condition is when a script file is transferred from a Windows machine
 to a Unixish machine, **via** FTP, in binary mode rather than ASCII
 mode. This results in a file with the wrong type of end-of-line
-characters, so that Apache is unable to correctly read the location of
+characters, so that httpd is unable to correctly read the location of
 the script interpreter.
 
-.. note:: Not Apache the web server — the system!
+.. note:: Not httpd the web server — the system!
 
 To fix this, you should run the following one-liner from the command
 line:
@@ -756,15 +765,13 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Debugging_Premature_End_of_Script_Headers_id159096`
 
-* :ref:`Chapter_Troubleshooting_and_error_handling`, *Troubleshooting and
-  error Handling*
 
 
 .. _Reading_Form_Parameters_id142026:
 
 Reading Form Parameters
+-----------------------
 
 
 .. _Problem_id142039:
@@ -841,7 +848,7 @@ For this example, you also will need a **Makefile**, which looks
 something like this:
 
 
-.. code-block:: makefile
+.. code-block:: make
 
    CFLAGS=-g -Wall
    CC=gcc
@@ -922,7 +929,7 @@ programs is as follows:
 The examples given in this recipe each use CGI libraries, or modules,
 for the actual functionality of parsing the HTML form
 contents. Although many CGI tutorials on the Web show you how to do
-the form parsing yourself, we don't recommend it. One of the great
+the form parsing yourself, I don't recommend it. One of the great
 virtues of a programmer is laziness, and using modules, rather than
 reinventing the wheel, is one of the most important manifestations of
 laziness. And it makes good sense, too, because these modules tend to
@@ -954,7 +961,7 @@ See Also
 .. _Recipe_CGI_Action:
 
 Invoking a CGI Program for Certain Content Types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------
 
 
 .. _Problem_CGI_Action:
@@ -1064,7 +1071,7 @@ The requested file, located at ``PATH_TRANSLATED``, pass:
 [<!--PLEASE INDEX-->]
 is read in and printed out, unmodified. Then, at the end of it, a few
 additional lines of footer are output. A similar technique might be
-used to filter the contents of the page itself. With Apache 2.0, this
+used to filter the contents of the page itself. This
 may be better accomplished with ``mod_ext_filter``.
 
 This script is intended to illustrate the technique, **not** to be used
@@ -1088,7 +1095,7 @@ See Also
 .. _Getting_SSIs_to_Work_id142764:
 
 Getting SSIs to Work
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 
 .. _Problem_id142777:
@@ -1110,20 +1117,8 @@ Solution
 There are at least two different ways of doing this.
 
 Specify which files are to be parsed by using a filename extension
-such as **.shtml**. For Apache 1.3, add the following directives to your
+such as **.shtml**. Add the following directives to your
 **httpd.conf** in the appropriate scope:
-
-
-.. code-block:: text
-
-   <Directory /www/html/example>
-       Options +Includes
-       AddHandler server-parsed .shtml
-       AddType "text/html; charset=ISO-8859-1" .shtml
-   </Directory>
-
-
-Or, for Apache 2.0 and later:
 
 
 .. code-block:: text
@@ -1159,7 +1154,7 @@ http://httpd.apache.org/docs/mod/mod_include.html.  There
 is also a how-to-style document available at
 http://httpd.apache.org/docs/howto/ssi.html.
 
-The first solution provided here tells Apache to parse all **.shtml**
+The first solution provided here tells httpd to parse all **.shtml**
 files for SSI directives.  So, to test that the solution has been
 effective, create a file called **something.shtml**, and put the
 following line in it:
@@ -1199,7 +1194,7 @@ SSI parsing for all **.html** files, but this would probably result in a
 lot of files being parsed for no reason, which can cause a performance
 hit.
 
-The **XBitHack** directive tells Apache to parse files for SSI
+The **XBitHack** directive tells httpd to parse files for SSI
 directives if they have the execute bit set on them. So, when you have
 this directive set to **On** for a particular directory or virtual host,
 you merely need to set the execute bit on those files that contain SSI
@@ -1236,6 +1231,7 @@ See Also
 .. _Displaying_Last_Modified_Date_id143266:
 
 Displaying Last Modified Date
+-----------------------------
 
 
 .. _Problem_id143280:
@@ -1271,7 +1267,7 @@ Discussion
 
 
 The **config** SSI directive allows you to configure a few settings
-governing SSI output formats.  In this case, we're using it to
+governing SSI output formats.  In this case, it's being used to
 configure the format in which date/time information is displayed. The
 default format for date output is ``04-Dec-2037 19:58:15 EST``, which is
 not the most user-friendly style. The recipe provided changes this to
@@ -1294,7 +1290,7 @@ See Also
 .. _Including_a_Standard_Header_id143444:
 
 Including a Standard Header
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 
 .. _Problem_id143458:
@@ -1388,7 +1384,7 @@ See Also
 .. _Including_the_Output_of_a_CGI_Program_id143785:
 
 Including the Output of a CGI Program
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------
 
 
 .. _Problem_id143800:
@@ -1445,6 +1441,7 @@ See Also
 .. _Running_CGI_Scripts_as_a_Different_User_with_suexec_id144040:
 
 Running CGI Scripts as a Different User with suexec
+---------------------------------------------------
 
 
 .. _Problem_id144055:
@@ -1454,7 +1451,7 @@ Problem
 
 
 You want to have CGI programs executed by some user other than
-``nobody`` (or whatever user the Apache server runs as). For example,
+``nobody`` (or whatever user the httpd runs as). For example,
 you may have a database that is not accessible to anyone except a
 particular user, so the server needs to temporarily assume that user's
 identity to access it.
@@ -1466,7 +1463,7 @@ Solution
 ~~~~~~~~
 
 
-When building Apache, enable **suexec** by passing the ``--enable-suexec``
+When building httpd, enable **suexec** by passing the ``--enable-suexec``
 argument to **configure**.
 
 Then, in a virtual host section, specify which user and group you'd
@@ -1491,8 +1488,8 @@ Discussion
 
 The **suexec** wrapper is a suid (runs as the user ID of the user that
 owns the file) program that allows you to run CGI programs as any user
-you specify, rather than as the ``nobody`` user that Apache runs
-as. **suexec** is a standard part of Apache but is not enabled by
+you specify, rather than as the ``nobody`` user that httpd runs
+as. **suexec** is a standard part of httpd but is not enabled by
 default.
 
 
@@ -1535,18 +1532,12 @@ program will be executed, **via** **suexec**, with a userid of
    however, you move the **UserDir** directory somewhere else, such as, for
    example, **/home/** ``username/www/``, then you could configure
    **suexec** to be invoked in that directory instead, using the following
-   argument when you build Apache 1.3:
-
-   ++++++++++++++++++++++++++++++++++++++
-   <pre id="I_programlisting8_d1e15048" data-type="programlisting">--suexec-userdir=<em><code>www</code></em></pre>
-   ++++++++++++++++++++++++++++++++++++++
-
-   And, for Apache 2.0, you would specify the following:
+   build argument:
 
 
-   ++++++++++++++++++++++++++++++++++++++
-   <pre id="I_programlisting8_d1e15054" data-type="programlisting">--with-suexec-userdir=<em><code>www</code></em></pre>
-   ++++++++++++++++++++++++++++++++++++++
+   .. code-block:: bash
+
+      --with-suexec-userdir=www
 
 
 Running CGI programs **via** **suexec** eliminates some of the security
@@ -1583,25 +1574,18 @@ See Also
 ~~~~~~~~
 
 
-.. todo:: Update docs URLs for current versions.
+* User directive at https://httpd.apache.org/docs/2.4/mod/mpm_common.html#user
 
-
-* User directive at http://httpd.apache.org/docs/mod/core.html#user or
-  http://httpd.apache.org/docs-2.0/mod/mpm_common.html#user
-
-* Group directive at http://httpd.apache.org/docs/mod/core.html#group or
-  http://httpd.apache.org/docs-2.0/mod/mpm_common.html#group
-
+* Group directive at https://httpd.apache.org/docs/2.4/mod/mpm_common.html#group
 
 * The **suexec** documentation at
-  http://httpd.apache.org/docs/programs/suexec.html
-  or
-  http://httpd.apache.org/docs-2.0/programs/suexec.html
+  https://httpd.apache.org/docs/2.4/programs/suexec.html
 
 
 .. _Installing_a_mod_perl_Handler_from_CPAN_id144561:
 
 Installing a mod_perl Handler from CPAN
+---------------------------------------
 
 
 .. _Problem_id144575:
@@ -1624,7 +1608,7 @@ Solution
 
 Assuming you already have ``mod_perl`` installed, you'll just need
 to install the module from CPAN, and then add a few lines to your
-Apache configuration file.
+httpd configuration file.
 
 To install the module, run the following command from the shell as
 root:
@@ -1635,7 +1619,7 @@ root:
    % sudo perl -MCPAN -e 'install Apache::Perldoc'
 
 
-Then, in your Apache configuration file, add:
+Then, in your httpd configuration file, add:
 
 
 .. code-block:: text
@@ -1646,7 +1630,7 @@ Then, in your Apache configuration file, add:
    </Location>
 
 
-After restarting Apache, you can access the handler by going to a URL
+After restarting httpd, you can access the handler by going to a URL
 such as http://example.com/perldoc/Apache/Perldoc.
 
 
@@ -1668,7 +1652,7 @@ of ``mod_perl`` handlers.
 
 The module specified in this recipe is a very simple one that gives
 you HTML documentation for any Perl module you have installed,
-accessible **via** your Apache server. Other ones provide photo albums,
+accessible **via** your httpd. Other ones provide photo albums,
 weblog handlers, and DNS zone management, among other things.
 
 The first time you run the CPAN shell, you will need to answer a
@@ -1677,10 +1661,10 @@ want to get modules from, where it should find your FTP clients, and
 so on. This only happens once, and for every use after that it just
 works.
 
-The specific way that you need to configure Apache to use your
+The specific way that you need to configure httpd to use your
 newly-installed module will vary from one module to another, but many
 of them will look like the example given. The **SetHandler perl-script**
-directive tells Apache that the content will be handled by
+directive tells httpd that the content will be handled by
 ``mod_perl``, whereas the **PerlHandler** directive specifies what
 Perl module contains the actual handler code.
 
@@ -1703,6 +1687,7 @@ See Also
 .. _Writing_a_mod_perl_Handler_id144894:
 
 Writing a mod_perl Handler
+--------------------------
 
 
 .. _Problem_id144908:
@@ -1751,9 +1736,9 @@ useful. More useful examples may be obtained from the ``mod_perl``
 Web site (http://perl.apache.org) and from Geoffrey Young's
 (et al.) excellent book) ``mod_perl Developer's Cookbook``
 (Sams). Also, although it is somewhat dated, the "Eagle book"
-(**Writing Apache Modules with Perl and C**) by Lincoln Stein and Doug
+(**Writing httpd Modules with Perl and C**) by Lincoln Stein and Doug
 MacEachern (O'Reilly) is an excellent introduction to ``mod_perl``
-and the Apache API.
+and the httpd API.
 
 The real question here, however, is how and where you should install
 the file that you've created. There are two answers to this question,
@@ -1803,8 +1788,8 @@ the following to your **startup.pl** file:
    use lib '/home/rbowen/perl_libs/';
 
 
-**startup.pl** should then be loaded by Apache at startup, using the
-following directive in the Apache server configuration file:
+**startup.pl** should then be loaded by httpd at startup, using the
+following directive in the httpd configuration file:
 
 
 .. code-block:: text
@@ -1831,7 +1816,7 @@ See Also
 .. _Recipe_enabling_mod_php:
 
 Enabling PHP Script Handling with mod_php
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------
 
 
 .. _Problem_enabling_mod_php:
@@ -1883,15 +1868,13 @@ See Also
 
 
 * Installation instructions on the ``mod_php`` Web site at
-  http://www.php.net/manual/en/install.apache.php for
-  Apache 1.3, or go to
-  http://www.php.net/manual/en/install.apache2.php for
-  Apache 2.0.
+  http://www.php.net/manual/en/install.apache2.php
 
 
 .. _Verifying_PHP_Installation_id145392:
 
 Verifying PHP Installation
+--------------------------
 
 
 .. _Problem_id145406:
@@ -1952,7 +1935,7 @@ See Also
 .. _Recipe_php-fpm:
 
 Running PHP under PHP-FPM
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 
 .. _Problem_php-fpm:
@@ -1982,7 +1965,7 @@ See Also
 .. _ACB-CH-08-SECT-ssi-cgi:
 
 Parsing CGI Output for Server Side Includes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 
 Problem
@@ -1998,11 +1981,6 @@ Solution
 
 
 // TODO: Update for the modern era.
-
-
-.. note::
-
-   This is fully supported only in Apache **httpd** version 2.0 and later.
 
 
 Put the following into a scope that includes the CGI scripts for which
@@ -2036,7 +2014,7 @@ See Also
 .. _ACB-CH-08-SECT-ssi-scriptalias:
 
 Parsing ScriptAlias Script Output for Server-Side Includes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------
 
 
 Problem
@@ -2050,11 +2028,6 @@ correctly.
 
 Solution
 ~~~~~~~~
-
-
-.. note::
-
-   This is fully supported only in Apache **httpd** version 2.0 and later.
 
 
 Put the following into the **&lt;Directory&gt;** container for your
@@ -2086,6 +2059,7 @@ See Also
 .. _I_sect18_d1e15579:
 
 Getting mod_perl to Handle All Perl Scripts
+-------------------------------------------
 
 
 Problem
@@ -2159,7 +2133,11 @@ See Also
 .. _ACB-CH-08-SECT-pythonenable:
 
 Enabling Python Script Handling
+-------------------------------
 
+.. index:: Python; CGI scripts
+.. index:: mod_cgi; Python
+.. index:: shebang line
 
 Problem
 ~~~~~~~
@@ -2172,47 +2150,716 @@ Solution
 ~~~~~~~~
 
 
-If you have ``mod_python`` installed, use the following directives
-to instruct the server to call it when a Python script is referenced:
+.. admonition:: DRAFT — Review needed
 
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
 
-.. code-block:: text
+Ensure that :module:`mod_cgi` (or :module:`mod_cgid` on threaded MPMs)
+is loaded, then use ``ScriptAlias`` or ``AddHandler`` to tell httpd to
+execute ``.py`` files as CGI scripts:
 
-   AddHandler mod_python .py
-   PythonHandler mod_python.publisher
-   PythonDebug On
+.. code-block:: apache
+
+   ScriptAlias /cgi-bin/ /var/www/cgi-bin/
+
+Place your Python script in the ``ScriptAlias`` directory with a
+proper shebang line and executable permission:
+
+.. code-block:: python
+
+   #!/usr/bin/env python3
+   print("Content-Type: text/html")
+   print()
+   print("<html><body><h1>Hello from Python</h1></body></html>")
+
+.. code-block:: bash
+
+   $ chmod 755 /var/www/cgi-bin/hello.py
 
 
 Discussion
 ~~~~~~~~~~
 
 
-This recipe maps all files with **.py** to the Python script
-handler. Whenever a request resolves to a file with a **.py** suffix in
-the scope of those directives, the server will treat it as a Python
-script and execute it. You must ensure that the ``mod_python``
-module is installed.
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+``mod_python`` is long dead — it was abandoned around 2010 and
+doesn't work with modern Python 3. For running simple Python scripts
+through httpd, the CGI approach shown above is the most
+straightforward method.
+
+**The shebang line** (``#!/usr/bin/env python3``) tells the
+operating system which interpreter to use. The ``env`` trick searches
+the ``PATH`` for ``python3``, which is more portable than
+hard-coding a path like ``#!/usr/bin/python3``. Make sure the script
+is executable (``chmod 755``) and that the shebang line is the very
+first line of the file — no blank lines or BOM characters before it.
+
+**If you need Python outside of ScriptAlias directories**, use
+``AddHandler`` to map ``.py`` files to the CGI handler:
+
+.. code-block:: apache
+
+   <Directory "/var/www/html/scripts">
+       Options +ExecCGI
+       AddHandler cgi-script .py
+   </Directory>
+
+**For anything beyond simple scripts**, consider :module:`mod_wsgi`
+instead (see :ref:`Recipe_mod_wsgi`). CGI starts a new Python
+interpreter for every request, which is fine for low-traffic scripts
+or admin tools, but is far too slow for a real web application.
 
 
 See Also
 ~~~~~~~~
 
 
+* :ref:`Recipe_mod_wsgi`
+
 * :ref:`Recipe_enabling_mod_php`
 
+* The :module:`mod_cgi` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_cgi.html
 
-* Installation instructions on the ``mod_python`` Web site at
-  http://modpython.org/doc_html
+* The Apache CGI tutorial at
+  https://httpd.apache.org/docs/current/howto/cgi.html
 
 
-TODO
+.. todo:: Expression parser syntax in mod_include (unrelated — kept for tracking)
 
 
-.. todo:: Expression parser syntax in mod_include
+.. _Recipe_mod_wsgi:
+
+Serving Python WSGI applications (mod_wsgi)
+-------------------------------------------
+
+.. index:: mod_wsgi
+.. index:: WSGI
+.. index:: Python
+.. index:: Django
+.. index:: Flask
+
+.. _Problem_Recipe_mod_wsgi:
+
+Problem
+~~~~~~~
+
+
+You want to serve a Python web application written with a WSGI framework such as Django or Flask through Apache httpd.
+
+
+.. _Solution_Recipe_mod_wsgi:
+
+Solution
+~~~~~~~~
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+Install ``mod_wsgi`` (available from your distribution's package
+manager or via ``pip install mod_wsgi``), then configure httpd to
+serve your WSGI application. Here's a minimal example for a Flask
+application:
+
+.. code-block:: apache
+
+   LoadModule wsgi_module modules/mod_wsgi.so
+
+   WSGIDaemonProcess myapp python-home=/var/www/myapp/venv \
+       python-path=/var/www/myapp
+   WSGIProcessGroup myapp
+   WSGIScriptAlias / /var/www/myapp/app.wsgi
+
+   <Directory /var/www/myapp>
+       Require all granted
+   </Directory>
+
+The WSGI script file (:file:`/var/www/myapp/app.wsgi`) is a short
+Python file that imports your application:
+
+.. code-block:: python
+
+   from myapp import app as application
+
+
+.. _Discussion_Recipe_mod_wsgi:
+
+Discussion
+~~~~~~~~~~
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+WSGI — the Web Server Gateway Interface — is the standard Python
+interface between web servers and web applications. Frameworks like
+Django, Flask, Pyramid, and Bottle all provide a WSGI-compatible
+application object. ``mod_wsgi`` embeds a Python interpreter inside
+httpd and calls your application's WSGI entry point for each request,
+which is far more efficient than CGI.
+
+**WSGIDaemonProcess** is the key directive. It creates a separate
+daemon process group to run your Python code, isolated from the
+Apache worker processes:
+
+- ``python-home`` points to the virtual environment where your
+  dependencies are installed.
+- ``python-path`` adds directories to the Python import path.
+- You can also set ``threads``, ``processes``, ``maximum-requests``,
+  and ``display-name`` to tune performance and debugging.
+
+.. code-block:: apache
+
+   WSGIDaemonProcess myapp \
+       python-home=/var/www/myapp/venv \
+       python-path=/var/www/myapp \
+       processes=2 threads=15 \
+       maximum-requests=10000 \
+       display-name=%{GROUP}
+
+**WSGIProcessGroup** tells httpd which daemon process group should
+handle requests for this virtual host or directory. Set it to the
+name you used in ``WSGIDaemonProcess``.
+
+**WSGIScriptAlias** maps a URL path to your WSGI script file. The
+first argument is the URL prefix (``/`` means "handle all
+requests"), and the second is the path to the ``.wsgi`` file that
+defines the ``application`` callable.
+
+**Django** users can generate the WSGI file automatically. A typical
+Django :file:`wsgi.py` looks like this:
+
+.. code-block:: python
+
+   import os
+   os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings')
+
+   from django.core.wsgi import get_wsgi_application
+   application = get_wsgi_application()
+
+Point ``WSGIScriptAlias`` at this file and set ``python-path`` to
+include your project root.
+
+**Embedded mode vs. daemon mode.** Always use daemon mode
+(``WSGIDaemonProcess``) in production. Embedded mode runs your Python
+code inside the Apache worker processes themselves, which causes
+problems with threading, memory, and Python's Global Interpreter
+Lock. Daemon mode avoids all of these issues.
+
+**Reloading code changes.** By default, ``mod_wsgi`` in daemon mode
+monitors the WSGI script file for modifications and restarts the
+daemon processes when it changes. To force a reload after changing
+application code elsewhere, ``touch`` the WSGI script file:
+
+.. code-block:: bash
+
+   $ touch /var/www/myapp/app.wsgi
+
+
+.. _See_Also_Recipe_mod_wsgi:
+
+See Also
+~~~~~~~~
+
+
+* https://modwsgi.readthedocs.io/
+
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_mod_cgid:
+
+CGI with Threaded MPMs: mod_cgid
+---------------------------------
+
+.. index:: mod_cgid
+.. index:: CGI; threaded MPMs
+.. index:: MPM; event
+.. index:: MPM; worker
+.. index:: MPM; prefork
+.. index:: Directives, ScriptSock
+.. index:: Directives, CGIDScriptTimeout
+.. index:: CGI daemon
+
+
+.. _Problem_mod_cgid:
+
+Problem
+~~~~~~~
+
+You are running Apache with the event or worker MPM and your CGI
+scripts are failing, running slowly, or behaving unexpectedly.
+You need to understand how CGI execution differs under threaded
+MPMs and how to configure it properly.
+
+
+.. _Solution_mod_cgid:
+
+Solution
+~~~~~~~~
+
+On modern Apache httpd installations, the correct CGI module is
+selected automatically at build time. If you are using the
+**event** or **worker** MPM, :module:`mod_cgid` is used instead
+of :module:`mod_cgi`. Verify which module is loaded:
+
+.. code-block:: text
+
+   $ httpd -M | grep cgi
+     cgid_module (shared)
+
+If you need to customize the socket used for communication
+between the server and the CGI daemon, or set a timeout for
+long-running scripts, add the following to your
+:file:`httpd.conf`:
+
+.. code-block:: apache
+
+   # Move the CGI daemon socket to a known location
+   ScriptSock /var/run/httpd/cgid.sock
+
+   # Kill CGI scripts that produce no output for 30 seconds
+   CGIDScriptTimeout 30
+
+All other CGI configuration—\ ``ScriptAlias``, ``AddHandler``,
+``Options ExecCGI``—remains identical to :module:`mod_cgi`.
+
+
+.. _Discussion_mod_cgid:
+
+Discussion
+~~~~~~~~~~
+
+.. index:: fork; threaded processes
+.. index:: Unix domain socket
+
+To understand why :module:`mod_cgid` exists, it helps to
+understand how CGI programs are launched. Under the traditional
+**prefork** MPM, each request is handled by a single-threaded
+child process. When a CGI program is needed, the server simply
+calls ``fork()`` to create a new process, then ``exec()`` to
+run the script. This is straightforward and inexpensive because
+a single-threaded process is cheap to fork.
+
+The **event** and **worker** MPMs, however, use multi-threaded
+child processes. Forking a multi-threaded process on many Unix
+systems duplicates *all* threads in the parent, which is
+extremely expensive and can lead to deadlocks or undefined
+behavior. :module:`mod_cgid` solves this problem by spawning a
+separate, single-threaded **CGI daemon** process when the server
+starts. The main server communicates with this daemon over a
+Unix domain socket. When a CGI request arrives, the main server
+sends the request details to the daemon, which then performs the
+``fork()``/``exec()`` in a safe, single-threaded context.
+
+From the administrator's perspective, the key differences are:
+
+**Automatic selection.**
+In Apache 2.4, the correct module is chosen at compile time
+based on the MPM. If you build with (or use the distribution
+default of) **event** or **worker**, :module:`mod_cgid` is used
+automatically. You do not need to manually swap modules. In
+practice, most Linux distribution packages default to the event
+MPM, meaning :module:`mod_cgid` is what you are running.
+
+**The** ``ScriptSock`` **directive.**
+This is the only directive unique to :module:`mod_cgid`. It
+specifies the filesystem path prefix for the Unix domain socket
+used to communicate with the CGI daemon. The server appends its
+process ID to this path, so the actual socket might be named
+something like :file:`/var/run/httpd/cgid.sock.12345`. The
+default value is ``cgisock``, relative to ``DefaultRuntimeDir``.
+
+.. warning::
+
+   Ensure that the directory containing the ``ScriptSock`` file
+   is writable only by root. If other users can write to this
+   directory, they could potentially interfere with CGI script
+   execution. A path like :file:`/var/run/httpd/` with mode
+   ``0755`` and owned by root is appropriate.
+
+**The** ``CGIDScriptTimeout`` **directive.**
+Available since httpd 2.4.10, this directive sets the maximum
+time the server will wait for output from a CGI script. If a
+script produces no output within the specified number of
+seconds, the request is terminated and an error is returned to
+the client. When this directive is unset or set to ``0``, the
+value of the ``Timeout`` directive is used instead. This is
+especially useful for preventing runaway CGI processes from
+consuming resources on a busy server:
+
+.. code-block:: apache
+
+   <Directory "/var/www/cgi-bin">
+       # Long-running reports get 120 seconds
+       CGIDScriptTimeout 120
+   </Directory>
+
+   <Directory "/var/www/api-scripts">
+       # API endpoints should respond quickly
+       CGIDScriptTimeout 10
+   </Directory>
+
+**Troubleshooting CGI under event/worker.**
+When CGI scripts that worked under **prefork** fail after a
+switch to **event** or **worker**, check the following:
+
+1. **Socket permissions.** If you see ``(13)Permission denied``
+   errors in the error log referencing the CGI socket, the
+   ``ScriptSock`` directory may have incorrect ownership or
+   permissions.
+
+2. **Script log.** Enable ``ScriptLog`` temporarily to capture
+   headers and output from failing scripts. Remember that
+   ``ScriptLog`` is a debugging tool and should not remain
+   enabled on production servers, as it is not optimized for
+   performance:
+
+   .. code-block:: apache
+
+      ScriptLog /var/log/httpd/cgi_debug.log
+      ScriptLogLength 10485760
+      ScriptLogBuffer 4096
+
+3. **SELinux or AppArmor.** Security frameworks may block the
+   server from creating or connecting to the Unix domain socket.
+   Check your audit log for denials and create an appropriate
+   policy rule.
+
+4. **Timeout errors.** If your error log shows
+   ``Timeout waiting for output from CGI script``, increase
+   ``CGIDScriptTimeout`` or investigate why the script is slow.
+
+
+.. _See_Also_mod_cgid:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_ScriptAlias`
+
+* :ref:`Enabling_CGI_Scripts_in_Non-ScriptAliased_Directories_id140724`
+
+* The :module:`mod_cgid` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_cgid.html
+
+* The :module:`mod_cgi` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_cgi.html
+
+* The Apache MPM documentation at
+  https://httpd.apache.org/docs/current/mpm.html
+
+
+.. _Recipe_mod_env:
+
+Passing Environment Variables to Applications
+-----------------------------------------------
+
+.. index:: mod_env
+.. index:: Environment variables
+.. index:: Directives, SetEnv
+.. index:: Directives, PassEnv
+.. index:: Directives, UnsetEnv
+.. index:: CGI; environment variables
+.. index:: SSI; environment variables
+.. index:: Application configuration; environment variables
+.. index:: mod_setenvif
+.. index:: Directives, SetEnvIf
+
+
+.. _Problem_mod_env:
+
+Problem
+~~~~~~~
+
+You want to pass configuration values—such as database
+connection strings, API keys, or feature flags—to your CGI
+scripts, SSI pages, or application frameworks through
+environment variables. You may also want to suppress certain
+variables from being passed for security reasons.
+
+
+.. _Solution_mod_env:
+
+Solution
+~~~~~~~~
+
+Use the ``SetEnv``, ``PassEnv``, and ``UnsetEnv`` directives
+provided by :module:`mod_env` to control which environment
+variables are available to your applications.
+
+To set a variable directly in the Apache configuration:
+
+.. code-block:: apache
+
+   # Application configuration
+   SetEnv APP_ENV production
+   SetEnv DATABASE_URL "[REDACTED_CONN_STRING]://db.example.com/appdb"
+   SetEnv API_ENDPOINT "https://api.example.com/v2"
+
+To pass through an existing system environment variable from the
+shell that started Apache:
+
+.. code-block:: apache
+
+   PassEnv HOME
+   PassEnv LD_LIBRARY_PATH
+   PassEnv JAVA_HOME
+
+To prevent a sensitive variable from leaking to scripts:
+
+.. code-block:: apache
+
+   UnsetEnv AWS_SECRET_ACCESS_KEY
+   UnsetEnv DATABASE_PASSWORD
+
+
+.. _Discussion_mod_env:
+
+Discussion
+~~~~~~~~~~
+
+.. index:: CGI; passing configuration
+.. index:: Security; environment variables in .htaccess
+
+The Apache HTTP Server maintains a set of internal environment
+variables for each request. These variables are distinct from
+the operating system environment, although they are passed to
+CGI scripts and SSI pages as real OS environment variables when
+those programs execute. :module:`mod_env` provides three
+directives to manipulate these variables.
+
+**SetEnv** creates a new variable (or overwrites an existing
+one) with a value you specify. If you omit the value, the
+variable is set to an empty string. This is the most common way
+to inject application configuration into your server
+environment:
+
+.. code-block:: apache
+
+   <VirtualHost *:443>
+       ServerName app.example.com
+       DocumentRoot /var/www/app/public
+
+       # Per-application configuration
+       SetEnv APP_NAME "My Application"
+       SetEnv APP_DEBUG "false"
+       SetEnv REDIS_HOST "cache.internal.example.com"
+       SetEnv MAIL_FROM "noreply@example.com"
+
+       ScriptAlias /cgi-bin/ /var/www/app/cgi-bin/
+   </VirtualHost>
+
+This pattern is widely used to configure applications that read
+their settings from environment variables, following the
+twelve-factor app methodology. Frameworks such as Rails, Django,
+Laravel, and many others support this approach natively.
+
+**PassEnv** copies a variable from the operating system
+environment of the process that started Apache into the
+per-request environment. This is useful when the value is set by
+the system or by a process manager (such as **systemd**) and you
+do not want to duplicate it in the Apache configuration:
+
+.. code-block:: apache
+
+   # Pass the Java home set by the system profile
+   PassEnv JAVA_HOME
+
+   # Pass variables set by systemd's Environment= directive
+   PassEnv APP_SECRET_KEY
+
+.. note::
+
+   Variables passed with ``PassEnv`` must exist in the
+   environment of the process that started httpd. If Apache is
+   started by **systemd**, the system shell's profile scripts
+   (such as :file:`/etc/profile.d/`) are typically *not* read.
+   Use ``Environment=`` in the systemd unit file instead, or use
+   ``SetEnv`` directly.
+
+**UnsetEnv** removes variables from the per-request environment
+before it is passed to CGI scripts or SSI pages. This is
+important for preventing sensitive information from leaking:
+
+.. code-block:: apache
+
+   # Don't pass database credentials to user-writable CGI directories
+   <Directory "/var/www/users/*/cgi-bin">
+       UnsetEnv DATABASE_URL
+       UnsetEnv DATABASE_PASSWORD
+   </Directory>
+
+**Security considerations.**
+Be deliberate about where you place ``SetEnv`` directives that
+contain secrets. Because ``SetEnv`` is permitted in
+:file:`.htaccess` files (when ``AllowOverride FileInfo`` is
+enabled), a user who can create or edit :file:`.htaccess` files
+could inspect or override the values you set. For sensitive
+values such as database passwords or API keys, prefer setting
+them in the main server configuration or in a
+``<VirtualHost>`` block, and restrict ``.htaccess`` usage:
+
+.. code-block:: apache
+
+   # In the main server config (not .htaccess-overridable)
+   <VirtualHost *:443>
+       SetEnv DB_PASSWORD "s3cret"
+
+       <Directory "/var/www/app">
+           AllowOverride None
+       </Directory>
+   </VirtualHost>
+
+.. index:: SetEnvIf; conditional environment variables
+.. index:: Directives, BrowserMatch
+
+**Interaction with mod_setenvif.**
+While :module:`mod_env` sets variables unconditionally,
+:module:`mod_setenvif` sets variables *conditionally* based on
+attributes of the request—such as the ``User-Agent`` header, the
+remote IP address, or the request URI. The two modules
+complement each other. A common pattern is to use
+``SetEnvIf`` to tag certain requests and then use the resulting
+variable elsewhere:
+
+.. code-block:: apache
+
+   # Tag requests from internal monitoring systems
+   SetEnvIf Remote_Addr "^10\.0\.1\." internal_monitor
+   SetEnvIf User-Agent "HealthChecker" internal_monitor
+
+   # Tag image requests
+   SetEnvIf Request_URI "\.(gif|jpg|png|webp|svg)$" is_image
+
+.. warning::
+
+   There is an important timing difference between ``SetEnv``
+   and ``SetEnvIf``. The ``SetEnvIf`` directive runs *early* in
+   request processing (during the post-read-request phase),
+   before URI-to-filename mapping. The ``SetEnv`` directive runs
+   *later* (during the fixups phase). This means that variables
+   set by ``SetEnv`` are **not** visible to ``SetEnvIf``, and
+   variables set by ``SetEnvIf`` can be overwritten by
+   ``SetEnv``. If you need a variable to be available early—for
+   example, for use with ``Require env``—use ``SetEnvIf``
+   instead.
+
+.. index:: Conditional logging
+.. index:: Access control; environment variables
+.. index:: Directives, CustomLog
+.. index:: Directives, Require
+
+**Using environment variables in logging.**
+The ``CustomLog`` directive accepts an ``env=`` clause that
+makes logging conditional on whether an environment variable is
+set. Combined with ``SetEnvIf``, this is a powerful way to
+filter your access logs:
+
+.. code-block:: apache
+
+   # Don't log health-check requests from the load balancer
+   SetEnvIf Remote_Addr "^10\.0\.0\.1$" lb_healthcheck
+   SetEnvIf Request_URI "^/health$" lb_healthcheck
+
+   # Don't log requests for static assets
+   SetEnvIf Request_URI "\.(css|js|ico|gif|jpg|png|woff2?)$" static_asset
+
+   CustomLog /var/log/httpd/access_log combined env=!lb_healthcheck
+   CustomLog /var/log/httpd/static_log common env=static_asset
+
+The ``env=!variable`` syntax (with the exclamation mark) means
+"log only if the variable is *not* set." The ``env=variable``
+syntax (without the exclamation mark) means "log only if the
+variable *is* set."
+
+**Using environment variables in access control.**
+The ``Require env`` directive allows you to grant or deny access
+based on the presence of an environment variable:
+
+.. code-block:: apache
+
+   # Only allow access from the internal network
+   SetEnvIf Remote_Addr "^192\.168\." internal_network
+
+   <Location "/admin">
+       Require env internal_network
+   </Location>
+
+Or, combining with ``BrowserMatch`` from :module:`mod_setenvif`
+to deny access to known bad bots:
+
+.. code-block:: apache
+
+   BrowserMatch "BadBot" deny_access
+   BrowserMatch "EvilScraper" deny_access
+
+   <Directory "/var/www/html">
+       <RequireAll>
+           Require all granted
+           Require not env deny_access
+       </RequireAll>
+   </Directory>
+
+**Using environment variables in response headers.**
+The ``Header`` directive from :module:`mod_headers` can also use
+the ``env=`` condition to set response headers conditionally:
+
+.. code-block:: apache
+
+   SetEnvIf Request_URI "\.pdf$" is_download
+   Header set Content-Disposition "attachment" env=is_download
+
+
+.. _See_Also_mod_env:
+
+See Also
+~~~~~~~~
+
+* The :module:`mod_env` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_env.html
+
+* The :module:`mod_setenvif` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_setenvif.html
+
+* The Environment Variables guide at
+  https://httpd.apache.org/docs/current/env.html
+
+* :ref:`Recipe_ScriptAlias`
+
+* :ref:`Enabling_CGI_Scripts_in_Non-ScriptAliased_Directories_id140724`
 
 
 Summary
+-------
 
 
-.. todo:: 
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+Dynamic content is what makes the web interactive. In this chapter
+you've seen how to run CGI scripts (both Perl and Python), how to
+serve PHP pages with :module:`mod_php`, and how to deploy Python WSGI
+applications with ``mod_wsgi``. You've also learned how to pass
+environment variables to your applications using :module:`mod_env` and
+:module:`mod_setenvif`, which is essential for configuring
+applications that follow the twelve-factor methodology. The choice
+between CGI, embedded modules, and WSGI depends on your performance
+requirements and the complexity of your application.
 

@@ -1,9 +1,16 @@
-
 .. _Chapter_Filters_And_Handlers:
 
 ====================
 Filters and Handlers
 ====================
+
+.. epigraph::
+
+   | I'm just a soul whose intentions are good.
+   | Oh Lord, please don't let me be misunderstood.
+
+   -- The Animals, *Don't Let Me Be Misunderstood*
+
 
 .. index:: Filters
 
@@ -18,7 +25,7 @@ file, or type of file, is requested. A filter, on the other hand, is a
 process that modifies data as it flows into or out of the server.
 
 The relationship between filters and handlers might best be explained
-by the below diagram, from the Filters documentation on the Apache
+by the below diagram, from the Filters documentation on the Apache HTTP Server
 httpd website.
 
 
@@ -26,12 +33,12 @@ httpd website.
 
 
 Filters are applied to the data stream before and after the
-traditional request processing phases. Most of the filters that we'll
+traditional request processing phases. Most of the filters that I'll
 discuss in this chapter happen after the request processing, and in
 some way alter that data before it is finally sent to the client.
 
-In this chapter, we'll cover some of the filters and handlers provided
-by the Apache http server.
+In this chapter, I'll cover some of the filters and handlers provided
+by the Apache httpd.
 
 Certain Other of filters and handlers
 constitute their own chapters, which appear elsewhere in the book:
@@ -41,6 +48,14 @@ constitute their own chapters, which appear elsewhere in the book:
 * All aspects of SSL and TLS are covered in :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
 * The ``server-info`` and ``server-status`` handlers have their own
   chapter, :ref:`Chapter_info_and_status`, **mod_info and mod_status**
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_asis`, :module:`mod_brotli`, :module:`mod_deflate`,
+   :module:`mod_ext_filter`, :module:`mod_filter`, :module:`mod_imagemap`,
+   :module:`mod_include`, :module:`mod_mime`, :module:`mod_sed`,
+   :module:`mod_substitute`
 
 
 .. _Recipe_AddHandler:
@@ -291,7 +306,7 @@ to the client rather than the source code. Or perhaps that's what you
 intended.
 
 Using the technique shown above, you can be very specific as to what
-you expect to happen. In this case, we're saying that a file should
+you expect to happen. In this case, the configuration specifies that a file should
 have the php handler set only if the file **ends in** ``.php``, rather
 than merely having it as one of its multiple file extensions.
 
@@ -491,7 +506,7 @@ The ``DEFLATE`` output filter compresses content as it is sent to the
 client. This results in a substantial bandwidth savings for text-based
 content, and a subsequent speed inprovement of your website.
 
-In the example show, we are choosing to compress only content of type
+In the example shown, the recipe chooses to compress only content of type
 ``text/html`` and ``text/plain``, which is a fairly safe choice. You may
 wish to expand this to other text content types:
 
@@ -690,7 +705,6 @@ compression algorithm.
 .. _Solution_mod_brotli:
 
 
-[role="v24"]
 Solution
 ~~~~~~~~
 
@@ -717,9 +731,8 @@ with improved compression ratios.
 
 ``mod_brotli`` provides the ``BROTLI_COMPRESS`` filter.
 
-``mod_brotli`` was added in httpd 2.4.26, and so may not be available,
-at the time of this writing, in some third-party distributions of
-Apache httpd.
+``mod_brotli`` was added in httpd 2.4.26. It is available in all
+current distributions of Apache httpd.
 
 As with ``mod_deflate``, you should avoid compressing non-textual
 content, such as images or video, as many browsers decline to
@@ -812,10 +825,10 @@ Discussion
 
 This recipe is almost the same as the one presented in
 :ref:`Recipe_Serving_precompressed`, except that it uses ``mod_brotli``
-rather than ``mod_deflate``. As such, we'll refrain from the detailed
+rather than ``mod_deflate``. As such, I'll refrain from the detailed
 explanation of what's happening.
 
-In short, though, we're instructing ``mod_brotli`` to look for
+In short, though, the configuration instructs ``mod_brotli`` to look for
 pre-compressed versions of requested files, and, if they are found,
 serve those rather than recompressing the raw files.
 
@@ -1231,21 +1244,21 @@ Discussion
 ~~~~~~~~~~
 
 
-We should start this discussion by noting that nobody actually does
+I should start this discussion by noting that nobody actually does
 this any more, because every browser supports this on the client side.
 This module exists because, historically, this had to be done on the
 server side. However, client-side image maps were introduced in HTML
 version 3.2, in November of 1995, and have been supported by every
 major browser since shortly after that time.
 
-However, since this functionality was already in the Apache web server
+However, since this functionality was already in httpd
 by this time, it has remained in since that time.
 
 
 .. note::
 
-   This module used to be called ``mod_imap``, but this name was changed in
-   the 2.2 release to remove confusion with the IMAP (Internet Message
+   This module was originally called ``mod_imap``, but was renamed to
+   avoid confusion with the IMAP (Internet Message
    Access Protocol) standard.
 
 
@@ -1468,7 +1481,7 @@ does not exist, to make a best guess for the resource that best
 satisfies the request.
 
 Language negotiation
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 
 For example, in the recipe above, a request for ``document.html`` will
@@ -1509,7 +1522,7 @@ Finally, if no variant satisfies any of the requirements, a `406 NOT
 ACCEPTABLE` response will be returned to the client.
 
 Negotiation on other criteria
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 
 While language negotiation is the most common, and probably the most
@@ -1574,7 +1587,7 @@ textual version of the resource, which might be a text file describing
 the photograph.
 
 Multiviews
-^^^^^^^^^^
+----------
 
 
 ``mod_negotiation`` may also be turned to automatic mode, using the
@@ -1644,7 +1657,10 @@ mod_data
 --------
 
 
-.. todo:: Write a recipe here once Graham Leggett responds to the docs@ message
+.. index:: mod_data
+.. index:: RFC 2397
+.. index:: data URL
+.. index:: Filters,mod_data
 
 
 .. _Problem_mod_data:
@@ -1653,10 +1669,37 @@ Problem
 ~~~~~~~
 
 
+You want to convert a response body into an RFC 2397 ``data:`` URL so
+that it can be embedded inline in another document — for example,
+inlining small images directly into HTML pages to eliminate extra
+HTTP requests.
+
+
 .. _Solution_mod_data:
 
 Solution
 ~~~~~~~~
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+Load :module:`mod_data` and add the ``DATA`` output filter to the
+location serving the resources you want converted:
+
+.. code-block:: apache
+
+   LoadModule data_module modules/mod_data.so
+
+   <Location "/data/images">
+       SetOutputFilter DATA
+   </Location>
+
+A request for a file under :file:`/data/images/` will now return the
+file's content encoded as a ``data:`` URL — for example,
+``data:image/gif;base64,R0lGODdh...`` — instead of the raw binary.
 
 
 .. _Discussion_mod_data:
@@ -1665,10 +1708,40 @@ Discussion
 ~~~~~~~~~~
 
 
+.. admonition:: DRAFT — Review needed
+
+   The following content needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+:module:`mod_data` is a simple output filter that converts the
+entire response body into an RFC 2397 data URL. The filter reads the
+response, Base64-encodes it, and prepends the ``data:`` scheme along
+with the response's ``Content-Type``. The result is a single line of
+text that can be pasted into an ``<img src="...">`` attribute or a
+CSS ``url(...)`` value.
+
+This is most useful for small resources like icons, CSS sprites, or
+tiny images. For larger files, the Base64 encoding adds roughly 33%
+overhead, and the resulting ``data:`` URL becomes unwieldy. As a
+rule of thumb, keep data URLs under a few kilobytes.
+
+You can combine :module:`mod_data` with :module:`mod_include` (SSI)
+to build pages that inline their images automatically — the SSI
+``include`` directive fetches the ``data:`` URL from the internal
+subrequest and embeds it directly in the HTML output.
+
+
 .. _See_Also_mod_data:
 
 See Also
 ~~~~~~~~
+
+
+* The :module:`mod_data` documentation at
+  https://httpd.apache.org/docs/current/mod/mod_data.html
+
+* RFC 2397 — "The 'data' URL scheme" at
+  https://datatracker.ietf.org/doc/html/rfc2397
 
 
 .. _Recipe_mod_ext_filter:
@@ -1746,7 +1819,7 @@ file.
 .. warning::
 
    This mechanism is much slower than using a filter which is written for
-   the Apache API, as you have to invoke an external program, with the
+   the httpd API, as you have to invoke an external program, with the
    overhead which that entails.
 
 
@@ -1770,9 +1843,9 @@ this example.
    </Directory>
 
 
-In this example, we run ``enscript`` on files of type ``text/c`` to
+In this example, the recipe runs ``enscript`` on files of type ``text/c`` to
 convert them to syntax-highlighted HTML output. Then, in the directory
-where we wish to invoke this filter, we associate ``.c`` files with the
+where you wish to invoke this filter, you associate ``.c`` files with the
 ``text/c`` mime type so that the filter will be run on them.
 
 
@@ -2024,7 +2097,7 @@ Summary
 -------
 
 
-In this chapter we discussed filters and handlers. While much of the
+In this chapter I discussed filters and handlers. While much of the
 content you serve from your website consists of static, on-disk files,
 most of it is likely to be dynamically generated in some fashion.
 Filters and handlers are two important techniques for creating, and

@@ -1,3 +1,6 @@
+.. raw:: latex
+
+   \part{Security and Access Control}
 
 .. _Chapter_AAA:
 
@@ -78,11 +81,20 @@ frequently requested password scenarios, as well as various ways to
 restrict access from malicious or otherwise undesirable clients.
 
 
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_auth_basic`, :module:`mod_auth_form`,
+   :module:`mod_authn_anon`, :module:`mod_authn_core`,
+   :module:`mod_authn_dbd`, :module:`mod_authn_dbm`,
+   :module:`mod_authn_file`, :module:`mod_authz_core`,
+   :module:`mod_session`, :module:`mod_session_cookie`
+
+
 .. _Authentication_and_Authorization_sidebar:
 
 
 .. sidebar:: Authentication and Authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
    When checking for access to restricted documents, there are
    actually two different operations involved: checking to see who you are,
@@ -111,10 +123,1019 @@ restrict access from malicious or otherwise undesirable clients.
    
 
 
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_access_compat_migration:
+
+Migrating from mod_access_compat to the 2.4 Authorization Model
+---------------------------------------------------------------
+
+.. index:: mod_access_compat
+
+.. index:: Modules,mod_access_compat
+
+.. index:: Migration,2.2 to 2.4
+
+.. index:: Order Allow Deny
+
+.. index:: Require directive
+
+.. index:: Access control,migration
+
+.. index:: Satisfy directive
+
+.. index:: mod_authz_host
+
+
+.. _Problem_access_compat_migration:
+
+Problem
+~~~~~~~
+
+You are upgrading from Apache 2.2 to 2.4 and your configuration uses
+``Order``, ``Allow``, ``Deny``, and ``Satisfy`` directives that now
+generate deprecation warnings or behave unexpectedly.
+
+
+.. _Solution_access_compat_migration:
+
+Solution
+~~~~~~~~
+
+Replace the legacy :module:`mod_access_compat` directives with the
+equivalent ``Require`` directives provided by :module:`mod_authz_core`
+and :module:`mod_authz_host`. The table below shows side-by-side
+translations for the most common patterns.
+
+**Allow everyone:**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order allow,deny
+   Allow from all
+
+   # Apache 2.4
+   Require all granted
+
+**Deny everyone:**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order deny,allow
+   Deny from all
+
+   # Apache 2.4
+   Require all denied
+
+**Allow from a network, deny everyone else:**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order deny,allow
+   Deny from all
+   Allow from 10.0.0.0/8
+
+   # Apache 2.4
+   Require ip 10.0.0.0/8
+
+**Allow from a domain:**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order deny,allow
+   Deny from all
+   Allow from .example.com
+
+   # Apache 2.4
+   Require host .example.com
+
+**Deny a specific host, allow everyone else:**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order allow,deny
+   Allow from all
+   Deny from 192.168.1.205
+
+   # Apache 2.4
+   <RequireAll>
+       Require all granted
+       Require not ip 192.168.1.205
+   </RequireAll>
+
+**Combining IP restriction with password authentication (Satisfy Any):**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order deny,allow
+   Deny from all
+   Allow from 10.0.0.0/8
+   AuthType Basic
+   AuthName "Staff Area"
+   AuthUserFile /etc/httpd/conf/passwords
+   Require valid-user
+   Satisfy Any
+
+   # Apache 2.4
+   <RequireAny>
+       Require ip 10.0.0.0/8
+       Require valid-user
+   </RequireAny>
+   AuthType Basic
+   AuthName "Staff Area"
+   AuthBasicProvider file
+   AuthUserFile /etc/httpd/conf/passwords
+
+**Requiring both IP and password (Satisfy All):**
+
+.. code-block:: text
+
+   # Apache 2.2
+   Order deny,allow
+   Deny from all
+   Allow from 10.0.0.0/8
+   AuthType Basic
+   AuthName "Restricted"
+   AuthUserFile /etc/httpd/conf/passwords
+   Require valid-user
+   Satisfy All
+
+   # Apache 2.4
+   <RequireAll>
+       Require ip 10.0.0.0/8
+       Require valid-user
+   </RequireAll>
+   AuthType Basic
+   AuthName "Restricted"
+   AuthBasicProvider file
+   AuthUserFile /etc/httpd/conf/passwords
+
+
+.. _Discussion_access_compat_migration:
+
+Discussion
+~~~~~~~~~~
+
+When Apache 2.4 was released, the entire access control model
+changed. In Apache 2.2, access control used two separate mechanisms:
+the ``Order``/``Allow``/``Deny`` directives for host-based
+restrictions, and the ``Require`` directive for user authentication.
+The ``Satisfy`` directive glued these two worlds together by
+specifying whether one or both conditions had to be met.
+
+Apache 2.4 unified everything under the ``Require`` directive and
+the ``<RequireAll>``, ``<RequireAny>``, and ``<RequireNone>``
+container directives. This is both simpler and more powerful -- you
+can nest authorization requirements to any depth, expressing
+arbitrarily complex access policies. See :ref:`Recipe_RequireAll`
+for a detailed discussion of these containers.
+
+:module:`mod_access_compat` exists solely as a bridge. It provides
+the old ``Order``/``Allow``/``Deny``/``Satisfy`` directives in
+Apache 2.4 so that configurations written for 2.2 continue to work
+without immediate changes. However, these directives are deprecated,
+and mixing old and new syntax in the same context leads to
+unpredictable behavior. The official documentation warns:
+
+   *Mixing old directives like Order, Allow, or Deny with new ones
+   like Require is technically possible but discouraged.*
+
+**When to remove mod_access_compat:** Once you have completed
+converting all your ``Order``/``Allow``/``Deny``/``Satisfy``
+directives -- including those in ``.htaccess`` files and in any
+included configuration fragments -- you can safely remove
+:module:`mod_access_compat` from your module list. Removing it
+eliminates any risk of accidental mixing and makes the error messages
+clearer if an unconverted directive slips through.
+
+**Finding unconverted directives:** Use ``grep`` to search your
+entire configuration tree for remaining legacy directives:
+
+.. code-block:: bash
+
+   grep -rn -E '^\s*(Order|Allow from|Deny from|Satisfy)' \
+       /etc/httpd/conf/ /etc/httpd/conf.d/ /var/www/
+
+.. tip::
+
+   Don't forget ``.htaccess`` files. If your site allows overrides with
+   ``AllowOverride Limit`` or ``AllowOverride All``, users may have
+   ``.htaccess`` files containing ``Order``/``Allow``/``Deny`` directives.
+   These will still work while :module:`mod_access_compat` is loaded but
+   will break the moment you remove it.
+
+**The Order directive's evaluation model** is notoriously confusing.
+``Order allow,deny`` means: evaluate ``Allow`` rules first, then
+``Deny`` rules, and default to deny. ``Order deny,allow`` means the
+opposite: evaluate ``Deny`` first, then ``Allow``, and default to
+allow. The last-matching rule wins. This logic tripped up even
+experienced administrators and was one of the primary motivations for
+the 2.4 redesign. For detailed discussion of combining requirements in
+2.4, see :ref:`Recipe_RequireAll`.
+
+
+.. _See_Also_access_compat_migration:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_RequireAll`
+
+* :ref:`Recipe_OpenDoor`
+
+* :ref:`Recipe_all_denied`
+
+* :ref:`Recipe_Authorization_by_host`
+
+* http://httpd.apache.org/docs/2.4/mod/mod_access_compat.html
+
+* http://httpd.apache.org/docs/2.4/upgrading.html
+
+
+.. _Recipe_authn_provider_architecture:
+
+Understanding the Authentication Provider Architecture
+------------------------------------------------------
+
+.. index:: mod_authn_core
+
+.. index:: Modules,mod_authn_core
+
+.. index:: mod_authz_user
+
+.. index:: Modules,mod_authz_user
+
+.. index:: AuthType
+
+.. index:: AuthName
+
+.. index:: AuthBasicProvider
+
+.. index:: Authentication provider
+
+.. index:: Authentication,provider chain
+
+.. index:: AuthnProviderAlias
+
+.. index:: Require user
+
+.. index:: Require valid-user
+
+
+.. _Problem_authn_provider_architecture:
+
+Problem
+~~~~~~~
+
+You want to understand how Apache's authentication system is organized
+-- how :module:`mod_authn_core` and :module:`mod_authz_user` work
+together behind every authentication recipe in this chapter, and how
+to chain or alias multiple authentication providers.
+
+
+.. _Solution_authn_provider_architecture:
+
+Solution
+~~~~~~~~
+
+Every authentication configuration in Apache 2.4 is built on two
+foundation modules:
+
+* :module:`mod_authn_core` -- provides the ``AuthType``, ``AuthName``,
+  and ``<AuthnProviderAlias>`` directives that define *how*
+  authentication works.
+
+* :module:`mod_authz_user` -- provides the ``Require user`` and
+  ``Require valid-user`` authorization directives that define *who*
+  gets access.
+
+Here is how the full provider chain works in a typical configuration:
+
+.. code-block:: text
+
+   <Directory "/var/www/private">
+       AuthType Basic
+       AuthName "Staff Portal"
+       AuthBasicProvider file ldap
+       AuthUserFile "/etc/httpd/conf/passwords"
+       AuthLDAPURL "ldap://ldap.example.com/ou=People,dc=example,dc=com?uid"
+       Require valid-user
+   </Directory>
+
+The processing flow is:
+
+1. ``AuthType Basic`` (:module:`mod_authn_core`) tells the server to
+   use HTTP Basic authentication and to send a ``401`` challenge if no
+   credentials are present.
+
+2. ``AuthName "Staff Portal"`` (:module:`mod_authn_core`) sets the
+   realm string displayed in the browser's password dialog.
+
+3. ``AuthBasicProvider file ldap`` (:module:`mod_auth_basic`) defines
+   the provider chain. The ``file`` provider
+   (:module:`mod_authn_file`) is tried first. If it cannot verify the
+   user, the ``ldap`` provider (:module:`mod_authnz_ldap`) is tried
+   next. Providers are consulted in the order listed.
+
+4. ``Require valid-user`` (:module:`mod_authz_user`) grants access to
+   any user who was successfully authenticated by any provider in the
+   chain.
+
+**Creating provider aliases** with ``<AuthnProviderAlias>`` lets you
+define named instances of a provider with different configurations.
+This is especially useful when you need to consult multiple LDAP
+servers or multiple password files:
+
+.. code-block:: text
+
+   # Define two password file providers
+   <AuthnProviderAlias file staff-passwords>
+       AuthUserFile "/etc/httpd/conf/staff-passwords"
+   </AuthnProviderAlias>
+
+   <AuthnProviderAlias file contractor-passwords>
+       AuthUserFile "/etc/httpd/conf/contractor-passwords"
+   </AuthnProviderAlias>
+
+   <Directory "/var/www/project">
+       AuthType Basic
+       AuthName "Project Area"
+       AuthBasicProvider staff-passwords contractor-passwords
+       Require valid-user
+   </Directory>
+
+Provider aliases work the same way with LDAP:
+
+.. code-block:: text
+
+   <AuthnProviderAlias ldap corporate-ldap>
+       AuthLDAPBindDN "cn=webauth,ou=Service,dc=corp,dc=example,dc=com"
+       AuthLDAPBindPassword "s3cr3t"
+       AuthLDAPURL "ldap://ldap.corp.example.com/ou=People,dc=corp,dc=example,dc=com?uid"
+   </AuthnProviderAlias>
+
+   <AuthnProviderAlias ldap partner-ldap>
+       AuthLDAPBindDN "cn=webauth,ou=Service,dc=partner,dc=example,dc=com"
+       AuthLDAPBindPassword "s3cr3t"
+       AuthLDAPURL "ldap://ldap.partner.example.com/ou=People,dc=partner,dc=example,dc=com?uid"
+   </AuthnProviderAlias>
+
+   <Directory "/var/www/shared">
+       AuthType Basic
+       AuthName "Shared Portal"
+       AuthBasicProvider corporate-ldap partner-ldap
+       Require valid-user
+   </Directory>
+
+**Disabling authentication** for a subtree of a protected area uses
+``AuthType None``, also provided by :module:`mod_authn_core`:
+
+.. code-block:: text
+
+   <Directory "/var/www/private">
+       AuthType Basic
+       AuthName "Private"
+       AuthBasicProvider file
+       AuthUserFile "/etc/httpd/conf/passwords"
+       Require valid-user
+   </Directory>
+
+   # Public downloads don't need a password
+   <Directory "/var/www/private/public">
+       AuthType None
+       Require all granted
+   </Directory>
+
+
+.. _Discussion_authn_provider_architecture:
+
+Discussion
+~~~~~~~~~~
+
+Apache 2.4's authentication system is built as a layered architecture
+with clear separation of concerns:
+
+**Layer 1 -- Core framework** (:module:`mod_authn_core`): Provides
+``AuthType`` and ``AuthName``, which together determine the
+authentication mechanism (Basic, Digest, Form, or None). This layer
+issues the HTTP challenge and manages the overall authentication
+flow. It also provides ``<AuthnProviderAlias>`` for creating named
+provider instances.
+
+**Layer 2 -- Authentication type modules**: :module:`mod_auth_basic`,
+:module:`mod_auth_digest`, and :module:`mod_auth_form` implement the
+protocol-level mechanics. ``mod_auth_basic`` manages the Base64
+decoding of credentials from the ``Authorization`` header.
+``mod_auth_digest`` handles the challenge-response handshake. These
+modules delegate actual credential verification to providers.
+
+**Layer 3 -- Authentication providers**: :module:`mod_authn_file`,
+:module:`mod_authn_dbm`, :module:`mod_authn_dbd`, and
+:module:`mod_authnz_ldap` each know how to look up a username and
+verify a password against a specific back-end. The
+``AuthBasicProvider`` (or ``AuthDigestProvider``) directive selects
+which providers are consulted, and in what order.
+
+**Layer 4 -- Authorization** (:module:`mod_authz_user` and others):
+After a user has been authenticated, the ``Require`` directive
+determines whether that authenticated identity is authorized to access
+the resource. :module:`mod_authz_user` provides two of the most
+commonly used authorization checks:
+
+* ``Require user alice bob`` -- grants access only to the listed
+  usernames.
+
+* ``Require valid-user`` -- grants access to any authenticated user,
+  regardless of username.
+
+Other authorization modules extend the ``Require`` vocabulary:
+:module:`mod_authz_groupfile` adds ``Require group``,
+:module:`mod_authnz_ldap` adds ``Require ldap-user``,
+``Require ldap-group``, and ``Require ldap-attribute``, and
+:module:`mod_authz_host` adds ``Require ip`` and ``Require host``.
+
+**Provider chain behavior:** When multiple providers are listed in
+``AuthBasicProvider``, they are tried in order from left to right. If
+a provider reports that it does not know the user (as opposed to the
+password being wrong), the next provider is tried. If a provider
+reports that the password is incorrect, the chain stops and
+authentication fails. This distinction matters: a user who exists in
+the first provider with a wrong password will *not* fall through to
+the second provider.
+
+.. note::
+
+   When using ``<AuthnProviderAlias>`` with LDAP, ``Require ldap-user``
+   and ``Require ldap-group`` directives will not work, because the
+   alias does not pass configuration through to the authorization
+   side of :module:`mod_authnz_ldap`. Use ``Require valid-user``
+   instead and rely on the LDAP URL's search filter to constrain
+   which users can authenticate. This is a known limitation noted
+   in the official documentation.
+
+
+.. _See_Also_authn_provider_architecture:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_Basic_Auth`
+
+* :ref:`Recipe_ldap_auth`
+
+* :ref:`Recipe_dbm_auth`
+
+* :ref:`Recipe_sql_auth`
+
+* :ref:`Recipe_auth_cache`
+
+* http://httpd.apache.org/docs/2.4/mod/mod_authn_core.html
+
+* http://httpd.apache.org/docs/2.4/mod/mod_authz_user.html
+
+
+.. _Recipe_ldap_connection_pooling:
+
+LDAP Connection Pooling and Performance Tuning
+----------------------------------------------
+
+.. index:: mod_ldap
+
+.. index:: Modules,mod_ldap
+
+.. index:: LDAP,connection pooling
+
+.. index:: LDAP,caching
+
+.. index:: LDAP,performance
+
+.. index:: LDAP,timeout
+
+.. index:: LDAPSharedCacheSize
+
+.. index:: LDAPCacheEntries
+
+.. index:: LDAPCacheTTL
+
+.. index:: LDAPOpCacheEntries
+
+.. index:: LDAPConnectionPoolTTL
+
+.. index:: LDAPConnectionTimeout
+
+.. index:: LDAPTimeout
+
+.. index:: LDAPRetries
+
+.. index:: LDAPRetryDelay
+
+
+.. _Problem_ldap_connection_pooling:
+
+Problem
+~~~~~~~
+
+Your LDAP-authenticated site is slow under load, connections to the
+LDAP server pile up or time out, and you see errors like
+``LDAP: ldap_simple_bind_s() failed`` or
+``ap_queue_info_wait_for_idle_worker failed`` in the error log.
+
+
+.. _Solution_ldap_connection_pooling:
+
+Solution
+~~~~~~~~
+
+Enable and tune the :module:`mod_ldap` connection pool and caching
+layer. These directives go in the server-wide context (outside of
+any ``<Directory>`` or ``<VirtualHost>`` block):
+
+.. code-block:: text
+
+   # --- Connection Pool ---
+   # Time (seconds) an idle pooled connection is kept before discard.
+   # Default is -1 (keep forever). Set a positive value to prevent
+   # stale connections from accumulating.
+   LDAPConnectionPoolTTL 60
+
+   # Timeout (seconds) for establishing a TCP connection to the LDAP server.
+   LDAPConnectionTimeout 5
+
+   # Timeout (seconds) for LDAP search and bind operations.
+   LDAPTimeout 10
+
+   # Number of retries and delay between retries on transient failures.
+   LDAPRetries 3
+   LDAPRetryDelay 1
+
+   # --- Shared Memory Cache ---
+   # Size of the shared memory segment for the LDAP cache (bytes).
+   # 500000 (500KB) is the default. Increase for large directories.
+   LDAPSharedCacheSize 500000
+
+   # Maximum entries in the search/bind cache and their TTL.
+   LDAPCacheEntries 1024
+   LDAPCacheTTL 600
+
+   # Maximum entries in the compare operation cache and their TTL.
+   LDAPOpCacheEntries 1024
+   LDAPOpCacheTTL 600
+
+A complete example integrating :module:`mod_ldap` with
+:module:`mod_authnz_ldap`:
+
+.. code-block:: text
+
+   # Server-wide LDAP tuning
+   LDAPSharedCacheSize 500000
+   LDAPCacheEntries 1024
+   LDAPCacheTTL 600
+   LDAPOpCacheEntries 1024
+   LDAPOpCacheTTL 600
+   LDAPConnectionPoolTTL 60
+   LDAPConnectionTimeout 5
+   LDAPTimeout 10
+   LDAPRetries 3
+   LDAPRetryDelay 1
+
+   # Enable the LDAP status page for monitoring
+   <Location "/server/ldap-status">
+       SetHandler ldap-status
+       Require ip 10.0.0.0/8
+   </Location>
+
+   # LDAP-authenticated application
+   <Directory "/var/www/intranet">
+       AuthType Basic
+       AuthName "Intranet"
+       AuthBasicProvider ldap
+       AuthLDAPURL "ldap://ldap.example.com/ou=People,dc=example,dc=com?uid?one"
+       AuthLDAPBindDN "cn=webauth,ou=Service,dc=example,dc=com"
+       AuthLDAPBindPassword "s3cr3t"
+       Require ldap-group cn=Employees,ou=Groups,dc=example,dc=com
+   </Directory>
+
+
+.. _Discussion_ldap_connection_pooling:
+
+Discussion
+~~~~~~~~~~
+
+:module:`mod_ldap` is the invisible workhorse behind every LDAP
+authentication setup. While :module:`mod_authnz_ldap` handles the
+authentication and authorization logic (checking users, groups, and
+attributes), :module:`mod_ldap` provides the LDAP connection pool
+and caching layer that makes LDAP authentication performant at scale.
+Without :module:`mod_ldap`, every authenticated request would open a
+new TCP connection to the LDAP server, perform a bind, execute the
+search, and close the connection -- an unacceptable overhead on busy
+sites.
+
+**Connection pooling.** :module:`mod_ldap` maintains a pool of open
+LDAP connections that are reused across requests. When a request
+needs to communicate with the LDAP server, it borrows a connection
+from the pool. If all pooled connections are in use, a new one is
+created. After the request completes, the connection is returned to
+the pool for the next request.
+
+The key tuning parameter is ``LDAPConnectionPoolTTL``. The default
+value of ``-1`` means connections are kept forever, which can cause
+problems:
+
+* **Stale connections.** If a firewall between Apache and the LDAP
+  server silently drops idle connections, Apache won't discover this
+  until the next request tries to use the dead connection, resulting
+  in a timeout and a 500 error. Setting ``LDAPConnectionPoolTTL``
+  to a value shorter than your firewall's idle timeout (often 300
+  seconds) prevents this.
+
+* **Load balancer rotation.** If your LDAP URL points to a load
+  balancer, long-lived connections may all stick to a single backend.
+  A TTL of 60-300 seconds forces periodic reconnection, giving the
+  load balancer a chance to distribute connections.
+
+**Timeouts.** Two separate timeouts control different phases:
+
+* ``LDAPConnectionTimeout`` controls how long Apache waits to
+  establish a TCP connection. Set this low (3-10 seconds) so that
+  requests fail fast if the LDAP server is unreachable.
+
+* ``LDAPTimeout`` controls how long Apache waits for the LDAP server
+  to respond to a search or bind operation. The default of 60 seconds
+  is generous; 10-30 seconds is usually sufficient.
+
+**Retries.** ``LDAPRetries`` (default 3) and ``LDAPRetryDelay``
+(default 0) control how Apache handles transient LDAP failures.
+Setting ``LDAPRetryDelay`` to 1 second avoids hammering a recovering
+LDAP server with immediate retries.
+
+**The LDAP caches.** :module:`mod_ldap` provides two levels of
+caching in shared memory:
+
+1. **Search/bind cache** (``LDAPCacheEntries`` / ``LDAPCacheTTL``):
+   Caches the result of successful search-and-bind operations. When a
+   user authenticates, the username, retrieved DN, and password hash
+   are stored. Subsequent requests with the same credentials skip the
+   LDAP server entirely and are validated from cache. Only successful
+   authentications are cached -- failed attempts are always checked
+   against the LDAP server.
+
+2. **Operation cache** (``LDAPOpCacheEntries`` / ``LDAPOpCacheTTL``):
+   Caches the results of LDAP compare operations used for group
+   membership checks and attribute comparisons. This avoids repeating
+   expensive ``Require ldap-group`` lookups on every request.
+
+The ``LDAPSharedCacheSize`` directive controls the total shared memory
+segment available for both caches. The default of 500KB is sufficient
+for most sites. If you serve thousands of unique authenticated users
+or have extensive group hierarchies, increase this to 1-2MB.
+
+.. warning::
+
+   Setting ``LDAPCacheTTL`` too high means password changes in the
+   LDAP directory won't take effect until the cache entry expires. If
+   a user's account is disabled or password is changed, the old
+   credentials continue to work until the TTL elapses. For security-
+   sensitive environments, keep this value at 300 seconds or less.
+
+**Monitoring.** The ``ldap-status`` handler provides a real-time view
+of the connection pool and cache statistics. Enable it as shown in
+the solution and visit ``/server/ldap-status`` to see connection
+counts, cache hit rates, and cache size utilization. This is
+invaluable for tuning.
+
+**Common error scenarios and solutions:**
+
+* ``LDAP: ldap_simple_bind_s() failed``: Usually means the bind DN
+  or password in ``AuthLDAPBindDN`` / ``AuthLDAPBindPassword`` is
+  wrong, or the LDAP server is refusing the connection. Check the
+  bind credentials and ensure the LDAP server allows connections from
+  the web server's IP address.
+
+* ``LDAP: ldap_search_ext_s() timed out``: The LDAP search is taking
+  too long. Check your ``AuthLDAPURL`` search base and scope -- a
+  search starting at the root of a large directory with ``sub`` scope
+  is expensive. Narrow the search base and use ``one`` scope where
+  possible.
+
+* Intermittent ``500 Internal Server Error`` under load: Often caused
+  by stale pooled connections. Set ``LDAPConnectionPoolTTL`` to a
+  positive value and ensure ``LDAPConnectionTimeout`` is reasonable.
+
+* ``Unable to contact LDAP server`` appearing in clusters: If the
+  LDAP server is behind a firewall or load balancer, idle TCP
+  connections may be silently dropped. Set ``LDAPConnectionPoolTTL``
+  below the firewall's idle timeout. On the mailing list, this is one
+  of the most commonly reported LDAP issues.
+
+**SSL/TLS to the LDAP server.** For production environments, always
+encrypt the LDAP connection using either ``ldaps://`` (LDAP over SSL)
+or STARTTLS. Configure the CA certificate with
+``LDAPTrustedGlobalCert``:
+
+.. code-block:: text
+
+   LDAPTrustedGlobalCert CA_BASE64 "/etc/pki/tls/certs/ldap-ca.pem"
+   LDAPVerifyServerCert On
+
+Then use ``ldaps://`` in your ``AuthLDAPURL``:
+
+.. code-block:: text
+
+   AuthLDAPURL "ldaps://ldap.example.com/ou=People,dc=example,dc=com?uid?one"
+
+Or add ``TLS`` at the end of a plain ``ldap://`` URL to use STARTTLS:
+
+.. code-block:: text
+
+   AuthLDAPURL "ldap://ldap.example.com/ou=People,dc=example,dc=com?uid?one" TLS
+
+
+.. _See_Also_ldap_connection_pooling:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_ldap_auth`
+
+* :ref:`Recipe_authn_provider_architecture`
+
+* :ref:`Recipe_auth_cache`
+
+* http://httpd.apache.org/docs/2.4/mod/mod_ldap.html
+
+* http://httpd.apache.org/docs/2.4/mod/mod_authnz_ldap.html
+
+
+.. _Recipe_auth_cache:
+
+Caching Authentication Credentials with Shared Object Caches
+------------------------------------------------------------
+
+.. index:: mod_socache_shmcb
+
+.. index:: Modules,mod_socache_shmcb
+
+.. index:: mod_authn_socache
+
+.. index:: Modules,mod_authn_socache
+
+.. index:: AuthnCacheSOCache
+
+.. index:: AuthnCacheProvideFor
+
+.. index:: AuthnCacheTimeout
+
+.. index:: AuthnCacheContext
+
+.. index:: Authentication,caching
+
+.. index:: Shared object cache
+
+.. index:: shmcb
+
+.. index:: SSLSessionCache
+
+.. index:: mod_socache_dbm
+
+.. index:: mod_socache_memcache
+
+
+.. _Problem_auth_cache:
+
+Problem
+~~~~~~~
+
+Authentication lookups against an SQL database, external service, or
+other heavyweight back-end are creating unacceptable load. A single
+page with dozens of embedded images generates dozens of separate
+authentication checks, all against the same back-end.
+
+
+.. _Solution_auth_cache:
+
+Solution
+~~~~~~~~
+
+Use :module:`mod_authn_socache` to cache authenticated credentials in
+a shared object cache, and :module:`mod_socache_shmcb` to provide the
+fast shared-memory cache back-end.
+
+.. code-block:: text
+
+   # Load the required modules
+   LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
+   LoadModule authn_socache_module modules/mod_authn_socache.so
+
+   # Select shmcb as the cache back-end (server-wide setting).
+   # The argument specifies the data file path and optional size.
+   AuthnCacheSOCache shmcb
+
+   <Directory "/var/www/app">
+       AuthType Basic
+       AuthName "Application"
+
+       # List 'socache' BEFORE the actual provider.
+       # This makes the cache the first place credentials are checked.
+       AuthBasicProvider socache dbd
+
+       AuthDBDUserPWQuery "SELECT password FROM users WHERE login = %s"
+
+       # Tell the cache which provider's results to store.
+       AuthnCacheProvideFor dbd
+
+       # Cache entries expire after 300 seconds (5 minutes).
+       AuthnCacheTimeout 300
+
+       Require valid-user
+   </Directory>
+
+
+.. _Discussion_auth_cache:
+
+Discussion
+~~~~~~~~~~
+
+The shared object cache (socache) subsystem in Apache 2.4 provides a
+pluggable caching infrastructure used by several modules.
+:module:`mod_socache_shmcb` is the most common back-end -- it uses a
+high-performance cyclic buffer in a shared memory segment, giving all
+worker processes access to the same cache without filesystem I/O or
+network round-trips.
+
+**How authentication caching works.** The ``socache`` authentication
+provider acts as a transparent caching layer in the provider chain:
+
+1. A request arrives with Basic credentials.
+
+2. ``AuthBasicProvider socache dbd`` causes the ``socache`` provider
+   to be consulted first. It checks the shared memory cache for a
+   matching username and password.
+
+3. **Cache hit:** The cached credentials match, and the user is
+   authenticated without contacting the database.
+
+4. **Cache miss:** The ``socache`` provider passes through to the
+   next provider in the chain (``dbd``). If ``dbd`` authenticates
+   the user successfully, and ``dbd`` is listed in
+   ``AuthnCacheProvideFor``, the credentials are stored in the cache
+   for subsequent requests.
+
+The order of providers in the ``AuthBasicProvider`` directive
+matters: ``socache`` must come *before* the heavyweight provider it
+is caching for.
+
+**Choosing a cache back-end.** Apache provides several socache
+providers, each suited to different scenarios:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 50
+
+   * - Provider
+     - Module
+     - Best For
+   * - ``shmcb``
+     - :module:`mod_socache_shmcb`
+     - Single-server deployments. Fastest option. Shared memory
+       segment with cyclic buffer. No disk I/O. This is the right
+       choice for most sites.
+   * - ``dbm``
+     - :module:`mod_socache_dbm`
+     - Single-server where the cache must survive a graceful restart.
+       Slightly slower than shmcb due to filesystem I/O.
+   * - ``memcache``
+     - :module:`mod_socache_memcache`
+     - Multi-server deployments where cached credentials should be
+       shared across a cluster of Apache instances. Requires a
+       memcached server.
+   * - ``dc``
+     - :module:`mod_socache_dc`
+     - Distributed caching via distcache (uncommon).
+
+Each back-end is specified as the argument to ``AuthnCacheSOCache``:
+
+.. code-block:: text
+
+   # shmcb with explicit data file and 512KB size
+   AuthnCacheSOCache shmcb:/var/cache/httpd/authn_cache(512000)
+
+   # dbm back-end
+   AuthnCacheSOCache dbm:/var/cache/httpd/authn_cache
+
+   # memcache (comma-separated host:port list)
+   AuthnCacheSOCache memcache:mc1.example.com:11211,mc2.example.com:11211
+
+**The AuthnCacheContext directive** controls how cache keys are
+scoped. The default value, ``directory``, means each ``<Directory>``
+context gets its own cache namespace. This is safe but can be
+wasteful -- if three different ``<Directory>`` blocks all authenticate
+against the same back-end, a user's credentials will be cached three
+times.
+
+Setting ``AuthnCacheContext`` to a shared string allows different
+directory contexts to share cached credentials:
+
+.. code-block:: text
+
+   <Directory "/var/www/app1">
+       AuthnCacheContext company-db
+       AuthBasicProvider socache dbd
+       AuthnCacheProvideFor dbd
+       # ... other auth directives ...
+   </Directory>
+
+   <Directory "/var/www/app2">
+       AuthnCacheContext company-db
+       AuthBasicProvider socache dbd
+       AuthnCacheProvideFor dbd
+       # ... other auth directives ...
+   </Directory>
+
+Both directories now share cache entries, so a user authenticated for
+``/app1`` won't trigger another database lookup when accessing
+``/app2``.
+
+.. warning::
+
+   Be cautious with shared cache contexts. If two directories
+   authenticate against *different* back-ends but share the same
+   context string, a user cached from one back-end might be
+   incorrectly accepted for the other. Only share contexts when the
+   directories use the same credential store.
+
+**shmcb beyond authentication.** :module:`mod_socache_shmcb` is also
+the recommended back-end for other caching uses in Apache:
+
+* **SSL session cache** (:module:`mod_ssl`): Caches TLS session
+  parameters so that resumed connections skip the full handshake:
+
+  .. code-block:: text
+
+     SSLSessionCache shmcb:/var/cache/httpd/ssl_scache(512000)
+     SSLSessionCacheTimeout 300
+
+* **OCSP stapling cache** (:module:`mod_ssl`): Caches OCSP responses
+  for TLS certificate status:
+
+  .. code-block:: text
+
+     SSLStaplingCache shmcb:/var/cache/httpd/ssl_stapling(128000)
+
+In all these cases, ``shmcb`` provides the same fast, lock-free
+shared memory access.
+
+**When not to cache.** Lightweight authentication providers such as
+``file`` (:module:`mod_authn_file`) and ``dbm``
+(:module:`mod_authn_dbm`) are already fast enough that the overhead of
+caching would exceed the overhead of the lookup itself. The
+``AuthnCacheProvideFor`` directive exists precisely so you can specify
+only the expensive providers to cache for, leaving lightweight
+providers uncached.
+
+**Security considerations.** Cached credentials mean that a password
+change or account lockout in the back-end won't take effect until the
+cache entry expires. Set ``AuthnCacheTimeout`` to an appropriate value
+for your security requirements -- 300 seconds (the default) is a
+reasonable balance between performance and responsiveness to credential
+changes. For high-security environments where account revocation must
+be near-instant, consider a shorter timeout or avoid caching
+altogether.
+
+
+.. _See_Also_auth_cache:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_authn_provider_architecture`
+
+* :ref:`Recipe_ldap_connection_pooling`
+
+* :ref:`Recipe_sql_auth`
+
+* http://httpd.apache.org/docs/2.4/mod/mod_authn_socache.html
+
+* http://httpd.apache.org/docs/2.4/mod/mod_socache_shmcb.html
+
+* http://httpd.apache.org/docs/2.4/socache.html
+
+
 .. _Recipe_Basic_Auth:
 
 Configuring Basic Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 .. index:: Basic Authentication
 
@@ -305,7 +1326,7 @@ See Also
 .. _HTTP_Browsers_and_Credentials_sidebar:
 
 .HTTP, Browsers, and Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 .. sidebar:: Sidebar
 
@@ -392,7 +1413,7 @@ See Also
 .. _Recipe_htpasswd:
 
 Creating password files for Basic authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------
 
 .. index:: Basic Authentication,Password file
 
@@ -642,7 +1663,7 @@ See Also
 .. _Recipe_good_passwords:
 
 Generating strong passwords
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 .. index:: Passwords,strong
 
@@ -783,7 +1804,7 @@ See Also
 .. _Recipe_authentication_groups:
 
 Authentication Groups
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 .. index:: Authentication,Groups
 
@@ -884,7 +1905,7 @@ See Also
 .. _Recipe_Digest_Auth:
 
 Configuring Digest Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 
 .. index:: Digest Authentication
 
@@ -995,7 +2016,7 @@ See Also
 .. _Recipe_htdigest:
 
 Managing password files for Digest authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------
 
 .. index:: Digest Authentication
 
@@ -1103,7 +2124,6 @@ See Also
 
 .. _Recipe_Form_Auth:
 
-[role="v24"]
 Form-based authentication
 
 .. index:: Authentication,Form
@@ -1228,7 +2248,7 @@ step individually. These steps are:
 * Create password file to validate against
 
 Enabling modules
-^^^^^^^^^^^^^^^^
+----------------
 
 
 First of all, form authentication requires several modules that are
@@ -1244,12 +2264,12 @@ To enable these modules in Debian (and Ubuntu):
    sudo service apache2 restart
 
 
-To enable them in Fedora (and CentOS, and RHEL):
+To enable them in Fedora (and RHEL):
 
 
 .. code-block:: text
 
-   sudo yum install mod_session
+   sudo dnf install mod_session
    sudo service httpd restart
 
 
@@ -1268,7 +2288,7 @@ adding (or uncommenting) the relevant ``LoadModule`` directives:
 
 
 The authenticated area
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 
 In order to trigger the authentication in the first place, we need to
@@ -1313,7 +2333,7 @@ any of the various ``*Match`` equivalents, or use these directives in a
 ``.htaccess`` file.
 
 The login form
-^^^^^^^^^^^^^^
+--------------
 
 
 Next, we create the login form itself.
@@ -1349,7 +2369,7 @@ fields, you can do so using the ``AuthFormUsername`` and
 
 
 The login action
-^^^^^^^^^^^^^^^^
+----------------
 
 
 The login action is handled by the ``form-login-handler`` Handler, which
@@ -1366,7 +2386,7 @@ upon successful login. It usually makes sense for this to be the
 to access.
 
 The password file
-^^^^^^^^^^^^^^^^^
+-----------------
 
 
 The ``AuthFormProvider`` and ``AuthUserFile`` directives indicate the
@@ -1381,7 +2401,7 @@ However, in the recipe above, we assume a standard ``htpasswd`` style
 password file. 
 
 Testing
-^^^^^^^
+-------
 
 
 To test your setup, point a browser at the password-protected URL. You
@@ -1404,10 +2424,490 @@ See Also
 * :ref:`Recipe_htpasswd`
 
 
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_session_management:
+
+Server-side session management
+-------------------------------
+
+.. index:: mod_session
+
+.. index:: Modules,mod_session
+
+.. index:: Session directive
+
+.. index:: Sessions,server-side
+
+
+Problem
+~~~~~~~
+
+You want to maintain server-side session state for authenticated users
+so that per-user data persists across multiple HTTP requests.
+
+Solution
+~~~~~~~~
+
+Enable :module:`mod_session` and configure a basic session with a
+storage backend. The simplest approach uses a cookie to hold the
+session data (via :module:`mod_session_cookie`):
+
+.. code-block:: apache
+
+   LoadModule session_module modules/mod_session.so
+   LoadModule session_cookie_module modules/mod_session_cookie.so
+
+   <Location "/app">
+       Session On
+       SessionCookieName session path=/app;httponly;secure
+       SessionMaxAge 3600
+   </Location>
+
+To use sessions with form-based login authentication, combine
+:module:`mod_session` with :module:`mod_auth_form`:
+
+.. code-block:: apache
+
+   <Location "/secure">
+       Session On
+       SessionCookieName session path=/;httponly;secure
+       SessionCryptoPassphrase "your-secret-key"
+       SessionMaxAge 3600
+
+       AuthType form
+       AuthFormProvider file
+       AuthUserFile "/etc/httpd/passwd"
+       AuthName "Login"
+       AuthFormLoginRequiredLocation "/login.html"
+   </Location>
+
+The ``Session On`` directive activates session handling.
+``SessionMaxAge`` sets the session lifetime in seconds (here, one
+hour). After the session expires, the user must re-authenticate.
+
+Discussion
+~~~~~~~~~~
+
+:module:`mod_session` is the core session framework in Apache httpd. By
+itself, it doesn't store anything — it provides the session API that
+other modules use. You always need at least one storage backend:
+
+- :module:`mod_session_cookie` — Stores session data directly in a
+  browser cookie. Simple, stateless, but limited to about 4KB and
+  visible to the client.
+
+- :module:`mod_session_dbd` — Stores session data in a SQL database,
+  sending only a session ID cookie to the client. Better for privacy,
+  large sessions, or multi-server environments.
+
+The session stores key-value pairs internally, encoded in URL query
+string format (``key1=value1&key2=value2``). Other modules like
+:module:`mod_auth_form` use this to store the authenticated username
+and password across requests.
+
+Important concepts:
+
+- **``Session On``** must appear in each directory or location context
+  where you want sessions. It doesn't cascade automatically to
+  sub-locations.
+
+- **``SessionMaxAge``** is a server-side expiration timer, not a cookie
+  expiration. The timer resets with each request that touches the
+  session. Set it to ``0`` to disable expiration (the default).
+
+- **``SessionEnv On``** makes the session contents available to CGI
+  scripts and backend applications as the ``HTTP_SESSION`` environment
+  variable. This is off by default for privacy reasons.
+
+- **``SessionHeader``** lets applications write back into the session
+  by returning a named HTTP response header with URL-encoded key-value
+  pairs.
+
+- For any production deployment, I strongly recommend adding
+  :module:`mod_session_crypto` to encrypt the session data. Without
+  encryption, cookie-based sessions expose their contents to anyone
+  who can see the cookie.
+
+The session modules are not a full application-session framework like
+you'd find in PHP or Django — they're deliberately minimal. They
+handle storage and retrieval of key-value pairs and leave the
+application logic to you or to higher-level modules like
+:module:`mod_auth_form`.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_Form_Auth`
+
+* :ref:`Recipe_session_cookie`
+
+* :ref:`Recipe_session_dbd`
+
+* :ref:`Recipe_session_crypto`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_session.html
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_session_cookie:
+
+Cookie-based sessions
+----------------------
+
+.. index:: mod_session_cookie
+
+.. index:: Modules,mod_session_cookie
+
+.. index:: SessionCookieName
+
+.. index:: Sessions,cookie-based
+
+
+Problem
+~~~~~~~
+
+You want to store session data in a browser cookie so that per-user
+state persists across requests without any server-side storage.
+
+Solution
+~~~~~~~~
+
+Load :module:`mod_session_cookie` alongside :module:`mod_session` and
+configure a ``SessionCookieName``:
+
+.. code-block:: apache
+
+   LoadModule session_module modules/mod_session.so
+   LoadModule session_cookie_module modules/mod_session_cookie.so
+
+   <Location "/app">
+       Session On
+       SessionCookieName session path=/app;httponly;secure
+       SessionMaxAge 1800
+   </Location>
+
+The ``SessionCookieName`` directive sets the cookie name (``session``)
+and appends standard cookie attributes. ``SessionMaxAge`` sets the
+session lifetime in seconds — here, 30 minutes.
+
+To make the session available to CGI scripts as the ``HTTP_SESSION``
+environment variable, add:
+
+.. code-block:: apache
+
+   SessionEnv On
+
+To let CGI scripts update the session through an HTTP response header:
+
+.. code-block:: apache
+
+   SessionHeader X-Replace-Session
+
+Discussion
+~~~~~~~~~~
+
+With :module:`mod_session_cookie`, session data is serialized as
+URL-encoded key-value pairs (like ``user=alice&role=admin``) and stored
+directly in a browser cookie. This is the simplest session storage
+option — no database, no server-side state, no file system
+requirements.
+
+The tradeoff is transparency: by default, session contents are visible
+to anyone who inspects the cookie. If the session holds anything
+sensitive (usernames, roles, tokens), you should pair this with
+:module:`mod_session_crypto` to encrypt the payload. See
+:ref:`Recipe_session_crypto`.
+
+Key points:
+
+- **Cookie size limits.** Browsers typically allow about 4KB per
+  cookie. If your session data exceeds this, the cookie will be
+  silently truncated or rejected. Keep session data small.
+
+- **The ``httponly`` attribute** prevents JavaScript from reading the
+  cookie, which mitigates cross-site scripting (XSS) attacks. The
+  ``secure`` attribute ensures the cookie is only sent over HTTPS.
+  Always set both.
+
+- **``SessionMaxAge``** controls the session lifetime on the server
+  side. When a session exceeds this age without a request, it's
+  treated as expired. Setting it to ``0`` (the default) disables
+  expiration.
+
+- **``SessionCookieRemove On``** strips the session cookie from
+  requests forwarded to backend servers in a reverse proxy setup.
+  This prevents leaking session data to backends that don't need it.
+
+- **``SessionInclude`` and ``SessionExclude``** can limit which URL
+  prefixes participate in the session, reducing unnecessary session
+  processing on static content paths.
+
+CGI interaction works through two channels: ``SessionEnv On`` exposes
+the current session as the ``HTTP_SESSION`` environment variable
+(URL-encoded), and ``SessionHeader`` names a response header your
+application can set to push updates back into the session. The format
+is the same URL-encoded string — set a key to empty (``key=``) to
+remove it from the session.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_session_management`
+
+* :ref:`Recipe_Form_Auth`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_session_cookie.html
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_session_dbd:
+
+Database-backed sessions
+-------------------------
+
+.. index:: mod_session_dbd
+
+.. index:: Modules,mod_session_dbd
+
+.. index:: Sessions,database-backed
+
+.. index:: Sessions,mod_session_dbd
+
+
+Problem
+~~~~~~~
+
+You want to store session data server-side in a SQL database rather than
+in browser cookies, keeping session contents private and enabling session
+sharing across multiple httpd instances.
+
+Solution
+~~~~~~~~
+
+Load :module:`mod_session_dbd` along with :module:`mod_dbd`, configure
+your database connection, define the SQL queries for session
+operations, and enable the session:
+
+.. code-block:: apache
+
+   LoadModule session_module modules/mod_session.so
+   LoadModule session_dbd_module modules/mod_session_dbd.so
+   LoadModule dbd_module modules/mod_dbd.so
+
+   DBDriver pgsql
+   DBDParams "host=localhost dbname=sessions user=httpd password=secret"
+
+   DBDPrepareSQL "SELECT value FROM sessions WHERE key = %s" selectsession
+   DBDPrepareSQL "UPDATE sessions SET value = %s WHERE key = %s" updatesession
+   DBDPrepareSQL "INSERT INTO sessions (value, key) VALUES (%s, %s)" insertsession
+   DBDPrepareSQL "DELETE FROM sessions WHERE key = %s" deletesession
+
+   <Location "/app">
+       Session On
+       SessionDBDCookieName session path=/app;httponly;secure
+       SessionMaxAge 1800
+   </Location>
+
+Create the session table in your database:
+
+.. code-block:: bash
+
+   $ psql -d sessions -c "CREATE TABLE sessions (
+       key VARCHAR(128) NOT NULL PRIMARY KEY,
+       value TEXT NOT NULL
+   );"
+
+The ``SessionDBDCookieName`` directive stores only a session ID in the
+browser cookie — the actual session data lives in the database.
+
+Discussion
+~~~~~~~~~~
+
+Unlike :module:`mod_session_cookie`, which stores session data directly
+in the browser, :module:`mod_session_dbd` stores it in a SQL database
+and sends only a session ID cookie to the client. This has several
+advantages:
+
+- **Privacy.** Session contents never leave the server. Even without
+  encryption, the client only sees an opaque session ID.
+
+- **Size.** Cookie-based sessions are limited to about 4KB per cookie.
+  Database sessions can hold arbitrarily large data.
+
+- **Sharing.** If you run multiple httpd instances behind a load
+  balancer, pointing them at the same database gives you shared
+  sessions without sticky sessions.
+
+The module uses four prepared SQL statements, each with a default label:
+
+- ``selectsession`` — Retrieve session data by session key.
+- ``updatesession`` — Update an existing session.
+- ``insertsession`` — Insert a new session (used if the update affects
+  zero rows).
+- ``deletesession`` — Remove an expired or empty session.
+
+You can override the label names with ``SessionDBDSelectLabel``,
+``SessionDBDUpdateLabel``, ``SessionDBDInsertLabel``, and
+``SessionDBDDeleteLabel`` if your SQL uses different names.
+
+A few practical notes:
+
+- :module:`mod_dbd` manages a connection pool. For production, tune the
+  pool settings with ``DBDMin``, ``DBDMax``, ``DBDKeep``, and
+  ``DBDExptime`` so you don't run out of connections under load.
+
+- The ``key`` column stores a server-generated session UUID. The
+  ``value`` column stores the URL-encoded session data (key=value
+  pairs). You can add a timestamp column and use a cron job or database
+  event to purge expired sessions.
+
+- Supported database drivers include ``pgsql`` (PostgreSQL), ``mysql``
+  (MySQL/MariaDB), ``sqlite3`` (SQLite), ``oracle``, and ``freetds``
+  (MSSQL/Sybase). The ``DBDParams`` format varies by driver.
+
+- For additional security, combine :module:`mod_session_dbd` with
+  :module:`mod_session_crypto` to encrypt the data at rest in the
+  database. This protects against database compromise, though it adds
+  CPU overhead.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_session_management`
+
+* :ref:`Recipe_sql_auth`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_session_dbd.html
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_session_crypto:
+
+Encrypting session data
+------------------------
+
+.. index:: mod_session_crypto
+
+.. index:: Modules,mod_session_crypto
+
+.. index:: SessionCryptoPassphrase
+
+.. index:: Sessions,encrypted
+
+
+Problem
+~~~~~~~
+
+You want to encrypt session data so that session contents stored in
+browser cookies cannot be read or tampered with by the end user.
+
+Solution
+~~~~~~~~
+
+Load :module:`mod_session_crypto` alongside your session storage
+module, and add a ``SessionCryptoPassphrase`` directive:
+
+.. code-block:: apache
+
+   LoadModule session_module modules/mod_session.so
+   LoadModule session_cookie_module modules/mod_session_cookie.so
+   LoadModule session_crypto_module modules/mod_session_crypto.so
+
+   <Location "/app">
+       Session On
+       SessionCookieName session path=/app;httponly;secure
+       SessionCryptoPassphrase "a-long-random-passphrase-here"
+       SessionMaxAge 1800
+   </Location>
+
+The session payload is automatically encrypted before being written to
+the cookie and decrypted when the cookie is read back. No application
+changes are needed.
+
+To support key rotation, list multiple passphrases — the first one is
+used for encryption, and all are tried during decryption:
+
+.. code-block:: apache
+
+   SessionCryptoPassphrase "new-passphrase" "old-passphrase"
+
+You can also retrieve the passphrase from an external program:
+
+.. code-block:: apache
+
+   SessionCryptoPassphrase exec:/etc/httpd/get-session-key.sh
+
+Discussion
+~~~~~~~~~~
+
+Without :module:`mod_session_crypto`, cookie-based sessions store
+their data as a plain-text, URL-encoded string. Anyone with access to
+the browser (or anyone sniffing the wire) can read session contents
+like usernames, preferences, or authentication tokens. That's a
+serious privacy and security problem.
+
+``SessionCryptoPassphrase`` applies AES-256 symmetric encryption to the
+session payload before it's base64-encoded and written to the cookie.
+On the next request, the module decrypts the cookie transparently.
+
+Key things to know:
+
+- **Encryption protects confidentiality and integrity.** A tampered
+  cookie will fail decryption and be discarded, effectively creating a
+  new empty session.
+
+- **The passphrase is your encryption key.** Use a long, random string —
+  not a human-memorable password. If an attacker gets the passphrase,
+  they can decrypt all sessions. Store it securely, or use the
+  ``exec:`` prefix to retrieve it from a secrets manager at startup.
+
+- **Key rotation** is built in. When you add a new passphrase at the
+  front of the list, new sessions are encrypted with it, while existing
+  sessions encrypted with older keys are still decryptable. Once all old
+  sessions have expired, you can remove the old passphrase.
+
+- **Changing the passphrase invalidates all existing sessions.** This is
+  by design — if you suspect a key compromise, changing the passphrase
+  forces all users to re-authenticate.
+
+- Encryption adds CPU overhead and increases cookie size due to the
+  encryption padding and base64 encoding. For high-traffic sites where
+  cookie size is a concern, consider using :module:`mod_session_dbd`
+  (database-backed sessions) instead, where only a session ID is stored
+  in the cookie and the actual data stays on the server.
+
+- Even with encryption, you should still set the ``httponly`` and
+  ``secure`` cookie attributes, and serve the site over TLS. Encryption
+  prevents reading the data, but the cookie itself can still be
+  hijacked if transmitted in the clear.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_session_management`
+
+* :ref:`Recipe_session_cookie`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_session_crypto.html
+
+
 .. _Recipe_dbm_auth:
 
 DBM password files
-~~~~~~~~~~~~~~~~~~
+------------------
 
 .. index:: mod_authn_dbm
 
@@ -1527,7 +3027,7 @@ See Also
 .. _Recipe_convert_htpasswd_to_dbm:
 
 Converting a text password file to dbm
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
 
 .. index:: Converting htpasswd to dbm
 
@@ -1689,7 +3189,7 @@ See Also
 .. _Recipe_dbm_group_file:
 
 dbm_group_file
-~~~~~~~~~~~~~~
+--------------
 
 .. index:: Authentication,Groups
 
@@ -1782,7 +3282,7 @@ See Also
 .. _Recipe_sql_auth:
 
 Authentication against an SQL database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
 
 .. index:: SQL authentication
 
@@ -1885,8 +3385,7 @@ See Also
 
 .. _Recipe_SQL_Authorization:
 
-[role="v24"]
-~~~~~~~~~~~~
+------------
 Using a database for group authorization
 
 .. index:: SQL authorization
@@ -1948,11 +3447,6 @@ database connectivity, so that module must be loaded and configured.
 track when a user logged in and logged out.
 
 
-.. note::
-
-   This module is not available in Apache httpd version 2.2.
-
-
 .. _See_Also_SQL_Authorization:
 
 See Also
@@ -1969,7 +3463,7 @@ See Also
 .. _Recipe_ldap_auth:
 
 LDAP authentication and authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------
 
 .. index:: LDAP authentication and authorization
 
@@ -2078,6 +3572,7 @@ See Also
 * http://httpd.apache.org/docs/mod/mod_authnz_ldap.html
 
 
+
 .. _Recipe_auth_anon:
 
 Anonymous "authentication"
@@ -2112,8 +3607,7 @@ Solution
 ~~~~~~~~
 
 
-Use ``mod_authn_anon`` (Formerly called ``mod_auth_anon`` in earlier
-versions) to ask for an anonymous username, and optionally an email
+Use ``mod_authn_anon`` to ask for an anonymous username, and optionally an email
 address, to sign into your site.
 
 
@@ -2193,7 +3687,7 @@ See Also
 .. _Recipe_OpenDoor:
 
 Let everyone in
-~~~~~~~~~~~~~~~
+---------------
 
 .. index:: Allow from all
 
@@ -2216,27 +3710,14 @@ Solution
 ~~~~~~~~
 
 
-For httpd 2.4, use the ``Require all granted`` syntax to indicate that a
+Use the ``Require all granted`` syntax to indicate that a
 particular resource should be available to everyone.
 
-[role="v24"]
 
 .. code-block:: text
 
    <Directory /var/www>
        Require all granted
-   </Directory>
-
-
-For 2.2, use the ``Allow from all`` for the same result.
-
-[role="v22"]
-
-.. code-block:: text
-
-   <Directory /var/www>
-       Order allow,deny
-       Allow from all
    </Directory>
 
 
@@ -2267,7 +3748,7 @@ See Also
 .. _Recipe_all_denied:
 
 Don't let anybody in
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 .. index:: Deny from all
 
@@ -2290,26 +3771,13 @@ Solution
 ~~~~~~~~
 
 
-For httpd 2.4, use the ``Require all denied`` syntax:
+Use the ``Require all denied`` syntax:
 
-[role="v24"]
 
 .. code-block:: text
 
    <Directory /etc/httpd>
        Require all denied
-   </Directory>
-
-
-For httpd 2.2, use the ``Deny from all`` directive:
-
-[role="v22"]
-
-.. code-block:: text
-
-   <Directory /etc/httpd>
-       Order deny,allow
-       Deny from all
    </Directory>
 
 
@@ -2370,33 +3838,9 @@ Solution
 ~~~~~~~~
 
 
-This feature is provided by ``mod_authz_host``, and the syntax is
-different for 2.2 and 2.4 servers.
+This feature is provided by ``mod_authz_host``, using the ``Require host``
+and ``Require ip`` syntax:
 
-In 2.2, use the "Allow from" and "Deny from" syntax:
-
-[role="v22"]
-
-.. code-block:: text
-
-   # Allow from an IP address, or range of addresses
-   Allow from 10.19.44.8
-   Allow from 10.
-   Allow from 10.1.0.0/16
-   
-   # Allow from a hostname, or all hosts in a domain or TLD
-   Allow from www.apache.org
-   Allow from .example.com
-   Allow from .net
-
-
-Multiple requirements can be combined in a variety of ways using the
-``Order`` and ``Satisfy`` directives. Replace ``Allow`` with ``Deny`` to
-reverse the meaning of any of the above requirements.
-
-In 2.4, use the "Require host" and "Require ip" syntax:
-
-[role="v24"]
 
 .. code-block:: text
 
@@ -2432,10 +3876,9 @@ website security. With it, you can ensure that connections originate
 from your company network, for example, or that they are not from a
 particular country.
 
-While this functionality has been available in all versions of Apache
-httpd, the syntax is now much more flexible in the 2.4 version, with
-the ability to combine multiple requirements in arbitrary ways using
-the ``<RequireAny>``, ``<RequireAll>``, and ``<RequireNone>`` containers.
+The syntax is flexible, with the ability to combine multiple
+requirements in arbitrary ways using the ``<RequireAny>``,
+``<RequireAll>``, and ``<RequireNone>`` containers.
 
 See :ref:`Recipe_RequireAll` for more discussion of combining multiple access
 control requirements.
@@ -2443,7 +3886,7 @@ control requirements.
 IP addresses can be IPv4 or IPv6 addresses, and can be expressed in
 any valid format for addresses or network ranges.
 
-The ``local`` keyword in the 2.4 configuration example
+The ``local`` keyword in the configuration example above
 allows access to the server if any of the following conditions is true:
 
 * the client address matches 127.0.0.0/8
@@ -2460,8 +3903,6 @@ See Also
 * :ref:`Recipe_RequireAll`
 
 * https://httpd.apache.org/docs/2.4/mod/mod_authz_host.html
-
-* https://httpd.apache.org/docs/2.2/mod/mod_authz_host.html
 
 
 .. _Recipe_Authorization_by_file_ownership:
@@ -2549,7 +3990,6 @@ See Also
 
 * https://httpd.apache.org/docs/mod/mod_authz_owner.html
 
-[role="v24"]
 
 .. _Recipe_Authorization_by_expression:
 
@@ -2675,7 +4115,7 @@ library that allows applications to access the underlying system
 authentication. These modules are typically called either
 ``mod_auth_pam`` or ``mod_authnz_pam``.
 
-However, at the time of this writing, none of these modules are
+However, none of these modules are
 actively maintained, and so we do not recommend their use.
 
 
@@ -2830,7 +4270,7 @@ See Also
 .. _Requiring_Both_Weak_and_Strong_Authentication_id130793:
 
 Requiring Both Weak and Strong Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
 
 .. _Problem_id130807:
@@ -2851,36 +4291,9 @@ Solution
 ~~~~~~~~
 
 
-For httpd 2.2 and earlier, use the ``Satisfy all`` directive to ensure
-that all requirements are enforced.
-
-[role="v22"]
-
-.. code-block:: text
-
-   <Directory /www/htdocs/sensitive>
-          
-       # Enforce all restrictions
-       Satisfy All
-   
-       # Require a password
-       AuthType Basic
-       AuthName Sensitive
-       AuthUserFile /www/passwords/users
-       AuthGroupFile /www/passwords/groups
-       Require group sales
-   
-       # Require access from a certain network
-       Order deny,allow
-       Deny from all
-       Allow from 192.168.1
-   </Directory>
-
-
-For 2.4, use the ``<RequireAll>`` container to group all requirements
+Use the ``<RequireAll>`` container to group all requirements
 which must be enforced.
 
-[role="v24"]
 
 .. code-block:: text
 
@@ -2911,12 +4324,9 @@ In this example, users must provide a login, identifying them as
 a member of the ``sales`` group, and must also use a machine on the
 192.168.1 network.
 
-For the 2.2 solution,
-the ``Satisfy All`` directive requires that all access
-control measures be enforced for the specified scope. 
-
-For the 2.4 solution, the ``<RequireAll>`` container provides the same
-functionality. See :ref:`Recipe_RequireAll` for additional information on
+The ``<RequireAll>`` container requires that all access
+control measures be enforced for the specified scope.
+See :ref:`Recipe_RequireAll` for additional information on
 what else this directive can do.
 
 Users accessing
@@ -2949,7 +4359,7 @@ See Also
 
 
 .. sidebar:: Weak and Strong Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
    The basic Apache security model for HTTP is based on the
    concepts of weak and strong authentication mechanisms. 
@@ -2968,9 +4378,8 @@ See Also
    a ``403 Forbidden`` status—for which there is no opportunity to retry.
    
    In addition, strong and weak credentials can be required in
-   combination; this is controlled by the **Satisfy** directive in httpd
-   2.2, and the ``<RequireAll>``, ``<RequireAny>``, and ``<RequireNone>``
-   containers in httd 2.4. The five possible requirements are:
+   combination using the ``<RequireAll>``, ``<RequireAny>``, and
+   ``<RequireNone>`` containers. The five possible requirements are:
    
    * None; no authentication required.
    * Only strong credentials are needed.
@@ -2984,7 +4393,7 @@ See Also
 .. _Recipe_Relaxing:
 
 Relaxing Restrictions for a Subdirectory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 .. index:: Relaxing restrictions
 
@@ -3025,7 +4434,6 @@ Solution
 
 Override the restriction of the parent directory in a subdirectory:
 
-[role="v24"]
 
 .. code-block:: text
 
@@ -3034,19 +4442,6 @@ Override the restriction of the parent directory in a subdirectory:
        Require all granted
    </Directory>
 
-
-For httpd 2.2, add the ``Satisfy Any`` directive to ensure that the
-stronger authorization requirement isn't enforced:
-
-[role="v22"]
-
-.. code-block:: text
-
-   <Directory /usr/local/apache/htdocs/BoardOfDirectors/minutes>
-     Satisfy Any
-     Order deny,allow
-     Allow from all
-   </Directory>
 
 
 Alternatively, if you're using ``.htaccess`` files, place the file in
@@ -3060,20 +4455,9 @@ Discussion
 ~~~~~~~~~~
 
 
-The ``Satisfy`` directive tells httpd how strictly to enforce access
-control rules. You can either ``Satisfy All``, or ``Satisfy Any``, which
-mean exactly what they say: ``Satisfy All`` requires that all specified
-rules are enforced, while ``Satisfy Any`` allows you to get away with
-the least restrictive of the rules.
-
-In this case, ``Satisfy Any``, applied to ``Allow from all`` and ``Deny from all`` will cause the less restritive one - ``Allow from all`` - to
-be followed.
-
-By specifying ``Order deny,allow``, this configuration ensures that the
-``Allow`` will be applied after any ``Deny`` that is already in place.
-
-With httpd 2.4, the new ``<RequireAll>``, ``<RequireAny>``, and
-``<RequireNome>`` containers allow from much more fine-grained
+The ``<RequireAll>``, ``<RequireAny>``, and
+``<RequireNone>`` containers control how strictly to enforce access
+control rules, allowing fine-grained
 enforcement of access requirements. See :ref:`Recipe_RequireAll` for
 further discussion.
 
@@ -3100,7 +4484,7 @@ See Also
 .. _Recipe_FilesRelax:
 
 Lifting Restrictions Selectively For Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 .. index:: Relaxing restrictions
 
@@ -3130,7 +4514,6 @@ Solution
 For httpd 2.4, use a ``<Files>`` directive and ``Require all granted``
 directive:
 
-[role="v24"]
 
 .. code-block:: text
 
@@ -3142,7 +4525,6 @@ directive:
 This may be placed in a ``.htaccess`` file, or in a ``<Directory>`` block,
 if you want to limit the scope for which it is in effect.
 
-[role="v24"]
 
 .. code-block:: text
 
@@ -3152,19 +4534,6 @@ if you want to limit the scope for which it is in effect.
            Require all granted
        </Files>
    </Directory>
-
-
-For httpd 2.4, use the ``Satisfy Any`` directive in the 
-appropriate place in your ``.htaccess`` or ``httpd.conf`` file:
-
-
-.. code-block:: text
-
-   <Files index.html>
-       Order Deny,Allow
-       Allow from all
-       Satisfy Any
-   </Files>
 
 
 .. _Discussion_FilesRelax:
@@ -3253,8 +4622,7 @@ is not available in other authentication modules.
 
 .. tip::
 
-   This feature was added in Apache 1.3.22. In Apache 2.2, this
-   functionality is provided by the module ``mod_authz_owner``.
+   This functionality is provided by the module ``mod_authz_owner``.
 
 
 .. _See_Also_id132841:
@@ -3270,7 +4638,7 @@ See Also
 .. _Recipe_Username:
 
 Accessing the Authenticated Username
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 .. index:: Authentication,username
 
@@ -3356,7 +4724,7 @@ See Also
 .. _Recipe_GetPassword:
 
 Obtaining the Password Used to Authenticate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 .. index:: Authentication,obtaining the password
 
@@ -3726,9 +5094,9 @@ level, and mitigating those is beyond the scope of this book.
 
 .. tip::
 
-   In previous editions of this book, we recommended the module
-   ``mod_evasive`` to address this situation. That module has, since that
-   time, been abandoned, and is no longer actively developed.
+   The module ``mod_evasive`` was previously used to address this
+   situation, but it has been abandoned and is no longer actively
+   developed.
 
 
 The first recipe above uses ``mod_qos`` to identify clients which are
@@ -3832,7 +5200,7 @@ See Also
 .. _Recipe_RequireAll:
 
 Combining requirements
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 .. index:: RequireAny
 
@@ -3861,27 +5229,9 @@ Solution
 ~~~~~~~~
 
 
-In 2.2, you must use the ``Order`` and ``Satisfy`` directives to combine
-multiple requirements.
+Use the ``<RequireAny>``, ``<RequireAll>``, and ``<RequireNone>`` containers
+to group several authorization requirements.
 
-[role="v22"]
-
-.. code-block:: text
-
-   <Directory /var/www/pretty_ponies>
-       Satisfy All
-       Order allow,deny
-   
-       Require valid-user
-       Allow from 10.10
-   </Directory>
-
-
-In 2.4, use the ``<RequireAny>``, ``<RequireAll>``, and ``<RequireNone>`` containers
-to group several authorization requirements, giving much more
-flexibility over the 2.2 configuration.
-
-[role="v24"]
 
 .. code-block:: text
 
@@ -3899,19 +5249,13 @@ Discussion
 ~~~~~~~~~~
 
 
-As mentioned in earlier recipes, the ``Satisfy`` directive in httpd 2.2
-specified whether all access restrictions must be enforced, or only
-one of them.
+The ``<RequireAll>``, ``<RequireAny>``, and ``<RequireNone>`` containers
+give fine-grained control over which access requirements must be
+enforced, and in what combination.
 
-The new syntax in httpd 2.4 gives a much more fine-grained control
-over which access requirements must be enforced, and in what
-combination.
-
-In the examples given, the two recipes - the 2.2 and 2.4 recipes - are
-functionally identical. However, as soon as more than two access
-control requirements are in play, things get a little more complex. In
-httpd 2.2 and earlier, you only had the option of specifing ``All`` or
-``Any``, in 2.4 you can be more specific. For example if you want to say
+When more than two access
+control requirements are in play, these containers really
+shine. For example, if you want to say
 "must be a valid user, and also must be from either the 10.10 network,
 or the 192.168.10 network", you can do that as follows:
 
@@ -3992,6 +5336,383 @@ See Also
 * https://httpd.apache.org/docs//mod/mod_authz_core.html#requireall
 * https://httpd.apache.org/docs//mod/mod_authz_core.html#requireany
 * https://httpd.apache.org/docs//mod/mod_authz_core.html#requirenone
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_fcgi_authorization:
+
+FastCGI authorization
+----------------------
+
+.. index:: mod_authnz_fcgi
+
+.. index:: Modules,mod_authnz_fcgi
+
+.. index:: FastCGI,authorization
+
+.. index:: Authentication,FastCGI
+
+.. index:: Authorization,FastCGI
+
+
+Problem
+~~~~~~~
+
+You want to delegate authentication or authorization decisions to an
+external FastCGI application rather than using httpd's built-in
+providers.
+
+Solution
+~~~~~~~~
+
+Load :module:`mod_authnz_fcgi` and define a FastCGI provider that
+points to your external authorizer application. The example below
+configures a combined authenticator/authorizer running on
+``localhost:8000``:
+
+.. code-block:: apache
+
+   LoadModule authnz_fcgi_module modules/mod_authnz_fcgi.so
+
+   AuthnzFcgiDefineProvider authnz myauthz fcgi://localhost:8000/
+
+   <Location "/protected">
+       AuthType Basic
+       AuthName "My App"
+       AuthBasicProvider myauthz
+       Require myauthz
+   </Location>
+
+For a provider that only handles authorization (not authentication),
+define it as an ``authz`` type:
+
+.. code-block:: apache
+
+   AuthnzFcgiDefineProvider authz myauthorizer fcgi://localhost:8001/
+
+   <Location "/restricted">
+       AuthType Basic
+       AuthName "Restricted"
+       AuthBasicProvider file
+       AuthUserFile "/etc/httpd/passwd"
+       Require myauthorizer
+   </Location>
+
+For a provider that only handles authentication:
+
+.. code-block:: apache
+
+   AuthnzFcgiDefineProvider authn myauthenticator fcgi://localhost:8002/
+
+   <Location "/members">
+       AuthType Basic
+       AuthName "Members"
+       AuthBasicProvider myauthenticator
+       Require valid-user
+   </Location>
+
+Discussion
+~~~~~~~~~~
+
+:module:`mod_authnz_fcgi` bridges httpd's authentication and
+authorization framework with external applications that speak the
+FastCGI protocol. This is powerful when you need authentication logic
+that's too complex for httpd's built-in providers — think custom
+database lookups, multi-factor checks, or integration with an identity
+management system.
+
+The module supports three modes:
+
+- **authn** — The FastCGI application handles only the authentication
+  phase. It receives the username and password and returns a 200 status
+  if the credentials are valid.
+
+- **authz** — The FastCGI application handles only the authorization
+  phase. Authentication happens through another provider (e.g., file
+  or LDAP), and the FastCGI app decides whether the authenticated user
+  is allowed to access the resource.
+
+- **authnz** — The application handles both phases in a single
+  invocation. This is the web-server-agnostic FastCGI authorizer
+  protocol, where the application receives the full request details and
+  returns 200 (allow) or a 401/403 (deny).
+
+A few practical considerations:
+
+- The FastCGI application must be running and managed independently —
+  :module:`mod_authnz_fcgi` does not start or manage the application
+  process. Use a process manager like ``systemd``, ``supervisord``, or
+  ``fcgistarter`` to keep it running.
+
+- Only TCP connections are supported. Unix domain sockets are not
+  currently available.
+
+- Debugging is straightforward — set the log level for the module
+  high to see the environment variables and responses:
+
+  .. code-block:: apache
+
+     LogLevel info authnz_fcgi:trace2
+
+- The module opens a new connection to the FastCGI authorizer for each
+  phase of processing. If authentication and authorization are separate
+  phases, that's two connections per request. Keep this in mind when
+  sizing your authorizer application.
+
+- Any environment variables set by the authorizer (via response
+  headers) are made available to subsequent request processing, so your
+  application can pass user attributes or roles downstream.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_auth_provider_architecture`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_authnz_fcgi.html
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_jwt_bearer_auth:
+
+JWT/Bearer token authentication
+--------------------------------
+
+:version:`trunk`
+
+.. warning::
+
+   This recipe covers modules that are available only in Apache httpd
+   trunk (development). They have not yet been included in a stable
+   release. Configuration directives and behavior may change before
+   the final release.
+
+.. index:: mod_autht_core
+
+.. index:: Modules,mod_autht_core
+
+.. index:: mod_autht_jwt
+
+.. index:: Modules,mod_autht_jwt
+
+.. index:: mod_auth_bearer
+
+.. index:: Modules,mod_auth_bearer
+
+.. index:: JWT authentication
+
+.. index:: Bearer token authentication
+
+.. index:: Authentication,JWT
+
+.. index:: Authentication,Bearer token
+
+.. index:: Token-based authentication
+
+
+Problem
+~~~~~~~
+
+You want to authenticate API requests using JWT (JSON Web Token) bearer
+tokens instead of traditional username/password credentials.
+
+Solution
+~~~~~~~~
+
+Load the three trunk-only modules — :module:`mod_auth_bearer`,
+:module:`mod_autht_core`, and :module:`mod_autht_jwt` — and configure a
+``<Location>`` block to require Bearer authentication with JWT
+verification:
+
+.. code-block:: apache
+
+   LoadModule auth_bearer_module modules/mod_auth_bearer.so
+   LoadModule autht_core_module modules/mod_autht_core.so
+   LoadModule autht_jwt_module modules/mod_autht_jwt.so
+
+   <Location "/api">
+       AuthType Bearer
+       AuthName "API"
+       AuthBearerProvider jwt
+       AuthtJwtVerify hs256 file "/etc/httpd/jwt-secret.key"
+       Require valid-user
+   </Location>
+
+For RS256 (asymmetric) verification using a public key:
+
+.. code-block:: apache
+
+   <Location "/api">
+       AuthType Bearer
+       AuthName "API"
+       AuthBearerProvider jwt
+       AuthtJwtVerify rs256 file "/etc/httpd/jwt-public.pem"
+       Require valid-user
+   </Location>
+
+Discussion
+~~~~~~~~~~
+
+This is a three-module stack, each handling a different layer:
+
+- :module:`mod_auth_bearer` extracts the ``Authorization: Bearer <token>``
+  header from the request. It plays the same role that
+  :module:`mod_auth_basic` plays for Basic authentication — it parses
+  the credential from the header and hands it to a provider.
+
+- :module:`mod_autht_core` is the token authentication provider
+  framework, analogous to :module:`mod_authn_core` for password-based
+  authentication. It dispatches the token to the configured provider.
+
+- :module:`mod_autht_jwt` is the actual JWT verifier. It validates the
+  token signature, checks expiration (``exp`` claim), and extracts the
+  subject (``sub`` claim) as the authenticated user name.
+
+A few important points:
+
+- **These modules exist only in httpd trunk.** They have not been released
+  in any stable 2.4.x version. Directive names and behavior may change
+  before release.
+
+- The ``AuthtJwtVerify`` directive takes three arguments: the algorithm
+  (``hs256``, ``rs256``, etc.), the key type (``file``), and the path
+  to the secret or public key file. For HMAC-based algorithms (HS256),
+  this is a shared secret. For RSA-based algorithms (RS256), this is the
+  public key in PEM format.
+
+- The ``sub`` claim in the JWT becomes the authenticated username, which
+  you can use with ``Require user``, ``Require claim``, or access
+  via the ``REMOTE_USER`` environment variable.
+
+- JWTs are **stateless** — the server doesn't track sessions. To revoke
+  access, you need to either use short-lived tokens with a refresh
+  mechanism, or implement a token blacklist at the application level.
+
+- Always use TLS when transmitting bearer tokens. A JWT sent over
+  plain HTTP can be intercepted and replayed.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_auth_provider_architecture`
+
+* https://httpd.apache.org/docs/trunk/mod/mod_autht_core.html
+
+* https://httpd.apache.org/docs/trunk/mod/mod_autht_jwt.html
+
+* https://httpd.apache.org/docs/trunk/mod/mod_auth_bearer.html
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+.. _Recipe_restrict_http_methods:
+
+Restricting HTTP methods
+-------------------------
+
+.. index:: mod_allowmethods
+
+.. index:: Modules,mod_allowmethods
+
+.. index:: AllowMethods
+
+.. index:: HTTP methods,restricting
+
+.. index:: PUT method,blocking
+
+.. index:: DELETE method,blocking
+
+
+Problem
+~~~~~~~
+
+You want to limit which HTTP methods (such as ``GET`` and ``POST``) are
+allowed on your server, blocking potentially dangerous methods like ``PUT``
+and ``DELETE`` that could allow clients to modify or remove content.
+
+Solution
+~~~~~~~~
+
+Enable :module:`mod_allowmethods` and list the methods you want to
+permit:
+
+.. code-block:: apache
+
+   <Location "/">
+       AllowMethods GET POST HEAD OPTIONS
+   </Location>
+
+Any request using a method not in this list receives a ``405 Method Not
+Allowed`` response.
+
+To override a parent restriction in a deeper context, use the ``reset``
+keyword:
+
+.. code-block:: apache
+
+   <Location "/dav">
+       AllowMethods reset
+   </Location>
+
+This re-enables all methods inside :file:`/dav`, even though the parent
+``<Location "/">`` restricts them.
+
+Discussion
+~~~~~~~~~~
+
+The ``AllowMethods`` directive is a whitelist — you list the methods you
+*do* want, and everything else is denied. This is the safest approach,
+because any new or exotic methods are blocked by default.
+
+A few things to watch for:
+
+- ``GET`` and ``HEAD`` are treated as equivalent by
+  :module:`mod_allowmethods`. If you allow ``GET``, ``HEAD`` is
+  automatically allowed too.
+
+- The ``TRACE`` method **cannot** be blocked by this module. To disable
+  ``TRACE``, use the ``TraceEnable Off`` directive in the server
+  config instead.
+
+- Method names are case-sensitive and should be uppercase (``GET``,
+  not ``get``), following the HTTP specification.
+
+- :module:`mod_allowmethods` is marked as "experimental," but it has been
+  stable in practice since its introduction in httpd 2.4. It was
+  designed to replace the older ``<Limit>`` and ``<LimitExcept>``
+  approach, which was confusing and error-prone.
+
+- ``AllowMethods`` only applies within ``<Directory>``, ``<Location>``,
+  ``<Files>``, and ``.htaccess`` contexts — you can't set it at
+  the server config or virtual host level without a container.
+
+If you're running a WebDAV server with :module:`mod_dav`, you'll
+typically need a broader set of methods:
+
+.. code-block:: apache
+
+   <Location "/webdav">
+       AllowMethods GET HEAD POST PUT DELETE PROPFIND PROPPATCH
+       AllowMethods MKCOL COPY MOVE LOCK UNLOCK OPTIONS
+   </Location>
+
+For a standard website that only serves pages and accepts form
+submissions, ``GET POST HEAD OPTIONS`` is usually all you need.
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_RequireAll`
+
+* https://httpd.apache.org/docs/2.4/mod/mod_allowmethods.html
+
+
 
 Summary
 

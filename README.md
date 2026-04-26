@@ -1,14 +1,14 @@
 # Apache httpd: A Practical Guide
 
-Solutions and examples for Apache HTTP Server administrators, by [Rich Bowen](https://github.com/rbowen) and Ken Coar.
+Solutions and examples for Apache HTTP Server administrators, by [Rich Bowen](https://github.com/rbowen).
 
 This book covers the full range of Apache httpd administration — installation, virtual hosts, URL mapping, mod_rewrite, authentication, SSL/TLS, proxying, performance tuning, logging, security, dynamic content, and much more — in a practical recipe-based format.
 
 ## Status
 
-This is a **work in progress** (v4.0.0). See the appendix for revision history and the TODO list.
+This is a **work in progress** (v0.2). See the CHANGES file for revision history.
 
-Found a bug, typo, or have a suggestion? [File an issue](https://github.com/rbowen/apache_cookbook/issues).
+Found a bug, typo, or have a suggestion? [File an issue](https://github.com/rbowen/httpd_practical_guide/issues).
 
 ## Building
 
@@ -77,7 +77,7 @@ uv run --with sphinx -- sphinx-build -b latex -d _build/doctrees . _build/latex
 cd _build/latex && make
 ```
 
-The PDF will be at `_build/latex/apache_cookbook.pdf`.
+The PDF will be at `_build/latex/httpd_practical_guide.pdf`.
 
 ### Using Make
 

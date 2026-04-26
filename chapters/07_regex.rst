@@ -1,3 +1,6 @@
+.. raw:: latex
+
+   \part{Power User}
 
 .. _Chapter_regex:
 
@@ -5,14 +8,22 @@
 Introduction to regular expressions
 ===================================
 
+.. epigraph::
+
+   | Is this the real life? Is this just fantasy?
+   | Caught in a landslide, no escape from reality.
+
+   -- Queen, *Bohemian Rhapsody*
+
+
 .. index:: Regular expressions
 
 .. index:: Regex
 
 
 In several of the coming chapters, as well as a few of the earlier
-ones, we've used a syntax called Regular Expressions to match patterns
-in URLs. We're going to take a short aside now to cover Regular
+ones, I've used a syntax called Regular Expressions to match patterns
+in URLs. I'm going to take a short aside now to cover Regular
 Expression syntax a little more thoroughly.
 
 Throughout this chapter, and the rest of the book, regular
@@ -31,17 +42,16 @@ should get Jeffrey Friedl's excellent book Mastering Regular
 Expressions, which is by far the best resource on the topic. You can
 also see his website at http://regex.info/
 
-However, for the purposes of this book, we're going to provide a brief
+However, for the purposes of this book, I'm going to provide a brief
 introduction to, and basic syntax for, the regular expressions that
 you are likely to encounter in working with the Apache HTTP Server.
 
 
 .. tip::
 
-   In earlier editions of this book, this section is presented as an
-   appendix. We've moved it into the main part of the book in order to
-   ensure that you'll have seen it before you dive into the ``mod_rewrite``
-   content, where it is used extensively.
+   This section appears before the ``mod_rewrite`` chapter to ensure
+   that you have a grounding in regular expressions before you dive
+   into the content where they are used extensively.
 
 
 Apache httpd uses the PCRE (Perl Compatible Regular Expression)
@@ -62,7 +72,7 @@ all occurances of numbers in a document, you might use the regular
 expression syntax for number (``\d``) to locate any numbers (digits) in
 that larger blob of text.
 
-In a moment, we'll present a basic regex vocabulary, but it won't be
+In a moment, I'll present a basic regex vocabulary, but it won't be
 comprehensive - just sufficient for our use in Apache httpd
 configuration directives. A full regular expression vocabulary can
 describe almost any pattern that might appear text.
@@ -70,7 +80,7 @@ describe almost any pattern that might appear text.
 In the context of the Apache HTTP Server, you're mostly going to be
 using regular expressions to match URLs. In other contexts, they can
 be used to match any characters, including non-latin characters. So,
-for the purposes of this book, we're actually dealing with a
+for the purposes of this book, you're actually dealing with a
 simplified sub-set of the complete power of regular expressions.
 
 Basic regex vocabulary
@@ -92,8 +102,8 @@ will find yourself faced with.
 .. _A_basic_regex_vocabulary:
 
 
-**A basic regex vocabulary**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A basic regex vocabulary
+----------------------------
 
 
 +-----------+--------------------------------------------------+
@@ -122,7 +132,7 @@ will find yourself faced with.
 .. _backreferences:
 
 Grouping, capturing, and backreferences
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 .. index:: Backreferences
 
@@ -148,7 +158,7 @@ As a result of this match, a new variable would be created, called
 backreference.
 
 Later on, you would then be able to use the variable ``$1`` in a
-replacement. We'll see extensive examples of this in later chapters,
+replacement. You'll see extensive examples of this in later chapters,
 but here's one to give you an idea:
 
 
@@ -168,7 +178,7 @@ The second set of parentheses in a regex are assiged to $2, the next
 to $3, and so on, so that you can capture multiple parts of the
 pattern.
 
-Later on, when we introduce the ``RewriteCond`` directive, you'll learn
+Later on, when I introduce the ``RewriteCond`` directive, you'll learn
 that backreferences in ``RewriteCond`` are called %1, %2, and so on
 instead.
 
@@ -176,7 +186,7 @@ instead.
 .. _charclass:
 
 Character Classes
-~~~~~~~~~~~~~~~~~
+-----------------
 
 .. index:: Character classes
 
@@ -197,8 +207,8 @@ for a list of these predefined character classes.
 .. _Predefined_regular_expression_character_classes:
 
 
-**Predefined regular expression character classes**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Predefined regular expression character classes
+---------------------------------------------------
 
 
 +-----------------+-------------------------------------------------+
@@ -299,7 +309,7 @@ What directives use regular expressions?
 .. index:: What directives use regular expressions
 
 
-Three main categories of Apache directives use regular expressions.
+Three main categories of httpd directives use regular expressions.
 
 Any directive with a name containing the word
 **Match**, such as ``FilesMatch``, or ``RedirectMatch``, can be assumed
@@ -360,7 +370,7 @@ encounter, will use regular expressions in some way.
 
 Useful command line tools that use regex include ``grep``, ``sed``, and
 many others. A detailed treatment of these tools is well outside of the
-scope of this book, but we'll give a quick example of each.
+scope of this book, but I'll give a quick example of each.
 
 The ``grep`` tool looks for strings in files. This is a place where
 regular expressions could be very useful. For example, to find the
@@ -372,7 +382,7 @@ comments in a file of C source code:
    grep -e '^[/ ]\*' mod_rewrite.c
 
 
-In this case, we look for lines that start with either "/\*\*" or " \*\*" in
+In this case, the command looks for lines that start with either "/\*\*" or " \*\*" in
 the source code for ``mod_rewrite``.
 
 See ``http://www.gnu.org/software/grep/manual/grep.html`` for more
@@ -425,7 +435,7 @@ Regex test tools
 You will often find yourself with the need to craft a particular
 regular expression, and the need to test your ideas before putting
 them to use. There are many tools available for this purpose online.
-Here we mention just a few
+Here I mention just a few
 of them, but you can easily find others using your favorite search
 engine.
 
@@ -435,7 +445,7 @@ that the syntax will vary slightly from one implementation to another.
 
 Regex101 - https://regex101.com/ - is an online tool that supports a
 few different regex flavors, including the PCRE flavor that you'll
-need to work with the Apache web server.
+need to work with httpd.
 
 
 .. _Regex1001:
@@ -520,7 +530,7 @@ For more information
 
 
 This chapter only scratches the surface when it comes to regular
-expressions. We will leave you with a few places that you should look
+expressions. I will leave you with a few places that you should look
 if you want to become a regex wizard.
 
 As already mentioned, the best reference on this topic is Jeffrey
@@ -534,9 +544,9 @@ installed, by typing ``perldoc perlre``, or online at
 ``http://perldoc.perl.org/perlre.html``
 
 In the following chapter, :ref:`Chapter_mod_rewrite`, *URL Rewriting with
-mod_rewrite*, we'll introduce
+mod_rewrite*, I'll introduce
 ``mod_rewrite``, which will be the primary place you'll encounter
-regular expressions in the Apache http server. Hopefully we've given
-you sufficient background to tackle this topic, and we'll frequently
+regular expressions in httpd. Hopefully I've given
+you sufficient background to tackle this topic, and I'll frequently
 point you back to this chapter during the course of that one.
 

@@ -5,23 +5,30 @@
 Virtual Hosts
 =============
 
+.. epigraph::
+
+   One of these days I'm going to cut you into little pieces.
+
+   -- Pink Floyd, *One of These Days*
+
+
 .. index:: Virtual hosts
 
 .. index:: Vhosts
 
 
 As a person can be known by many names, so can a Web server
-support multiple Web sites. In the Apache configuration file, each
+support multiple Web sites. In the httpd configuration file, each
 alternate identity, and probably the "main" one as well, is known as a
 virtual host (sometimes written as vhost) identified with a **&lt;VirtualHost&gt;** container directive.
-Depending on the name used to access the Web server, Apache responds
+Depending on the name used to access the Web server, Apache httpd responds
 appropriately, just as someone might answer differently depending on whether she is addressed as
 "Miss Jones" or "Hey, Debbie!" If you want to have a single system support
-multiple Web sites, you must configure Apache appropriately—and you'll need to know a
+multiple Web sites, you must configure httpd appropriately—and you'll need to know a
 little bit about your system (such as the IP addresses assigned to it) in
 order to do it correctly.
 
-There are two different types of virtual host supported by Apache.
+There are two different types of virtual host supported by httpd.
 The first type, called address-based or IP-based, is tied to the numeric
 network address used to reach the system, rather like telephone numbers.
 Bruce Wayne never answered the parlour telephone with "Batman here!" nor
@@ -39,9 +46,9 @@ an apartment shared by multiple roommates; you call the same number
 whether you want to speak to Dave, Joyce, Amaterasu, or Georg. Just as
 multiple people may share a single telephone number, multiple Web sites
 can share the same IP address. However, all IP addresses shared by
-multiple Apache virtual hosts need to be declared with a **NameVirtualHost** directive.
+multiple httpd virtual hosts share the same IP address.
 
-In the most simple of Apache configurations, there are no virtual
+In the most simple of httpd configurations, there are no virtual
 hosts. Instead, all of the directives in the configuration file apply
 universally to the operation of the server. The environment defined by the
 directives outside any **&lt;VirtualHost&gt;** containers is sometimes
@@ -69,31 +76,18 @@ server. You'll also learn how to fix common problems that occur with
 virtual hosts.
 
 
-.. note::
+.. admonition:: Modules covered in this chapter
 
-   To avoid problems and confusing error messages, we strongly advise
-   that you explicitly include the port number on directives specifying an
-   IP address if they support supplying both the address and the port. For
-   instance, use:
-
-   NameVirtualHost *:80
-
-   instead of:
-
-   NameVirtualHost *
-
-   Normal Web operations use port 80, and most SSL requests use port 443.
+   :module:`mod_rewrite`, :module:`mod_vhost_alias`
 
 
 .. _Recipe_name_vhosts:
 
 Setting Up Name-Based Virtual Hosts
-
+------------------------------------
 .. index:: Virtual hosts,Name-based
 
 .. index:: Name-based virtual hosts
-
-.. index:: NameVirtualHost
 
 .. index:: <VirtualHost>
 
@@ -114,37 +108,7 @@ Solution
 ~~~~~~~~
 
 
-[role="v22"]
-httpd 2.2 solution
-~~~~~~~~~~~~~~~~~~
-
-
-For Apache httpd 2.2 and earlier, use the **NameVirtualHost** **:80* 
-directive in conjunction with **&lt;VirtualHost&gt;** sections.
-
-
-.. code-block:: text
-
-   NameVirtualHost *:80
-   
-   <VirtualHost *:80>
-       ServerName TheSmiths.name
-       DocumentRoot "C:/Apache/Sites/TheSmiths"
-   </VirtualHost>
-           
-   <VirtualHost *:80>
-       ServerName JohnSmith.name
-       DocumentRoot "C:/Apache/Sites/JustJohnSmith"
-   </VirtualHost>
-
-
-[role="v24"]
-httpd 2.4 solution
-~~~~~~~~~~~~~~~~~~
-
-
-For 2.4 and later, just create the <VirtualHost> sections - the
-**NameVirtualHost** directive is deprecated in 2.4.
+Create ``<VirtualHost>`` sections for each site you want to host:
 
 
 .. code-block:: text
@@ -168,7 +132,7 @@ Discussion
 
 With IP addresses increasingly hard to come by, name-based
 virtual hosting is the most common way to run multiple Web sites on
-the same Apache server. The previous recipe works for most users in
+the same httpd. The previous recipe works for most users in
 most virtual hosting situations.
 
 The **:80* in the previous
@@ -178,18 +142,13 @@ address but will also run on the **loopback**, or
 **localhost** address. Thus if you are sitting at the
 physical server system, you can view the Web site.
 
-The argument to the **&lt;VirtualHost&gt;** container directive
-needs to match the argument in a **NameVirtualHost** directive. Putting the
-hostname here may cause Apache to ignore the virtual host on server
+The argument to the ``<VirtualHost>`` container directive
+should be an IP address (or wildcard) and port, not a hostname. Putting a
+hostname here may cause httpd to ignore the virtual host on server
 startup, and requests to this virtual host may unexpectedly go
 somewhere else. If your name server is down or otherwise unresponsive
-at the time that your Apache server is starting up, then Apache can't
-match the particular **&lt;VirtualHost&gt;** section to the
-**NameVirtualHost** directive to which it belongs.
-
-The **NameVirtualHost** directive is deprecated in 2.4 and later, in
-which case httpd will discern the interface to answer on based on the
-argument to the <VirtualHost> container directive.
+at the time that your httpd is starting up, the virtual host
+may not be matched correctly.
 
 Requests for which there is not a virtual host listed will go to
 the first virtual host listed in the configuration file. In the case
@@ -210,7 +169,7 @@ here:
 
 
 It is particularly instructive to run **httpd** **-S**
-and observe the virtual host configuration as Apache understands it,
+and observe the virtual host configuration as httpd understands it,
 to see if it matches the way that you understand it. **httpd** **-S**
 returns the virtual host configuration, showing which hosts are
 name-based, which are IP-based, and what the defaults are.
@@ -229,7 +188,7 @@ The output of **httpd** **-S** will look like:
          alias grenache
          port 80 namevhost www.apacheadmin.com (/etc/httpd/conf.d/vhosts/apacheadmin.com.conf:2)
          alias apacheadmin.com
-   ...
+------------------------------
 
 
 It is important to understand that virtual hosts render the
@@ -238,7 +197,7 @@ or "default" server mentioned earlier) no longer accessible—you must
 create a virtual host section explicitly for that host. List this host
 first, if you want it to be the default one.
 
-Adding name-based virtual hosts to your Apache configuration
+Adding name-based virtual hosts to your httpd configuration
 does not magically add entries to your DNS server. You must still add
 records to your DNS server so that the names resolve to the IP address
 of the server system. When users type your server name(s) into their
@@ -266,7 +225,7 @@ See Also
 .. _Recipe_Default_name_based_vhost:
 
 Default_name_based_vhost
-
+------------------------
 .. index:: Virtual hosts,Default
 
 .. index:: Virtual hosts,Name-based
@@ -312,9 +271,8 @@ Discussion
 
 Note that this recipe is used in the context of name-based
 virtual hosts, so it is assumed that you have other virtual hosts that
-are also using the **&lt;VirtualHost**
-**:80&gt;* notation, and that there
-is also an accompanying **NameVirtualHost** **:80* appearing above them. We have used the
+are also using the ``<VirtualHost *:80>`` notation, and that there
+are using the ``<VirtualHost *:80>`` notation. I have used the
 ``default`` name for clarity; you can
 call it whatever you want.
 
@@ -345,6 +303,7 @@ See Also
 .. _Recipe_Address-based-vhosts:
 
 Address-based-vhosts
+--------------------
 
 .. index:: Virtual hosts,Address-based
 
@@ -413,7 +372,7 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/2.2/vhosts/
+* https://httpd.apache.org/docs/2.4/vhosts/
 
 * :ref:`Recipe_Default-address-vhost`
 
@@ -421,7 +380,7 @@ See Also
 .. _Recipe_Default-address-vhost:
 
 Default address virtual host
-
+----------------------------
 .. index:: Virtual hosts,Address-based
 
 .. index:: Virtual hosts,Default
@@ -507,6 +466,7 @@ See Also
 .. _Recipe_mixing_address_and_name_based_vhosts:
 
 Mixing Address-Based and Name-Based Virtual Hosts
+-------------------------------------------------
 
 .. index:: Mixing address-based and name-based virtual hosts
 
@@ -529,22 +489,12 @@ Solution
 ~~~~~~~~
 
 
-For httpd 2.2 and earlier, provide a **NameVirtualHost**
-directive for each IP address, and proceed as you did with a single IP
-address.
-
-For 2.4 and later, the **NameVirtualHost** line is ommitted, and httpd
-infers it from the argument to <VirtualHost> and does the right thing.
+Create ``<VirtualHost>`` sections for each IP address.
 
 
 .. code-block:: text
 
    ServerName 127.0.0.1
-   
-   ## Omit these lines on 2.4 and later
-   NameVirtualHost 10.0.0.1:80
-   NameVirtualHost 10.0.0.2:80
-   ## 
    
    <VirtualHost 10.0.0.1:80>
        ServerName TheSmiths.name
@@ -577,10 +527,7 @@ Using the address of the server, rather than the wildcard
 ``*`` argument, makes the virtual hosts
 listen only to that IP address. However, you should notice that the
 argument to **&lt;VirtualHost&gt;**
-still must match the argument to the **NameVirtualHost** with which the 
-virtual hosts are connected.
-
-The argument to <VirtualHost> should be an IP:Port combination, rather
+The argument to ``<VirtualHost>`` should be an IP:Port combination, rather
 than a hostname.
 
 The example here shows Microsoft Windows file path designations.
@@ -599,7 +546,7 @@ See Also
 .. _Recipe_mod_vhost_alias:
 
 Mass Virtual Hosting with mod_vhost_alias
-
+-----------------------------------------
 .. index:: Mass virtual hosting
 
 .. index:: mod_vhost_alias
@@ -648,7 +595,7 @@ Discussion
 
 
 This recipe uses directives from ``mod_vhost_alias``, which you may not have
-installed when you built Apache, as it is not one of the modules that
+installed when you built httpd, as it is not one of the modules that
 is enabled by default.
 
 These directives map requests to a directory built up from
@@ -666,8 +613,8 @@ directory **/www/vhosts/com/e/example/htdocs**, or from
 
 .. _mod_vhost_alias_variables_id122257:
 
-.mod_vhost_alias variables
-
+mod_vhost_alias variables
+-------------------------
 +----------+--------------------------------------------+
 | Variable | Meaning                                    |
 +----------+--------------------------------------------+
@@ -686,8 +633,8 @@ meanings of which are shown in :ref:`Meanings_of_variable_values_id122365`.
 .. _Meanings_of_variable_values_id122365:
 
 
-**Meanings of variable values**
-
+Meanings of variable values
+---------------------------
 
 +-------+--------------------------------------------+
 | Value | Meaning                                    |
@@ -720,8 +667,8 @@ variables are as shown in :ref:`Example_values_for_the_hostname_wwwexamplecom_id
 
 .. _Example_values_for_the_hostname_wwwexamplecom_id122542:
 
-.Example values for the hostname www.example.com
-
+Example values for the hostname www.example.com
+-----------------------------------------------
 +--------+-----------------+
 | Value  | Meaning         |
 +--------+-----------------+
@@ -771,6 +718,7 @@ See Also
 .. _Recipe_mass_vhost_rewrite:
 
 Mass Virtual Hosting Using Rewrite Rules
+----------------------------------------
 
 .. index:: Virtual hosts,Mass virtual hosting
 
@@ -855,7 +803,7 @@ See Also
 .. _Recipe_log_per_vhost:
 
 Logging for Each Virtual Host
-
+-----------------------------
 .. index:: Logging,Per virtual host
 
 .. index:: Virtual hosts,Logging
@@ -921,7 +869,7 @@ main server configuration.
    **much** larger. Consult your platform's
    documentation to find out your actual limit.
 
-   For this reason, we recommend that you have all your virtual
+   For this reason, I recommend that you have all your virtual
    hosts log to the same files, and split them apart later for analysis
    or examination.
 
@@ -950,6 +898,7 @@ See Also
 .. _Recipe_split_logfile:
 
 Splitting Up a Logfile
+----------------------
 
 .. index:: Logging,Splitting a log file
 
@@ -985,6 +934,7 @@ This scenario is covered in :ref:`Chapter_Logging`, **Logging**, in the recipe
 .. _Recipe_port_vhost:
 
 Port-Based Virtual Hosts
+------------------------
 
 .. index:: Virtual hosts,Port-based
 
@@ -1069,6 +1019,7 @@ See Also
 .. _Recipe_vhost_several_addresses:
 
 Displaying the Same Content on Several Addresses
+------------------------------------------------
 
 .. index:: Virtual hosts,Multiple addresses
 
@@ -1094,10 +1045,6 @@ Specify both addresses in the **&lt;VirtualHost&gt;** directive:
 
 .. code-block:: text
 
-   # These two lines optional in 2.4 and later
-   NameVirtualHost 192.168.1.1:80
-   NameVirtualHost 172.20.30.40:80
-   
    <VirtualHost 192.168.1.1:80 172.20.30.40:80>
        DocumentRoot /www/vhosts/server
        ServerName server.example.com
@@ -1133,7 +1080,7 @@ See Also
 .. _Recipe_Debian_Vhosts:
 
 Using Debian's virtual host tools.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------
 
 .. index:: Virtual hosts,Ubuntu
 

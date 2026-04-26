@@ -17,8 +17,8 @@ def module_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 roles.register_local_role('module', module_role)
 
 
-# Apache Cookbook
-# by Rich Bowen and Ken Coar
+# Apache httpd: A Practical Guide
+# by Rich Bowen
 
 # -- Project information -----------------------------------------------------
 
@@ -27,8 +27,8 @@ copyright = '2004–2026, Rich Bowen. Licensed under the Apache License, Version
 author = 'Rich Bowen'
 
 # The full version, including alpha/beta/rc tags
-release = '4.0.0'
-version = '4.0'
+release = '0.2'
+version = '0.2'
 
 # -- General configuration ---------------------------------------------------
 
@@ -47,6 +47,11 @@ exclude_patterns = [
     'Thumbs.db',
     '.DS_Store',
     'README.md',
+    'chapters/23_puppet.rst',
+    'chapters/appendix.rst',
+    'chapters/13_troubleshooting.rst',
+    'chapters/appendix_b.rst',
+    'CHANGES.rst',
 ]
 
 # The suffix of source filenames
@@ -59,7 +64,7 @@ html_theme = 'alabaster'
 html_theme_options = {
     'description': 'Solutions and examples for Apache HTTP Server administrators',
     'github_user': 'rbowen',
-    'github_repo': 'apache-cookbook',
+    'github_repo': 'httpd-practical-guide',
     'fixed_sidebar': True,
     'sidebar_width': '260px',
 }
@@ -71,15 +76,25 @@ html_static_path = ['_static']
 latex_documents = [
     (master_doc, 'apache_httpd_practical_guide.tex',
      'Apache httpd: A Practical Guide',
-     'Rich Bowen and Ken Coar', 'manual'),
+     'Rich Bowen', 'manual'),
 ]
 
 latex_elements = {
-    'papersize': 'letterpaper',
+    # Empty string: we set custom geometry below (avoids option clash)
+    'papersize': '',
     'pointsize': '11pt',
     'preamble': r'''
 \usepackage{makeidx}
 \makeindex
+% KDP 6x9 trade paperback geometry
+\geometry{paperwidth=6in, paperheight=9in, inner=0.75in, outer=0.5in, top=0.75in, bottom=0.75in}
+% Fix fancyhdr headheight warning
+\setlength{\headheight}{14pt}
+% Override Sphinx's default tocdepth=0 with our own value.
+% Must use AtBeginDocument because Sphinx sets tocdepth=0 after the preamble.
+% Depth levels: -1=parts, 0=chapters, 1=sections (recipes), 2=subsections
+% We want Parts + Chapters + recipe titles in the TOC.
+\AtBeginDocument{\setcounter{tocdepth}{1}}
 ''',
 }
 
@@ -91,6 +106,7 @@ epub_publisher = author
 epub_copyright = copyright
 epub_show_urls = 'footnote'
 epub_use_index = True
+epub_basename = 'apache_httpd_practical_guide'
 
 # -- Options for todo extension ----------------------------------------------
 

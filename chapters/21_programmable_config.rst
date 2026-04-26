@@ -5,785 +5,107 @@
 Programmable Configuration
 ==========================
 
+.. epigraph::
+
+   We are the robots.
+
+   -- Kraftwerk, *The Robots*
+
+
 .. index:: Per-request configuration
-
-.. index:: <If>
-
-.. index:: <Else>
-
-.. index:: <ElseIf>
 
 .. index:: mod_macro
 
 .. index:: Modules,mod_macro
 
 
-A major new category of functionality in Apache httpd 2.4 is what is
-collectively called "per-request configuration." This consists of the
-``<If>``, ``<ElseIf>``, and ``<Else>`` directives, as well as a general
-purpose expression parser engine that can be used to evaluate
-arbitrary expressions for the purpose of configuring the
-server.
+Apache httpd 2.4 introduced a powerful expression parser engine, along
+with the ``<If>``, ``<ElseIf>``, and ``<Else>`` directives, enabling
+per-request configuration decisions based on arbitrary expressions.
+These features are covered in detail in our companion book, *mod_rewrite
+And Friends*, in the chapter titled *Configurable Configuration*.
 
-Additionally, in this chapter, we'll cover other methods for
-scripting, or programming, your configuration file. This includes
-directives like ``IfDefine``, and the ``mod_macro`` module.
+In this chapter, I focus on other methods for scripting, or
+programming, your configuration file. This includes the ``Define`` and
+``IfDefine`` directives, the ``mod_macro`` module, and mass virtual
+hosting with ``mod_vhost_alias``.
 
-[role="v24"]
+.. Requires httpd 2.4
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_macro`, :module:`mod_rewrite`, :module:`mod_vhost_alias`
+
+
+.. _recipe-expr-stubs:
+
+Recipes moved to *mod_rewrite And Friends*
+------------------------------------------
+
+The following recipes have been moved to our companion book,
+*mod_rewrite And Friends*, in the chapter *Configurable Configuration*.
+The labels below are preserved so that cross-references from other
+chapters continue to resolve.
 
 .. _Recipe_expr:
 
 General purpose expression parser
----------------------------------
-
-.. index:: Expression parser
-
-.. index:: Per-request configuration,Expression parser
-
-
-.. _Problem_expr:
-
-Problem
-~~~~~~~
-
-
-You want to evaluate an arbitrary expression at request time.
-
-
-.. _Solution_expr:
-
-Solution
-~~~~~~~~
-
-
-The general purpose expression parser allows you to evaluate
-expressions at request time, either to set the value of a directive,
-or make configuration decisions based on truth value of an expression.
-
-The full syntax for this expression language is described at
-http://httpd.apache.org/docs/expr.html
-
-
-.. _Discussion_expr:
-
-Discussion
-~~~~~~~~~~
-
-
-In httpd 2.4, new functionality has been added to the configuration
-language to allow you to put arbitrary logical expressions in some
-configuration directives, which are evaluated at request-time, rather
-than at configuration time.
-
-Of course, ``mod_rewrite`` already provided this functionality to a
-certain extent. But the new expression language extends that
-flexibility to a variety of other directives that, before, were rather
-static.
-
-In addition to using these expressions in rewrite directives (See
-:ref:`Recipe_rewrite-expr` for an example), you can now use expressions
-in authorization directives:
-
-
-.. code-block:: text
-
-   Require expr "%{TIME_HOUR} -ge 9 && %{TIME_HOUR} -le 17"
-
-
-(See :ref:`Recipe_Authorization_by_expression` for more detail on this syntax.)
-
-Expressions can be used in ``Header`` directives:
-
-
-.. code-block:: text
-
-   Header set Set-Cookie testcookie "expr=-z %{req:Cookie}"
-
-
-(See
-http://httpd.apache.org/docs/mod/mod_headers.html#header
-for more details.)
-
-And they can be used in a variety of other directives, which are
-listed in the sidebar of the expression engine documentation (That's 
-http://httpd.apache.org/docs/expr.html).
-
-And, last but definitely not least, expressions can be used in the
-``<If>``, ``<Elseif>``, and ``<Else>`` directives which will be discussed in
-the recipes below.
-
-You will find examples of this new syntax throughout this book. And
-there will be several more examples in this chapter.
-
-
-.. warning::
-
-   You must be using httpd 2.4 to take advantage of this new syntax. It
-   is not available in 2.2, and will not be backported.
-
-
-.. _See_Also_expr:
-
-See Also
-~~~~~~~~
-
-
-* http://httpd.apache.org/docs/expr.html
-
-* http://httpd.apache.org/docs/mod/mod_headers.html#header
-
-* :ref:`Chapter_AAA`, **Authentication, Authorization, and Access Control**
-
-[role="v24"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
+*Configurable Configuration*.
 
 .. _Recipe_If:
 
 Using the <If> Directive
-------------------------
-
-.. index:: <If>
-
-.. index:: Conditional configuration
-
-.. index:: Optional configuration
-
-
-.. _Problem_If:
-
-Problem
-~~~~~~~
-
-
-You want to make a portion of your configuration conditional upon some
-value that you won't know until request time.
-
-
-.. _Solution_If:
-
-Solution
-~~~~~~~~
-
-
-Use the ``<If>`` directive to enclose the conditional configuration
-block:
-
-
-.. code-block:: text
-
-   <If "-R '10.1.0.0/16'">
-       RedirectMatch . http://intranet/
-   </If>
-
-
-.. _Discussion_If:
-
-Discussion
-~~~~~~~~~~
-
-
-The ``<If>`` directive was added in the 2.4 release of httpd to answer
-the request that has been made since the earliest days of the Apache
-web server. People have always wanted a conditional syntax in their
-configuration files, so that request-time variables could determine
-what configuration is applied.
-
-``mod_rewrite`` was a partial solution to that need, and was introduced
-in httpd 1.3. However, there were always cases that ``mod_rewrite``
-couldn't handle. And besides, the syntax of ``mod_rewrite`` can be
-cumbersome and intimidating.
-
-In the example given, a ``RedirectMatch`` directive is made conditional
-upon the address of the requesting client. If they're on the ``10.1``
-network (**i.e.**, a client internal to the local network) we want to
-redirect them to the intranet site.
-
-The ``-R`` operator does IP address range matching, and, in this
-case, asks whether the requesting address is in that particular
-network.
-
-
-.. warning::
-
-   With great power comes great responsibility. Request-time
-   configuration necessarily introduces a performance hit, as these
-   expressions are evaluated. As with any run-time functionality,
-   consider whether there's a better way to do it, and, if there isn't
-   consider whether you can order things in your configuration file such
-   that the more common conditions are matched first. In this way, you'll
-   ensure that less common scenarios aren't even tested if the more
-   common one matches. See :ref:`Chapter_Performance_and_testing`,
-   **Performance and Testing**, for
-   further discussion of this technique.
-
-
-.. _See_Also_If:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_else`
-
-* :ref:`Recipe_expr`
-
-[role="v24"]
+~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
+*Configurable Configuration*.
 
 .. _Recipe_else:
 
 Using the <Else> directive
---------------------------
-
-.. index:: <Else>
-
-.. index:: Conditional configuration
-
-.. index:: Optional configuration
-
-
-.. _Problem_else:
-
-Problem
-~~~~~~~
-
-
-Now that you have an ``<If>`` directive, you want to be able to have an
-``<Else>`` clause as well.
-
-
-.. _Solution_else:
-
-Solution
-~~~~~~~~
-
-
-Use the ``<ElseIf>`` and ``<Else>`` directives for complete control flow:
-
-
-.. code-block:: text
-
-   <If "-R '10.1.0.0/16'">
-       RedirectMatch . http://admin.intranet/
-   </If>
-   <ElseIf "-R '10.0.0.0/8">
-       RedirectMatch . http://intranet/
-   </ElseIf>
-   <Else>
-       RedirectMatch . http://website.com/
-   </Else>
-
-
-.. _Discussion_else:
-
-Discussion
-~~~~~~~~~~
-
-
-In the example shown here, we imagine that while the entire ``10.``
-network is available inside our corporate network, the admins are on
-the ``10.1`` portion of that network. For this elite group, we wish to
-redirect requests over to the website ``http://admin.intranet/``. For
-everyone else inside the ``10.`` network, we want to redirect them to
-``http://intranet/``. And for those outside the network, we redirect
-them to the main external website at ``http://website.com/``.
-
-By being able to express these conditions in traditional
-if/elseif/else syntax, we make the configuration file much more
-readable, and, thus, more maintainable, than if we were to express
-these as ``RewriteCond`` and ``RewriteRule`` directives.
-
-
-.. _See_Also_else:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_If`
-
-* :ref:`Recipe_expr`
-
-[role="v24"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
+*Configurable Configuration*.
 
 .. _Recipe_image-theft-if:
 
 Preventing image theft using <If>
----------------------------------
-
-.. index:: <If>
-
-.. index:: Image theft
-
-.. index:: Prevent hotlinking
-
-
-.. _Problem_image-theft-if:
-
-Problem
-~~~~~~~
-
-
-You want to prevent other web sites from using your images in their
-pages, using the ``<If>`` syntax, rather than ``mod_rewrite``.
-
-
-.. _Solution_image-theft-if:
-
-Solution
-~~~~~~~~
-
-
-While the ``mod_rewrite`` solution to this problem - explored in
-:ref:`Recipe_image-theft` - is more common, using ``<If>`` for this renders
-it somewhat more readable:
-
-
-.. code-block:: text
-
-   <If   "%{HTTP_REFERER} != '' \
-       && %{HTTP_REFERER} !~ /example\.com/ \
-       && %{REQUEST_URI}  =~ /\.(jpe?g|gif|png)$/" \
-   >
-         Require all denied
-   </If>
-
-
-.. tip::
-
-   Use ``\`` to break up extra-long configuration lines to make 
-   them more readable.
-
-
-.. _Discussion_image-theft-if:
-
-Discussion
-~~~~~~~~~~
-
-
-It's not that the recipe is any shorter than the one using
-``mod_rewrite`` -- with the additional line breaks in
-there, it's actually slightly longer. However, many people find it to
-be much more readable, which is a huge advantage when you're
-maintaining and updating a configuration file.
-
-The same logic is being employed. Three conditions are being checked -
-two checks on the value of the Referer header, and one on the
-requested URI itself - and, if they all pass, the request is denied.
-
-The three conditions are combined with a logical AND (the ``&&``
-operator means AND), and are evaluated in sequence. That is, if one of
-the conditions is false, the expression engine doesn't bother
-evaluating the rest of them, and skips over the conditional.
-
-It's also possible to swap out the ``Require`` statement contained in
-the ``<If>`` block with something else, such as a ``Redirect``, if we
-wanted to take a different action. Or we can put several actions in
-here - for example, add a ``LogMessage`` directive to capture that the
-event occurred. (See :ref:`Recipe_log_debug` for more details.)
-
-
-.. _See_Also_image-theft-if:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_image-theft`
-
-* :ref:`Recipe_log_debug`
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
+*Configurable Configuration*.
 
 .. _Recipe_expr-errordocument:
 
 Using an expression in an ErrorDocument
----------------------------------------
-
-.. index:: ErrorDocument,Dynamic
-
-
-.. _Problem_expr-errordocument:
-
-Problem
-~~~~~~~
-
-
-You want to dynamically set the value of ``ErrorDocument`` based on an
-aspect of the request itself.
-
-
-.. _Solution_expr-errordocument:
-
-Solution
-~~~~~~~~
-
-
-Use an expression as part of the ``ErrorDocument`` definition, and it
-will be evaluated at request time:
-
-
-.. code-block:: text
-
-   ErrorDocument 403 \
-     /errors/forbidden.php?referer=%{escape:%{HTTP_REFERER}}
-
-
-.. _Discussion_expr-errordocument:
-
-Discussion
-~~~~~~~~~~
-
-
-In addition to merely checking a true or false value, the expression
-engine can also be used to set the value of a configuration directive,
-evaluated at request time.
-
-In the example here, an error document is configured, per request,
-based on the value of the ``HTTP_REFERER`` - that is, the page that
-linked to the resource being requested. Additionally, the ``escape``
-function is invoked, to ensure that the referer value is correctly hex
-encoded.
-
-
-.. tip::
-
-   Unfortunately, not every directive allows for this kind of
-   request-time customization. However, over time, expect for more of
-   them to do so.
-
-
-.. _See_Also_expr-errordocument:
-
-See Also
-~~~~~~~~
-
-
-* http://httpd.apache.org/docs/mod/core.html#errordocument
-
-* :ref:`Recipe_ErrorDocument`
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And
+Friends*, *Configurable Configuration*.
 
 .. _Recipe_locationmatch-backref:
 
 Using backreferences from a <LocationMatch>
--------------------------------------------
-
-.. index:: Backreferences,LocationMatch
-
-.. index:: LocationMatch,Backreferences
-
-.. index:: Expressions,Alias
-
-.. index:: Expressions,ScriptAlias
-
-.. index:: Expressions,Redirect
-
-.. index:: Redirect,Expressions
-
-.. index:: Alias,Expressions
-
-.. index:: ScriptAlias,Expressions
-
-.. index:: mod_alias
-
-.. index:: Modules,mod_alias
-
-
-.. _Problem_locationmatch-backref:
-
-Problem
-~~~~~~~
-
-
-You've used a ``<LocationMatch>`` directive, and you'd like to use
-backreferences in directives contained in that section.
-
-
-.. _Solution_locationmatch-backref:
-
-Solution
-~~~~~~~~
-
-
-Use a named capture in your ``<LocationMatch>`` regex, and then use the
-``MATCH`` keyword to reference it in a later directive:
-
-
-.. code-block:: text
-
-   <LocationMatch "^/department/(?<dept>[^/]+)" >
-       require ldap-group cn=%{env:MATCH_DEPT},ou=department 
-   </LocationMatch>
-
-
-.. _Discussion_locationmatch-backref:
-
-Discussion
-~~~~~~~~~~
-
-
-In httpd 2.4.8 and onwards, regular expressions used in
-``<LocationMatch>`` directives can use the ``(?<name>...)`` syntax to
-create a named backreference, which is stashed in the environment
-variable ``MATCH_NAME``. That is, ``MATCH_``, plus the upper-case version
-of whatever you named the backreference.
-
-This env var can then be referenced by directives contained in that
-``<LocationMatch>`` block, as shown in the example above. In the example
-show, the capture was named ``dept``, and so the environment variable,
-used in the ``require`` statement, is named ``MATCH_DEPT``.
-
-In httpd 2.4.19 and later, if an ``Alias``, ``ScriptAlias``, or ``Redirect``
-directive is contained in a ``<LocationMatch>``, it can use expression
-syntax to evaluate the destination path or URL, too.
-
-
-.. code-block:: text
-
-   <LocationMatch "/error/(?<NUMBER>[0-9]+)">
-       Redirect permanent \
-         http://example.com/errors/%{env:MATCH_NUMBER}.html
-   </LocationMatch>
-
-
-Over time, we expect more and more directives to have access to this
-functionality, so check the documentation frequently to see whether
-it's avaliable for something you need to do.
-
-
-.. _See_Also_locationmatch-backref:
-
-See Also
-~~~~~~~~
-
-
-[role="v24"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And
+Friends*, *Configurable Configuration*.
 
 .. _Recipe_setenvifexpr:
 
-Setting an environment variable based on an expression
-------------------------------------------------------
-
-.. index:: SetEnvIfExpr
-
-.. index:: Expressions,SetEnvIfExpr
-
-.. index:: Environment variables,SetEnvIfExpr
-
-.. index:: mod_setenvif
-
-.. index:: Modules,mod_setenvif
-
-
-.. _Problem_setenvifexpr:
-
-Problem
-~~~~~~~
-
-
-You want to set an environment variable based on the value of an
-evaluated expression.
-
-
-.. _Solution_setenvifexpr:
-
-Solution
-~~~~~~~~
-
-
-Use the (new in 2.4) ``SetEnfIfExpr`` directive:
-
-
-.. code-block:: text
-
-   SetEnvIfExpr "-R '10.0.0.0/8' ||    \
-                 -R '172.16.0.0/12' || \
-                 -R '192.168.0.0/16'"     PrivateNetwork
-
-
-.. _Discussion_setenvifexpr:
-
-Discussion
-~~~~~~~~~~
-
-
-The ``SetEnvIfExpr`` directive was added in the 2.4 release to make it
-easier to set environment variables based on expressions. In the
-example shown, we're able to set a single environment variable,
-``PrivateNetwork``, based on whether the client IP address falls into
-one of the private networks defined by RFC1918.
-
-
-.. _See_Also_setenvifexpr:
-
-See Also
-~~~~~~~~
-
-
-* https://tools.ietf.org/html/rfc1918
-
-* http://httpd.apache.org/docs/mod/mod_setenvif.html#setenvifexpr
-
-* :ref:`Recipe_If`
-
-[role="v24"]
+**Setting an environment variable based on an expression** — See
+*mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_setting-headers-with-expr:
 
-Setting HTTP headers based on expressions
------------------------------------------
-
-.. index:: Headers,Expressions
-
-.. index:: Expressions,Setting headers
-
-.. index:: mod_headers
-
-.. index:: Modules,mod_headers
-
-.. index:: Header
-
-.. index:: RequestHeader
-
-
-.. _Problem_setting-headers-with-expr:
-
-Problem
-~~~~~~~
-
-
-You want to set an HTTP header based on the value of an evaluated
-expression.
-
-
-.. _Solution_setting-headers-with-expr:
-
-Solution
-~~~~~~~~
-
-
-Use the ``expr=`` syntax of the ``Header`` or ``RequestHeader`` directives
-to set a response or request header (respectively) using an expression:
-
-
-.. code-block:: text
-
-   Header append Cache-Control s-maxage=600 \
-                 "expr=%{REQUEST_STATUS} == 200"
-
-
-.. _Discussion_setting-headers-with-expr:
-
-Discussion
-~~~~~~~~~~
-
-
-Adding the optional ``expr=`` argument to the end of a ``Header`` or
-``RequestHeader`` directive causes that expression to be evaluated, and
-the header set conditionally based on the value of the expression.
-
-
-.. warning::
-
-   Take careful note of how the quotes are placed around the ``expr=``
-   argument in this example. Incorrectly quoting the argument will lead
-   to httpd failing to start up, with a 'Header has too many arguments'
-   error message.
-
-
-.. _See_Also_setting-headers-with-expr:
-
-See Also
-~~~~~~~~
-
-
-* http://httpd.apache.org/docs/mod/mod_headers.html#header
-
-* http://httpd.apache.org/docs/mod/mod_headers.html#requestheader
-
-
-[role="v24"]
+**Setting HTTP headers based on expressions** — See *mod_rewrite And
+Friends*, *Configurable Configuration*.
 
 .. _Recipe_LogMessage-with-expr:
 
-Setting custom log messages with the expression engine
-------------------------------------------------------
-
-.. index:: LogMessage
-
-.. index:: Expressions,Custom log message
-
-
-.. _Problem_LogMessage-with-expr:
-
-Problem
-~~~~~~~
-
-
-You want to set a custom log message, using a value derived from an
-expression.
-
-
-.. _Solution_LogMessage-with-expr:
-
-Solution
-~~~~~~~~
-
-
-Using expressions to set custom log messages is discussed in
-:ref:`Recipe_log_debug`
-
-
-.. _See_Also_LogMessage-with-expr:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_log_debug`
-
-* http://httpd.apache.org/docs/mod/mod_log_debug.html
-
+**Setting custom log messages with the expression engine** — See
+*mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_expr-auth:
 
-Authorization using expressions
--------------------------------
-
-.. index:: Expressions,Authorization
-
-.. index:: Authorization,Expressions
-
-.. index:: AAA,Expressions
+**Authorization using expressions** — See *mod_rewrite And Friends*,
+*Configurable Configuration*.
 
 
-.. _Problem_expr-auth:
-
-Problem
-~~~~~~~
-
-
-You wish to authorize access to a resource using the value of an
-expression.
-
-
-.. _Solution_expr-auth:
-
-Solution
-~~~~~~~~
-
-
-This topic is discussed at length in :ref:`Chapter_AAA`, *Authentication,
-Authorization, and Access Control*.
-
-
-.. _See_Also_expr-auth:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Chapter_AAA`, **Authentication, Authorization, and Access Control**
-
-[role="v24"]
+.. Requires httpd 2.4
 
 .. _Recipe_Define:
 
@@ -851,7 +173,7 @@ time, ``Define`` cannot be used in ``.htaccess`` files.
    While you can set a ``Define`` inside a ``<VirtualHost>`` block, it is not
    scoped to that block. Which means that the value defined is still in
    effect after the closing ``</VirtualHost>`` tag. So, if you're going to
-   use ``Define`` in a ``<VirtualHost>``, we recommend that you ``UnDefine`` it
+   use ``Define`` in a ``<VirtualHost>``, I recommend that you ``UnDefine`` it
    at the bottom of the section. (See :ref:`Recipe_Undefine` for more detail.)
 
 
@@ -975,12 +297,10 @@ parameters.
 
 .. note::
 
-   In earlier versions of Apache httpd, this technique was used to start
-   the server with, or without, SSL enabled. Thus, you might find older
-   howto articles that tell you to start ``httpd`` with the ``-DSSL`` flag,
-   in order to enable SSL. This is no longer the case by default, but you
-   could use the above technique to set things up that way, if you
-   wanted.
+   You might find older howto articles that tell you to start ``httpd``
+   with the ``-DSSL`` flag in order to enable SSL. This is no longer the
+   case by default, but you could use the above technique to set things
+   up that way, if you wanted.
 
 
 You can also use ``IfDefine`` to test the value of variables that have
@@ -1214,7 +534,7 @@ offers one such way of doing this, providing consistency across your
 configuration, and a very fast way of adding new instances, or
 removing ones that are no longer needed.
 
-In the above recipe example, once we have decided on a standardized
+In the above recipe example, once you have decided on a standardized
 layout of our virtual hosts document directories and log files, it now
 takes only a single line to add a new virtual host. And it provides a
 single place to update things that you need to change globally, such
@@ -1319,7 +639,7 @@ advantages of a macro, but with the ability to make per-use
 modifications.
 
 Of course, the resulting configuration is no longer a simple one-line
-invocation of the macro, but we have avoided repeating any of the
+invocation of the macro, but this approach avoids repeating any of the
 parts that are identical between sites.
 
 This same technique can be used for other portions of your
@@ -1373,19 +693,222 @@ Solution
 Use ``mod_vhost_alias``. This module is discussed in
 :ref:`Recipe_mod_vhost_alias`.
 
+.. note::
+
+   The primary recipe for ``mod_vhost_alias`` lives in
+   :ref:`Chapter_Virtual_hosts`, **Virtual Hosts**. See
+   :ref:`Recipe_mod_vhost_alias` for the full discussion, including
+   configuration examples and directory layout conventions.
+
+
+
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+   Check technical accuracy, voice/tone, and fit with surrounding content.
+
+.. _Recipe_mod_version:
+
+Version-conditional configuration with mod_version
+---------------------------------------------------
+
+.. index:: mod_version
+
+.. index:: Modules,mod_version
+
+.. index:: IfVersion
+
+.. index:: Version-conditional configuration
+
+
+.. _Problem_mod_version:
+
+Problem
+~~~~~~~
+
+
+You need a single configuration file to work correctly across multiple
+versions of Apache httpd -- for example, during a phased migration
+from 2.2 to 2.4, or across a fleet where not every server has been
+upgraded at the same time.
+
+
+.. _Solution_mod_version:
+
+Solution
+~~~~~~~~
+
+
+Use ``mod_version`` and the ``<IfVersion>`` directive to wrap
+configuration blocks that should only apply to specific httpd
+versions:
+
+
+.. code-block:: text
+
+   <IfVersion >= 2.4>
+       Require all granted
+   </IfVersion>
+   <IfVersion < 2.4>
+       Order allow,deny
+       Allow from all
+   </IfVersion>
+
+
+.. _Discussion_mod_version:
+
+Discussion
+~~~~~~~~~~
+
+
+``mod_version`` provides the ``<IfVersion>`` container directive,
+which evaluates at configuration-load time -- not at request time --
+and includes or excludes the enclosed directives based on the running
+httpd version. This makes it invaluable when you maintain a shared
+configuration that must be portable across different httpd releases.
+
+The ``<IfVersion>`` directive accepts a version number in the form
+``major[.minor[.patch]]``. If you omit the minor or patch components
+they are assumed to be zero. So ``<IfVersion >= 2.4>`` is equivalent
+to ``<IfVersion >= 2.4.0>``.
+
+The following comparison operators are available:
+
+.. code-block:: text
+
+   =  or ==     httpd version is equal
+   >            httpd version is greater than
+   >=           httpd version is greater or equal
+   <            httpd version is less than
+   <=           httpd version is less or equal
+   ~            version matches a regular expression
+
+If you omit the operator entirely, ``=`` is assumed. So
+``<IfVersion 2.4.2>`` is equivalent to ``<IfVersion = 2.4.2>``.
+
+Any operator can be negated by prefixing it with an exclamation mark.
+For example, ``<IfVersion !~ ^2.2>`` matches everything that is
+*not* a 2.2.x release.
+
+**Handling the 2.2 to 2.4 authorization change**
+
+One of the most common uses for ``<IfVersion>`` is the authorization
+syntax change between 2.2 and 2.4. In httpd 2.4 the old ``Order``,
+``Allow``, and ``Deny`` directives were replaced by ``mod_authz_core``
+and the ``Require`` directive. A shared configuration can handle both:
+
+
+.. code-block:: text
+
+   <Directory "/var/www/html">
+       <IfVersion >= 2.4>
+           Require all granted
+       </IfVersion>
+       <IfVersion < 2.4>
+           Order allow,deny
+           Allow from all
+       </IfVersion>
+   </Directory>
+
+
+**Enabling features only available in newer versions**
+
+Some directives were introduced in specific point releases. For
+example, ``Protocols`` (for HTTP/2 support) appeared in 2.4.17. You
+can guard it so that older 2.4.x installations don't throw an error:
+
+
+.. code-block:: text
+
+   <IfVersion >= 2.4.17>
+       Protocols h2 h2c http/1.1
+   </IfVersion>
+
+
+**Testing for specific minor versions with regular expressions**
+
+The ``~`` operator lets you match against a regular expression. This
+is useful when you need to work around a bug in a particular set of
+releases, or target a family of point releases:
+
+
+.. code-block:: text
+
+   <IfVersion ~ ^2\.4\.[0-4]$>
+       # Workaround for a bug fixed in 2.4.5
+       SetEnv downgrade-1.0
+   </IfVersion>
+
+You can also write this with the ``=`` operator and a
+slash-delimited regex:
+
+.. code-block:: text
+
+   <IfVersion = /^2\.4\.[0-4]$/>
+       SetEnv downgrade-1.0
+   </IfVersion>
+
+
+**When to use <IfVersion> versus <IfModule>**
+
+Both ``<IfVersion>`` and ``<IfModule>`` let you conditionally include
+configuration blocks, but they answer different questions.
+``<IfModule>`` asks *"Is this module loaded?"* while ``<IfVersion>``
+asks *"What version of httpd is running?"* The distinction matters:
+
+* Use ``<IfModule>`` when functionality depends on an optional module
+  that may or may not be compiled in, regardless of version --
+  for example, ``mod_ssl`` or ``mod_http2``.
+
+* Use ``<IfVersion>`` when functionality depends on the httpd version
+  itself -- for example, when the core syntax changed between
+  releases, or a directive was added in a specific point release.
+
+* In migration scenarios, ``<IfVersion>`` is usually the right choice,
+  because the old and new directives may both be recognized by a
+  transitional version (via ``mod_access_compat``) but only one
+  set is correct.
+
+Because ``<IfVersion>`` is evaluated at configuration time and not at
+request time, it carries no per-request performance cost. The
+directives inside a non-matching ``<IfVersion>`` block are simply
+skipped when the configuration is loaded, exactly like ``<IfDefine>``
+or ``<IfModule>``.
+
+
+.. note::
+
+   ``mod_version`` must be loaded for ``<IfVersion>`` to be
+   recognized. On most distributions it is compiled in by default. If
+   you are unsure, check with ``httpd -M | grep version``.
+
+
+.. _See_Also_mod_version:
+
+See Also
+~~~~~~~~
+
+
+* http://httpd.apache.org/docs/mod/mod_version.html
+
+* :ref:`Recipe_If`
+
+* :ref:`Recipe_IfDefine`
+
+* :ref:`Recipe_Define`
+
 
 Summary
 -------
 
 
-There's a lot more you can do with per-request configuration that's
-not covered in this chapter. That's because it's covered in almost
-every other chapter in this book. Because of the enormous power of
-this feature, it pervades every part of configuring your server. So,
-you'll see examples of it throughout the book.
+This chapter covered several ways to make your Apache httpd
+configuration more dynamic and maintainable. The ``Define`` and
+``IfDefine`` directives let you parameterize and conditionalize your
+configuration files, while ``mod_macro`` brings true templating to
+complex, repetitive setups like mass virtual hosting.
 
-Do be aware that the more you use expressions in your configuration,
-the slower every request is going to be, as these expressions have to
-evaluated with every request. So, as with any shiny new feature, use
-it sparingly, and only where it is actually necessary.
-
+For coverage of the expression parser, the ``<If>``/``<ElseIf>``/``<Else>``
+directives, expression-based headers, environment variables,
+backreferences, and authorization expressions, see our companion book,
+*mod_rewrite And Friends*, in the chapter *Configurable Configuration*.

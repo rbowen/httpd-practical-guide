@@ -5,6 +5,13 @@
 Contributing to the Apache HTTP Server
 ======================================
 
+.. epigraph::
+
+   Come together, right now, over me.
+
+   -- The Beatles, *Come Together*
+
+
 .. index:: Contributing
 
 .. index:: Open Source
@@ -16,13 +23,13 @@ Contributing to the Apache HTTP Server
 .. index:: Apache Software Foundation
 
 
-The Apache Web Server is open source (sometimes called **F/LOSS**:
+The Apache httpd is open source (sometimes called **F/LOSS**:
 **Free/Libre Open Source Software**). That means there's no **you** and
 **us**. It's **all** just us. The software is developed by us, for us, and
 you're welcome to become one of us and participate in that process.
 
 If you've never worked on an open source project, navigating your way
-around can be a little confusing. In this chapter, we'll try to give
+around can be a little confusing. In this chapter, I'll try to give
 you the lay of the land, and show you all of the places where you can
 join in the fun.
 
@@ -39,8 +46,8 @@ Problem
 ~~~~~~~
 
 
-You're a little confused as to how Apache, the web server, relates to
-Apache, the Apache Software Foundation.
+You're a little confused as to how httpd, the web server, relates to
+httpd, the Apache Software Foundation.
 
 
 .. _Solution_Foundation:
@@ -53,7 +60,7 @@ The Apache Software Foundation - http://apache.org/ - is a
 non-profit organization that exists to facilitate the creation of free
 software for the public good.
 
-The Apache Web Server is one project out of the many that make their
+httpd is one project out of the many that make their
 home at the Apache Software Foundation, and happens to be the one
 that started it all.
 
@@ -64,7 +71,7 @@ Discussion
 ~~~~~~~~~~
 
 
-Yes, we cheated. This isn't actually a recipe. But it fits well in
+Yes, I cheated. This isn't actually a recipe. But it fits well in
 this chapter to talk briefly about the larger organization that houses
 the httpd project.
 
@@ -74,7 +81,7 @@ could exist. This provides a means for them to accept financial
 donations, as well as to provide legal protection to the developers
 working on these projects.
 
-As of this writing, there are 295 projects that call the ASF home.
+There are hundreds of projects that call the ASF home.
 These projects span all areas of technology, from server-based
 projects like httpd, Apache Traffic Server, and Apache Hadoop, to
 desktop projects like Apache Open Office, to mobile application
@@ -114,7 +121,7 @@ in their development process, including, but not necessarily limited
 to, code repositories, and hosting for websites, mailing lists, and
 other necessary components for building an online community.
 
-The Apache Web Server is just one of these projects. It's the one that
+httpd is just one of these projects. It's the one that
 started it all, but is now one of many, and is far from the largest or
 most active.
 
@@ -188,7 +195,7 @@ Solution
 
 
 There are several mailing lists that you might want to be subscribed to
-if you're interested in the Apache web server.
+if you're interested in httpd.
 
 The users mailing list - users@httpd.apache.org - is where users of
 the software can ask questions, get support, report problems, and talk
@@ -226,8 +233,8 @@ Discussion of these changes are then sent back to the developer
 mailing list.
 
 The name of the mailing list - ``cvs`` - is the name of the version
-control system that we used at the beginning of the project. We have
-since moved from CVS to Subversion, but the name of the list has
+control system that the project originally used. The project has
+since moved from CVS to Subversion to Git, but the name of the list has
 remained the same.
 
 To subscribe to the list, send a message to
@@ -317,11 +324,11 @@ IRC - Internet Relay Chat - is a way to have real-time discssion with
 experts who can help you answer your questions.
 
 In the case of Apache httpd, the channel you want is ``#httpd`` on the
-Freenode.net IRC network. With your favorite IRC client, connect to
-``irc.freenode.net`` and join ``#httpd``.
+Libera Chat IRC network. With your favorite IRC client, connect to
+``irc.libera.chat`` and join ``#httpd``.
 
 Or, if you're not yet familiar with IRC, you can join in a browser by
-going to https://webchat.freenode.net/?channels=httpd
+going to https://web.libera.chat/#httpd
 
 
 .. _Discussion_IRC:
@@ -331,16 +338,16 @@ Discussion
 
 
 One of the best ways to get help when you're experiencing problems
-with the Apache web server - or, really, with any softare - is to ask
+with httpd - or, really, with any softare - is to ask
 on IRC. IRC is a real-time chat server, with participants from all
 over the world. In the free software world, this often means that
 you're discussing problems with the very people that created the
 softare that you're using.
 
-In the case of Apache httpd, the ``#httpd`` channel on the Freenode IRC
+In the case of Apache httpd, the ``#httpd`` channel on the Libera Chat IRC
 network usually contains several of the httpd developers, and several
 members of the documentation team. This makes it probably the best
-place in the world to ask your Apache web server questions,
+place in the world to ask your httpd questions,
 particularly if you're in a hurry.
 
 And here's another pro tip. One participant of the channel who is
@@ -390,9 +397,9 @@ See Also
 ~~~~~~~~
 
 
-* Freenode webchat - http://webchat.freenode.net/
+* Libera Chat webchat - https://web.libera.chat/
 
-* ``#httpd`` on Freenode - https://webchat.freenode.net/?channels=httpd
+* ``#httpd`` on Libera Chat - https://web.libera.chat/#httpd
 
 * Pastebin sites - http://apaste.info/ or
   http://hastebin.com/
@@ -425,7 +432,7 @@ Solution
 
 
 While the ``#httpd`` channel is great for user support - help with
-configuring and running your Apache http server - if you're looking
+configuring and running your httpd - if you're looking
 for something a little deeper, the ``#httpd-dev`` channel may be what
 you need.
 
@@ -437,7 +444,7 @@ Discussion
 
 
 As discussed in :ref:`Recipe_IRC`, the ``#httpd`` is perfect for questions
-about configuring your Apache http server.
+about configuring your httpd.
 
 ``#httpd-dev``, on the other hand, is for discussion of the development
 of the server itself. It's also the appropriate place to discuss bugs
@@ -470,7 +477,7 @@ See Also
 
 * :ref:`Recipe_IRC`
 
-* https://webchat.freenode.net/?channels=httpd
+* https://web.libera.chat/#httpd
 
 
 .. _Recipe_social-media:
@@ -502,7 +509,7 @@ Solution
 ~~~~~~~~
 
 
-The Apache http server community has a few different places on social
+httpd community has a few different places on social
 media.
 
 The official Twitter account for the project is ``@apache_httpd``. This
@@ -513,7 +520,7 @@ Apache httpd has a Google Plus group at
 https://s.apache.org/httpd-gplus  This is primarily a
 support forum, with people posting a variety of questions.
 
-As of this writing, Apache httpd does not have any official presence
+Apache httpd does not have any official presence
 on Facebook, although there are a few regional groups and unofficial
 discussion groups.
 
@@ -560,26 +567,26 @@ Solution
 
 Making your first patch to any free software project can be a
 difficult process, as each project is slightly different. Here's the
-process with the Apache http server:
+process with httpd:
 
-1. Check out a working copy of the source code:
+1. Clone the source code repository:
 
 
 .. code-block:: text
 
-   svn checkout http://svn.apache.org/repos/asf/httpd/httpd/trunk/ httpd-trunk
+   git clone https://github.com/apache/httpd.git httpd-trunk
 
 
 2. Edit the source code file with your favorite editor.
 
 3. Test your change!
 
-4. Create a patch using ``svn diff``.
+4. Create a patch using ``git diff``.
 
 
 .. code-block:: text
 
-   svn diff > my_patch.diff
+   git diff > my_patch.diff
 
 
 5. Send the patch as an attachment to the ``dev@httpd.apache.org``
@@ -593,22 +600,17 @@ Discussion
 ~~~~~~~~~~
 
 
-The source code of the Apache http server is maintained in Subversion,
-also known as svn. Subversion is a centralized code version control
+The source code of httpd is maintained in Git,
+hosted on GitHub at https://github.com/apache/httpd.
+Git is a distributed version control
 system which allows everyone to edit the same code base at the same
 time, resolve conflicts, and contribute to a single central shared
 repository.
 
-Many free software projects use ``svn``, while a growing number of
-projects use a similar version control program called ``git``. The
-differences and relative advantages of these two systems are beyond
-the scope of this book.
-
-If you do not already have the ``svn`` utility installed on your
+If you do not already have ``git`` installed on your
 development machine, you will need to obtain it and install it first.
-The Subversion project has a document with instructions for installing
-``svn`` on a wide variety of platforms, at
-http://subversion.apache.org/packages.html.
+See https://git-scm.com/downloads for installation instructions
+for a wide variety of platforms.
 
 The ``checkout`` command obtains a local copy of the source code, called
 your working copy, where you can make changes and test those changes
@@ -617,7 +619,7 @@ before committing them back to the central shared repository.
 If you have direct write access to the source repository - called
 "commit rights", you will use the same checkout address, but with
 ``https`` rather than ``http``, as your checkins will be authenticated against
-the Apache committer list.
+the httpd committer list.
 
 The command to check out working copy of the code is, as shown in the
 recipe above:
@@ -625,7 +627,7 @@ recipe above:
 
 .. code-block:: text
 
-   svn checkout http://svn.apache.org/repos/asf/httpd/httpd/trunk/ httpd-trunk
+   git clone https://github.com/apache/httpd.git httpd-trunk
 
 
 The second argument to the command created a directory called, in this
@@ -633,17 +635,19 @@ case, ``httpd-trunk``, and puts the code in that directory. If you omit
 that argument, the code is put in a directory named after the
 repository directory, which, in this case, would simply be ``trunk``.
 
-Note also that we've given you the repository address of the ``trunk``
+Note also that I've given you the repository address of the ``trunk``
 version of the code. ``trunk`` is the development repository - the
 bleeding edge, you might say. If you want, instead, to send a patch to
-one of the already released branches, such as ``2.2`` or ``2.4``, you'd
+one of the already released branches, such as ``2.4``, you'd
 need to alter the checkout URL accordingly. For example, to check out
-the ``2.4`` branch instead, you'd use the following command:
+the ``2.4`` branch, you'd use the following command:
 
 
 .. code-block:: text
 
-   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x httpd-2.4
+   git clone https://github.com/apache/httpd.git httpd-2.4
+   cd httpd-2.4
+   git checkout 2.4.x
 
 
 If you already have a checkout of the code, and come back to it at a
@@ -654,7 +658,7 @@ command from within the working copy:
 
 .. code-block:: text
 
-   svn update
+   git pull
 
 
 Note that ``update`` only updates the directory that you're currently
@@ -683,7 +687,7 @@ and Testing*, for more discussion of testing your server.
 
 Once you are sure that your changes work to your satisfaction, and
 don't break anything else, you need to send those changes to the
-community for consideration. The ``svn diff`` command shows just the
+community for consideration. The ``git diff`` command shows just the
 changes that you made, so that reviewers can examine these changes
 very quickly, without having to read through the entire file looking
 to see what changed.
@@ -775,11 +779,11 @@ process is still in place to ensure code quality.
 You can view the change history of every file in the project in
 ``viewvc``, which is a web utility for seeing what changed, when, by
 whom, and why. You can see ``viewvc`` for httpd trunk at
-http://svn.apache.org/viewvc/httpd/httpd/trunk/
+https://github.com/apache/httpd
 
 Actually teaching you to hack on the httpd source code is beyond
 the scope of this book. See the developer documentation, at 
-http://www.apache.org/dev/, for more details. We also
+http://www.apache.org/dev/, for more details. I also
 recommend the excellent book by Nick Kew, 'The Apache Modules Book.'
 While this book is somewhat dated, it is still the best book on the
 market on the topic.
@@ -793,13 +797,13 @@ See Also
 
 * Developer documentation: http://www.apache.org/dev/
 
-* svn repository http://svn.apache.org/repos/asf/httpd/httpd/trunk/
+* Git repository: https://github.com/apache/httpd
 
-* Subversion installation instructions: http://subversion.apache.org/packages.html
+* Git installation instructions: https://git-scm.com/downloads
 
 * :ref:`Recipe_Mailing_lists`
 
-* viewvc interface for viewing source code history: http://svn.apache.org/viewvc/httpd/httpd/trunk/
+* viewvc interface for viewing source code history: https://github.com/apache/httpd
 
 * The Apache Modules Book:
   https://www.amazon.com/Apache-Modules-Book-Application-Development/dp/0132409674
@@ -873,7 +877,7 @@ Solution
 
 
 The documentation of the server is run as a subproject of the main
-Apache http server project. We are always looking for new
+httpd project. We are always looking for new
 contributors. There's numerous ways that you can help improve the
 documentation, and thus make the product better for the whole world.
 
@@ -894,10 +898,10 @@ Discussion
 
 
 The best software in the world doesn't do a bit of good if nobody can
-use it. This is why we think the documentation is so important. And
+use it. This is why I think the documentation is so important. And
 because writing documentation requires such a different set of skills
 from writing code, the documentation project is managed as a
-subproject of the main Apache http server project, with different
+subproject of the main httpd project, with different
 rules about reviews, commits, and granting committer rights.
 
 The first thing you need to do if you want to participate in the
@@ -954,43 +958,30 @@ Following the instructions in :ref:`Recipe_Patch`, you'll obtain a
 checkout of the httpd source code. The documentation source is in the
 ``docs/manual`` subdirectory. You can, if you wish, just check out the
 ``docs`` directory if you only wish to work on the documentation.
-However, we strongly recommend against this. The more you work on the
+However, I strongly recommend against this. The more you work on the
 documentation, the more frequently you'll need to refer back to the
 code, and so it's a good idea to have the entire tree checked out from
 the beginning.
 
-We further recommend that you check out all three currently-active
-branches of the code. As of this writing, that means trunk, 2.4, and
-2.2. We typically maintain two release branches at any given time.
+I recommend that you check out the active
+branches of the code (currently trunk and 2.4).
 
 
 .. code-block:: text
 
-   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
-   svn checkout http://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/ httpd-2.4
-   svn checkout http://svn.apache.org/repos/asf/httpd/httpd/branches/2.2.x/ httpd 2.2
+   git clone https://github.com/apache/httpd.git httpd-trunk
 
 
 When you're in any one of these working copy directories, you can
-reassure yourself you are looking at the intended version using the
-``svn info`` command:
+verify which branch you are on using the
+``git branch`` command:
 
 
 .. code-block:: text
 
-   [rbowen@rocinante:apache/httpd-2.4]$ svn info
-   Path: .
-   Working Copy Root Path: /home/rbowen/devel/apache/httpd-2.4
-   URL: https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x
-   Relative URL: ^/httpd/httpd/branches/2.4.x
-   Repository Root: https://svn.apache.org/repos/asf
-   Repository UUID: 13f79535-47bb-0310-9956-ffa450edef68
-   Revision: 1775988
-   Node Kind: directory
-   Schedule: normal
-   Last Changed Author: icing
-   Last Changed Rev: 1775945
-   Last Changed Date: 2016-12-24 05:04:19 -0500 (Sat, 24 Dec 2016)
+   $ git branch
+   * trunk
+     2.4.x
 
 
 You will be editing the source files, not the generated HTML files,
@@ -1012,7 +1003,7 @@ checkout, and type the following command:
 
 .. code-block:: text
 
-   svn checkout https://svn.apache.org/repos/asf/httpd/docs-build/trunk build
+   git clone https://github.com/apache/httpd-docs-build.git build
 
 
 This will create a ``build`` directory containing the build tools which
@@ -1029,7 +1020,7 @@ command:
 
 .. warning::
 
-   As of this writing, our build tools do not work on non-Unix platforms.
+   The build tools may not work on non-Unix platforms.
 
 
 This command produces a **lot** of output, but, at the end of it, it
@@ -1045,7 +1036,7 @@ procedure described in :ref:`Recipe_Patch`:
 
 .. code-block:: text
 
-   svn diff > my_changes.diff
+   git diff > my_changes.diff
 
 
 Finally, if all of this is, for whatever reason, too much work, we
@@ -1061,7 +1052,7 @@ result in someone enhancing that document.
 
 You can also send comments to the ``docs@httpd.apache.org`` mailing list
 with suggested changes. Or you can drop by the ``#httpd`` IRC channel on
-Freenode, and tell someone there.
+Libera Chat, and tell someone there.
 
 We want the documentation to be as good as possible, and we don't want
 to have any obstacles to you helping us out, if you're so inclined.
@@ -1110,7 +1101,7 @@ Solution
 We would love to have your help translating our documentation into
 other languages.
 
-As of this writing, our documentation is available primarily in
+The documentation is available primarily in
 English and French, with smaller portions of the documentation being
 available in other languages, and an active effort underway to
 translate the docs into Spanish.
@@ -1214,7 +1205,7 @@ Problem
 ~~~~~~~
 
 
-You'd like to learn more about the Apache web server, and other Apache
+You'd like to learn more about httpd, and other Apache
 projects, and meet the people involved in the project.
 
 
@@ -1233,7 +1224,7 @@ http://apachecon.com/
 
 Additionally, there are many, many gatherings of other Apache
 enthusiasts, across our many projects, around the world. These events,
-or, at least some of them, are listed on the Apache website at
+or, at least some of them, are listed on the httpd website at
 http://apache.org/events/. That page is updated every week.
 
 
@@ -1338,12 +1329,12 @@ Summary
 -------
 
 
-We've ended the book on this chapter because we really want you to
+I've ended the book on this chapter because I really want you to
 remember this, and come join us in the httpd projects.
 
 Because Apache httpd is open source, we rely completely on our user
 community to become our developer community. Of the original 8
-developers of the Apache web server. [#original-developers]_
+developers of httpd. [#original-developers]_
 ], none are still actively involved
 today. Instead, they have mentored new contributors and then moved on
 to other projects.
