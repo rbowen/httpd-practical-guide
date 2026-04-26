@@ -123,6 +123,40 @@
             color: #999;
         }
         footer a { color: #666; }
+        .wip-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        .wip-banner strong {
+            color: #856404;
+        }
+        .wip-banner .version {
+            display: inline-block;
+            background: #856404;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.15em 0.5em;
+            border-radius: 3px;
+            text-transform: uppercase;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+        .amazon-coming-soon {
+            background: #e8f5e9;
+            border: 1px solid #66bb6a;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 2.5rem;
+            font-size: 1rem;
+        }
+        .amazon-coming-soon strong {
+            color: #2e7d32;
+        }
     </style>
 </head>
 <body>
@@ -130,6 +164,14 @@
 
     <h1>Apache httpd: A Practical Guide</h1>
     <p class="subtitle">by Rich Bowen</p>
+
+    <div class="wip-banner">
+        <strong>🚧 Work in Progress</strong> <span class="version">v0.2</span><br>
+        This book is under active development. Content is incomplete, some
+        recipes are in draft form, and things will change. Feedback and
+        contributions are welcome on
+        <a href="https://github.com/rbowen/httpd-practical-guide">GitHub</a>.
+    </div>
 
     <div class="description">
         <p>Solutions and examples for Apache HTTP Server administrators.
@@ -154,13 +196,11 @@
         <a class="btn-secondary" href="https://github.com/rbowen/httpd-practical-guide/issues">Issues &amp; Feedback</a>
     </div>
 
-    <!-- Uncomment when published on Amazon:
-    <div class="amazon-banner" style="background:#d4edda; border:1px solid #28a745; border-radius:6px; padding:1rem 1.25rem; margin-bottom:2.5rem;">
-        <strong>📚 Now available on Amazon!</strong>
-        <a href="#">Kindle edition</a> &bull;
-        <a href="#">Paperback edition</a>
+    <div class="amazon-coming-soon">
+        <strong>📚 Coming soon to Amazon</strong> — Kindle and paperback
+        editions are in preparation. In the meantime, the full book is
+        available to read online and download for free.
     </div>
-    -->
 
     <div class="downloads">
         <h2>Downloads</h2>
