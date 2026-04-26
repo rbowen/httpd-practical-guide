@@ -68,7 +68,7 @@ Open `_build/html/index.html` in your browser to view.
 uv run --with sphinx -- sphinx-build -b epub -d _build/doctrees . _build/epub
 ```
 
-The ePub file will be at `_build/epub/Apache Cookbook.epub`.
+The ePub file will be at `_build/epub/apache_httpd_practical_guide.epub`.
 
 ### PDF (via LaTeX)
 

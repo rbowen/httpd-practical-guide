@@ -23,7 +23,7 @@ roles.register_local_role('module', module_role)
 # -- Project information -----------------------------------------------------
 
 project = 'Apache httpd: A Practical Guide'
-copyright = '2004–2026, Rich Bowen. Licensed under the Apache License, Version 2.0'
+copyright = '2004–2026, Rich Bowen. Licensed under the Apache License, Version 2.0. Apache, Apache HTTP Server, Apache httpd, and the Apache oak leaf logo are trademarks of The Apache Software Foundation'
 author = 'Rich Bowen'
 
 # The full version, including alpha/beta/rc tags

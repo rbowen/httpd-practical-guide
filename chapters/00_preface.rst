@@ -455,6 +455,11 @@ usually includes the title and author. For example:
 "**Apache httpd: A Practical Guide**, Fourth Edition, by Rich Bowen.
 Copyright 2004–2026 Rich Bowen. Earlier editions co-authored with Ken Coar."
 
+Apache, Apache HTTP Server, Apache httpd, and the Apache oak leaf logo are trademarks of
+`The Apache Software Foundation <https://www.apache.org/>`_.
+This book is not affiliated with or endorsed by the Apache Software
+Foundation.
+
 
 .. _Wed_Like_to_Hear_from_You:
 

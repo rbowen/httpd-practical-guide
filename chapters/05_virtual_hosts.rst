@@ -188,7 +188,7 @@ The output of **httpd** **-S** will look like:
          alias grenache
          port 80 namevhost www.apacheadmin.com (/etc/httpd/conf.d/vhosts/apacheadmin.com.conf:2)
          alias apacheadmin.com
-------------------------------
+
 
 
 It is important to understand that virtual hosts render the

@@ -1,4 +1,4 @@
-.. Apache Cookbook documentation master file
+.. Apache httpd: A Practical Guide — master file
 
 ======================================
 Apache httpd: A Practical Guide

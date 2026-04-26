@@ -134,6 +134,12 @@ Glossary
       HTTP over :term:`TLS` (or :term:`SSL`). Provides encrypted, authenticated
       communication between browser and server. Uses port 443 by default.
 
+   HTTP/1.1
+      The most widely deployed version of the :term:`HTTP` protocol
+      (RFC 2616, later refined by RFC 7230–7235). Introduced persistent
+      connections (:term:`keepalive`), chunked transfer encoding, and the
+      Host header that enables :term:`name-based virtual host`ing.
+
    HTTP/2
       A major revision of the :term:`HTTP` protocol that introduces
       multiplexed streams, header compression, and server push. Enabled in

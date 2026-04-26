@@ -94,7 +94,6 @@ restrict access from malicious or otherwise undesirable clients.
 
 
 .. sidebar:: Authentication and Authorization
----------------------------------------------
 
    When checking for access to restricted documents, there are
    actually two different operations involved: checking to see who you are,
@@ -3385,8 +3384,9 @@ See Also
 
 .. _Recipe_SQL_Authorization:
 
-------------
+----------------------------------------
 Using a database for group authorization
+----------------------------------------
 
 .. index:: SQL authorization
 
@@ -4263,8 +4263,6 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Chapter_Troubleshooting_and_error_handling`, *Troubleshooting and
-  Error Handling*
 
 
 .. _Requiring_Both_Weak_and_Strong_Authentication_id130793:
@@ -4359,7 +4357,6 @@ See Also
 
 
 .. sidebar:: Weak and Strong Authentication
--------------------------------------------
 
    The basic Apache security model for HTTP is based on the
    concepts of weak and strong authentication mechanisms. 
@@ -5468,7 +5465,7 @@ A few practical considerations:
 See Also
 ~~~~~~~~
 
-* :ref:`Recipe_auth_provider_architecture`
+* :ref:`Recipe_authn_provider_architecture`
 
 * https://httpd.apache.org/docs/2.4/mod/mod_authnz_fcgi.html
 
@@ -5598,7 +5595,7 @@ A few important points:
 See Also
 ~~~~~~~~
 
-* :ref:`Recipe_auth_provider_architecture`
+* :ref:`Recipe_authn_provider_architecture`
 
 * https://httpd.apache.org/docs/trunk/mod/mod_autht_core.html
 

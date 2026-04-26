@@ -1126,7 +1126,7 @@ Possible values for the ``Options`` directive are:
 +------------------------------+-----------------------------------------------------------------+
 | **``Includes``**             | Server-side includes provided by _mod_include_ are permitted.   |
 +------------------------------+-----------------------------------------------------------------+
-| **``IncludesNOEXEC``**       | Server-side includes are permitted, but the ``#exec``              |
+| **``IncludesNOEXEC``**       | Server-side includes are permitted, but ``#exec`` is disabled.  |
 +------------------------------+-----------------------------------------------------------------+
 | **``Indexes``**              |                                                                 |
 +------------------------------+-----------------------------------------------------------------+
@@ -1267,7 +1267,7 @@ including the IP address of your network interface.
 
    eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
       inet 146.78.185.89  netmask 255.255.255.0  broadcast 146.78.185.255
--------------------------------------------------------------------------
+
 
 
 In this case, the IP address of the server is 166.78.185.89, so you'd

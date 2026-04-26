@@ -318,11 +318,7 @@ Items from the mod_rewrite project that need to be replicated here:
 - [ ] Test azw3 conversion via Calibre
 
 ### Website / Domain
-- [ ] **Pick a domain name** (low priority — no rush)
-  - Suggestions: `apache-httpd-book.com`, `practical-httpd.com`, `httpd-guide.com`,
-    `apachehttpd.guide`, `httpd-cookbook.com`, `httpd-practical-guide.com`
-  - Check availability before deciding
-  - Could also use a subdomain of `rcbowen.com` (e.g., `httpd.rcbowen.com`)
+- [x] **Domain name acquired: httpd-guide.com** ✅
 - [ ] Set up hosting (S3 + CloudFront, or `fagin.rcbowen.com` like mod-rewrite.org)
 - [ ] Landing page (site_index.html equivalent)
 - [ ] Publish HTML, PDF, ePub downloads on the site

@@ -12,8 +12,12 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Sync script (contains server details)
+# Scripts that expose internal network details
 sync-files.sh
+auto-push.sh
+auto-push.service
+git_init.sh
+site/publish.sh
 
 # Research and audit files (not part of the book itself)
 ml_research/

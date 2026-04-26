@@ -51,38 +51,44 @@ chapters continue to resolve.
 .. _Recipe_expr:
 
 General purpose expression parser
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
-*Configurable Configuration*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+— See *mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_If:
 
 Using the <If> Directive
-~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
-*Configurable Configuration*.
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+— See *mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_else:
 
 Using the <Else> directive
-~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
-*Configurable Configuration*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+— See *mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_image-theft-if:
 
 Preventing image theft using <If>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And Friends*,
-*Configurable Configuration*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+— See *mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_expr-errordocument:
 
 Using an expression in an ErrorDocument
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And
-Friends*, *Configurable Configuration*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+— See *mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_locationmatch-backref:
 
 Using backreferences from a <LocationMatch>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ — See *mod_rewrite And
-Friends*, *Configurable Configuration*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+— See *mod_rewrite And Friends*, *Configurable Configuration*.
 
 .. _Recipe_setenvifexpr:
 

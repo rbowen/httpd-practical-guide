@@ -666,7 +666,6 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Recipe_ErrorDocument`
 * http://tools.ietf.org/html/rfc2616 (HTTP Protocol)
 * http://tools.ietf.org/html/rfc6585 (Additional HTTP Status Codes)
 
