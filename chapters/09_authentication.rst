@@ -93,6 +93,9 @@ restrict access from malicious or otherwise undesirable clients.
 .. _Authentication_and_Authorization_sidebar:
 
 
+Authentication and Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. sidebar:: Authentication and Authorization
 
    When checking for access to restricted documents, there are
@@ -2124,6 +2127,7 @@ See Also
 .. _Recipe_Form_Auth:
 
 Form-based authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. index:: Authentication,Form
 
@@ -3384,7 +3388,6 @@ See Also
 
 .. _Recipe_SQL_Authorization:
 
-----------------------------------------
 Using a database for group authorization
 ----------------------------------------
 
@@ -3807,6 +3810,7 @@ See Also
 .. _Recipe_Authorization_by_host:
 
 Authorization_by_host
+~~~~~~~~~~~~~~~~~~~~~
 
 .. index:: Authorization,host
 
@@ -4355,6 +4359,9 @@ See Also
 
 .. _Weak_and_Strong_Authentication_sidebar:
 
+
+Weak and Strong Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. sidebar:: Weak and Strong Authentication
 

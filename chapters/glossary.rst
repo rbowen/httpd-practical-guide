@@ -138,7 +138,7 @@ Glossary
       The most widely deployed version of the :term:`HTTP` protocol
       (RFC 2616, later refined by RFC 7230–7235). Introduced persistent
       connections (:term:`keepalive`), chunked transfer encoding, and the
-      Host header that enables :term:`name-based virtual host`ing.
+      Host header that enables :term:`name-based virtual host`\ ing.
 
    HTTP/2
       A major revision of the :term:`HTTP` protocol that introduces

@@ -848,7 +848,7 @@ For this example, you also will need a **Makefile**, which looks
 something like this:
 
 
-.. code-block:: make
+.. code-block:: text
 
    CFLAGS=-g -Wall
    CC=gcc

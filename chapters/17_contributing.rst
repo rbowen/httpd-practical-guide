@@ -538,6 +538,9 @@ See Also
 
 .. _Recipe_Patch:
 
+Submitting a Patch
+~~~~~~~~~~~~~~~~~~
+
 .. admonition:: DRAFT — Review needed
 
    The following recipe was auto-generated and needs editorial review.

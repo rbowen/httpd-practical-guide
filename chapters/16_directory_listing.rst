@@ -1610,7 +1610,7 @@ Solution
 
 
 Add the following lines to the ``<Directory>`` container that defines the
-characteristics of your ``ScriptAlias``ed directory:
+characteristics of your ``ScriptAlias``\ed directory:
 
 
 .. code-block:: text
@@ -1633,7 +1633,7 @@ subsequently detected, anyone on the Web may be able to take advantage
 of it.
 
 One of the restrictions imposed explicitly by design is
-disallowing directory listings in ``ScriptAlias``ed parts 
+disallowing directory listings in ``ScriptAlias``\ed parts 
 of the filesystem. This amounts to what's called 
 "security through obscurity"—namely, hiding
 an issue and hoping that no one discovers it even though it's easily

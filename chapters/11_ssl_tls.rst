@@ -1080,7 +1080,7 @@ Check :ref:`Generating_SSL_Certificates_id138549` above.
 Check that you have a valid **ServeName** directive in your http.conf
 Then run **certbot -i apache**
 
-.. code-block:: bash
+.. code-block:: text
 
    %  certbot -i apache
    Saving debug log to /var/log/letsencrypt/letsencrypt.log
