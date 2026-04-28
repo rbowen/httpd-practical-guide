@@ -45,7 +45,7 @@ manage upgrades yourself, and remember to do those upgrades. And
 various modules and add-ons that you add later may expect things to
 be in certain places, other than those that you have chosen.
 
-While earlier editions of this book strongly recommended that you always
+While in past times, the httpd project strongly recommended that you always
 build from source, times have changed. Many web server
 administrators have tens or hundreds of servers to maintain, rather
 than one. And security bugs on software such as httpd
@@ -53,15 +53,16 @@ need to be addressed in hours, rather than weeks or months,
 if you want your servers to remain uncompromised. These, and many
 other reasons, have changed the landscape of server maintenance, and
 I now recommend that, unless you have a compelling reason to do
-otherwise, you install **via** the packages that are available for your
+otherwise, you install using the packages that are available for your
 particular operating system distribution of choice.
 
 Such compelling reasons include, for example, actively hacking on the
-httpd source code, or writing your own modules for httpd.
+httpd source code (or its documentation), or writing your own modules 
+for httpd.
 
 This chapter can be roughly divided into four parts. The first set of
 recipes deal with installing (and uninstalling) httpd
-from various packages. Next, I discuss installing from source.  The
+from various packages. Next, I discuss installing from source. The
 third set of recipes are about starting and stopping the server once
 it's installed. Finally, there are several recipes dealing with some
 basic configuration, and other things you'll need to know to get
@@ -186,16 +187,14 @@ Discussion
 ~~~~~~~~~~
 
 
-As mentioned in the introduction, I have, in earlier editions of this
-book, been a strong advocate of building from source every time.
-However, the landscape of server management has changed in the last
-few years. Most of us are responsible not just for one server, but
-for many, and those servers have many different tasks. Attempting to
-keep all of these servers updates has become a full-time job, and
-building everything from source is a luxury that very few people
-have any more.
+The time has long passed where system administrators were encourage to
+download, configure, build, and install their services from source code.
+While in the past that was a reasonable and responsible thing to do, in
+order to ensure that you knew what you were running, and where it came
+from, this is no longer either practical or responsible in today's
+world.
 
-Building from source has certain advantages - you can make your own
++Building from source has certain advantages - you can make your own
 mind up about things like directory layout and file placement, what
 modules you want to build statically vs. dynamically, and so on. But
 this very advantage can become a disadvantage very quickly if more
@@ -222,10 +221,9 @@ own, when things break, you'll probably be told to switch to a tested,
 supported, packaged version.
 
 There is one specific certain scenario in which I recommend that you
-build from source. This is if you're actively involved in code development
-of httpd. In that case, you're likely building from the latest development branch on
-GitHub (https://github.com/apache/httpd). You'll want to build and
-test changes as you work on them. If that's your situation, you
+build from source. This is if you're actively involved in code or documentation  development
+of httpd. In that case, you're likely building from the latest development branch out of svn
+You'll want to build and test changes as you work on them. If that's your situation, you
 probably don't need this chapter.
 
 
@@ -1244,8 +1242,15 @@ using the **tar** utility.
 
 .. code-block:: text
 
-   % tar vzxf httpd-2.4.34.tar.gz
+   % tar vzxf httpd-2.4.62.tar.gz
 
+
+.. tip::
+
+   The version number in examples throughout this chapter (2.4.62) was
+   current at the time of writing. Check
+   https://httpd.apache.org/download.cgi for the latest release version,
+   and substitute that version number in the commands below.
 
 Alternatively, you can obtain the source directly from version
 control (Git).
@@ -1283,7 +1288,7 @@ Once you've downloaded the file and verified that it's valid, you can
 
 .. code-block:: text
 
-   % tar vzxf httpd-2.4.34.tar.gz
+   % tar vzxf httpd-2.4.62.tar.gz
 
 
 The ``vzxf`` argument supplied to **tar** is in fact four arguments. 
@@ -1298,11 +1303,11 @@ The ``z`` argument says to undo the zip compression that has been
 ``x`` indicates that you wish to extract the archive.
 
 Finally, ``f`` indicates that the next argument is the name of a file -
-in this case, **httpd-2.4.34.tar.gz**.
+in this case, **httpd-2.4.62.tar.gz**.
 
 The archive contents will now be unpacked into a subdirectory named
   after the version that you've downloaded - in this case, the
-  directory will be named **httpd-2.4.34**.
+  directory will be named **httpd-2.4.62**.
 
 If your version of **tar**
   doesn't support the ``z`` option for processing zipped
@@ -1310,7 +1315,7 @@ If your version of **tar**
 
 .. code-block:: text
 
-   % gunzip -c <  httpd-2.4.34.tar.gz  | tar xvf -
+   % gunzip -c <  httpd-2.4.62.tar.gz  | tar xvf -
 
 
 For the next steps, go to the recipe :ref:`Recipe_Build_from_source`.
@@ -1386,10 +1391,10 @@ to the download link, to verify that the file is what it should be:
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.34.tar.gz.asc
-   $ md5sum httpd-2.4.34.tar.gz && cat httpd-2.4.34.tar.gz.md5
-   $ sha1sum httpd-2.4.34.tar.gz && cat httpd-2.4.34.tar.gz.sha1
-   $ sha256sum httpd-2.4.34.tar.gz && cat sha256sum httpd-2.4.34.tar.gz.sha256
+   $ gpg --verify httpd-2.4.62.tar.gz.asc
+   $ md5sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.md5
+   $ sha1sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.sha1
+   $ sha256sum httpd-2.4.62.tar.gz && cat sha256sum httpd-2.4.62.tar.gz.sha256
 
 
 .. _Discussion_Verify_download:
@@ -1433,7 +1438,7 @@ the **asc** file:
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.34.tar.gz.asc
+   $ gpg --verify httpd-2.4.62.tar.gz.asc
 
 
 Most likely, the first time you do this, you'lll receive the following
@@ -1497,7 +1502,7 @@ Now that you have the key, you'll try again to verify the signature:
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.10.tar.gz.asc
+   $ gpg --verify httpd-2.4.62.tar.gz.asc
    gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
    gpg: Good signature from "Jim Jagielski (Release Signing Key) <jim@apache.org>"
    gpg:                 aka "Jim Jagielski <jim@jimjag.com>"
@@ -1518,7 +1523,7 @@ If, on the other hand, you see something like:
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.10.tar.gz.asc
+   $ gpg --verify httpd-2.4.62.tar.gz.asc
    gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
    gpg: BAD signature from "Jim Jagielski (Release Signing Key) <jim@apache.org>"
 
@@ -1538,7 +1543,7 @@ Finally, if you ever happen to meet Jim at ApacheCon, you should ask
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.10.tar.gz.asc
+   $ gpg --verify httpd-2.4.62.tar.gz.asc
    gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
    gpg: checking the trustdb
    gpg: 3 marginal(s) needed, 1 complete(s) needed, classic trust model
@@ -1575,9 +1580,9 @@ To check the hashes on the file, use the utilities mentioned in the
 
 .. code-block:: text
 
-   $ md5sum httpd-2.4.10.tar.gz && cat httpd-2.4.10.tar.gz.md5
-   9b5f9342f73a6b1ad4e8c4b0f3f5a159  httpd-2.4.10.tar.gz
-   9b5f9342f73a6b1ad4e8c4b0f3f5a159 *httpd-2.4.10.tar.gz
+   $ md5sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.md5
+   <check https://httpd.apache.org/download.cgi for current checksums>
+   <check https://httpd.apache.org/download.cgi for current checksums>
 
 
 The two values should match identically. If they do not, the file has
@@ -1588,9 +1593,9 @@ Likewise, with the SHA1 hash:
 
 .. code-block:: text
 
-   $ sha1sum httpd-2.4.10.tar.gz && cat httpd-2.4.10.tar.gz.sha1
-   9682272d16f0b2a7f1c7bbb9816283e3ab161d66  httpd-2.4.10.tar.gz
-   9682272d16f0b2a7f1c7bbb9816283e3ab161d66 *httpd-2.4.10.tar.gz
+   $ sha1sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.sha1
+   <check https://httpd.apache.org/download.cgi for current checksums>
+   <check https://httpd.apache.org/download.cgi for current checksums>
 
 
 and the sha256 hash:
@@ -1598,9 +1603,9 @@ and the sha256 hash:
 
 .. code-block:: text
 
-   $ sha256sum httpd-2.4.34.tar.gz && cat httpd-2.4.34.tar.gz.sha256
-   6eaef0313b071d105eb3ca49289fc0f1431392e1061e1df420ca5775caed2211  httpd-2.4.34.tar.gz
-   6eaef0313b071d105eb3ca49289fc0f1431392e1061e1df420ca5775caed2211 *httpd-2.4.34.tar.gz
+   $ sha256sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.sha256
+   <check https://httpd.apache.org/download.cgi for current checksums>
+   <check https://httpd.apache.org/download.cgi for current checksums>
 
 
 .. note::
@@ -1660,9 +1665,10 @@ guaranteed to actually be functional), clone the ``trunk`` branch using the
 following:
 
 
+
 .. code-block:: text
 
-   git clone https://github.com/apache/httpd.git httpd-trunk
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
 
 
 To obtain a particular release branch, such as 2.4.x, you would
@@ -1671,7 +1677,7 @@ instead use a command like:
 
 .. code-block:: text
 
-   git clone --branch 2.4.x https://github.com/apache/httpd.git httpd-2.4
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x httpd-2.4
 
 
 .. _Discussion_Source_from_svn:
@@ -1701,7 +1707,7 @@ functional at any given moment, and, of course, move much more slowly
 than the active development in trunk.
 
 For a complete list of the available release branches, see
-https://github.com/apache/httpd/branches
+https://svn.apache.org/repos/asf/httpd/httpd/branches/
 
 Tags represent specific release version
 numbers. Tags are immutable - that is, once a release has been made,
@@ -1709,14 +1715,14 @@ it is never changed again, as it marks a particular point in the
 history of development.
 
 You can find the names of the release branches and tags at
-  https://github.com/apache/httpd
+  https://svn.apache.org/repos/asf/httpd/httpd/
   or with the commands:
 
 
 .. code-block:: text
 
    git branch -r
-   git tag
+   svn ls https://svn.apache.org/repos/asf/httpd/httpd/tags/
 
 
 If you wanted to check out the source code for a particular release
@@ -1725,7 +1731,7 @@ tag, for example, the 2.4.62 release, you would do the following:
 
 .. code-block:: text
 
-   git clone --branch 2.4.62 https://github.com/apache/httpd.git httpd-2.4.62
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/tags/2.4.62 httpd-2.4.62
 
 
 .. _apacheckbk-CHP-1-NOTE-71:
@@ -2451,20 +2457,20 @@ created by your build of the earlier version.
 .. warning::
 
    This technique is primarily intended for use when upgrading
-   within the same major version series, such as from 2.4.8 to 2.4.10.
+   within the same major version series, such as from 2.4.58 to 2.4.62.
 
 
-For example, suppose you built and installed version 2.4.8 long
-ago, and you now want to upgrade your system to 2.4.25. Assume
+For example, suppose you built and installed version 2.4.58 long
+ago, and you now want to upgrade your system to 2.4.62. Assume
 you've just downloaded the source tar file, and saved it in
 ``/tmp``.
 
 
 .. code-block:: text
 
-   % tar vzxf /tmp/httpd-2.4.25.tar.gz
-   % cd httpd-2.4.25
-   % sudo /path/to/httpd-2.4.8/config.nice
+   % tar vzxf /tmp/httpd-2.4.62.tar.gz
+   % cd httpd-2.4.62
+   % sudo /path/to/httpd-2.4.58/config.nice
    % sudo make
 
 
@@ -2649,7 +2655,7 @@ as other details of how it was built) using the **-V** argument to
 .. code-block:: text
 
    % httpd -V
-   Server version: Apache/2.4.25 (Fedora)
+   Server version: Apache/2.4.62 (Fedora)
    Server built:   Dec 22 2016 15:21:24
    Server's Module Magic Number: 20120211:67
    Server loaded:  APR 1.5.2, APR-UTIL 1.5.4

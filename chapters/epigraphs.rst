@@ -11,11 +11,15 @@ This page collects them in one place, with notes on why each was chosen.
 
 
 Preface
--------
+~~~~~~~
 
-   It's a long way to the top if you wanna rock 'n' roll.
+   Before the High and Far-Off Times, O my Best Beloved, came the
+   Time of the Very Beginnings; and that was in the days when the
+   Eldest Magician was getting Things ready. First he got the Earth
+   ready; then he got the Sun ready; and then he told all the Animals
+   that they could come out and play.
 
-   -- AC/DC, *It's a Long Way to the Top*
+   -- Rudyard Kipling, *Just So Stories*, "The Crab that Played with the Sea"
 
 *Notes:*
 
@@ -23,7 +27,7 @@ TBD
 
 
 Chapter 1: Installation
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
    We built this city on rock and roll.
 
@@ -35,7 +39,7 @@ TBD
 
 
 Chapter 2: My First Website
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | Hello, is there anybody in there? Just nod if you can hear me.
    | Is there anyone home?
@@ -48,7 +52,7 @@ TBD
 
 
 Chapter 3: Adding Common Modules
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | You can't always get what you want,
    | but if you try sometimes, you just might find
@@ -62,7 +66,7 @@ TBD
 
 
 Chapter 4: Logging
-------------------
+~~~~~~~~~~~~~~~~~~
 
    | Every breath you take, every move you make,
    | every bond you break, every step you take,
@@ -76,7 +80,7 @@ TBD
 
 
 Chapter 5: Virtual Hosts
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
    One of these days I'm going to cut you into little pieces.
 
@@ -88,7 +92,7 @@ TBD
 
 
 Chapter 6: URL Mapping
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
    I can't get no satisfaction.
 
@@ -100,7 +104,7 @@ TBD
 
 
 Chapter 7: Introduction to Regular Expressions
-----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | Is this the real life? Is this just fantasy?
    | Caught in a landslide, no escape from reality.
@@ -113,7 +117,7 @@ TBD
 
 
 Chapter 8: URL Rewriting with mod_rewrite
------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | Should I stay or should I go now?
    | If I go, there will be trouble.
@@ -127,7 +131,7 @@ TBD
 
 
 Chapter 9: Authentication, Authorization, and Access Control
-------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    Who are you? Who, who, who, who?
 
@@ -139,7 +143,7 @@ TBD
 
 
 Chapter 10: Security
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
    Just because you're paranoid don't mean they're not after you.
 
@@ -151,7 +155,7 @@ TBD
 
 
 Chapter 11: SSL and TLS
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
    I got my mind set on you. I got my mind set on you.
 
@@ -163,7 +167,7 @@ TBD
 
 
 Chapter 12: Dynamic Content
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    *Quote to be selected.*
 
@@ -175,7 +179,7 @@ TBD
 
 
 Chapter 13: Proxies
--------------------
+~~~~~~~~~~~~~~~~~~~
 
    Don't stand so close to me.
 
@@ -187,7 +191,7 @@ TBD
 
 
 Chapter 14: Performance and Testing
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    I feel the need — the need for speed.
 
@@ -199,7 +203,7 @@ TBD
 
 
 Chapter 15: Directory Listing
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | We're not gonna take it. No, we ain't gonna take it.
    | We're not gonna take it anymore.
@@ -212,7 +216,7 @@ TBD
 
 
 Chapter 16: Contributing to the Apache HTTP Server
---------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    Come together, right now, over me.
 
@@ -224,7 +228,7 @@ TBD
 
 
 Chapter 17: Filters and Handlers
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | I'm just a soul whose intentions are good.
    | Oh Lord, please don't let me be misunderstood.
@@ -237,7 +241,7 @@ TBD
 
 
 Chapter 18: .htaccess Files
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    Breaking the law, breaking the law.
 
@@ -249,7 +253,7 @@ TBD
 
 
 Chapter 19: User Directories
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    Our house, in the middle of our street.
 
@@ -261,7 +265,7 @@ TBD
 
 
 Chapter 20: Programmable Configuration
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    We are the robots.
 
@@ -273,7 +277,7 @@ TBD
 
 
 Chapter 21: mod_info and mod_status
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    | Ground control to Major Tom.
    | Take your protein pills and put your helmet on.

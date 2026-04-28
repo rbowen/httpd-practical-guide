@@ -1367,7 +1367,7 @@ See Also
                  response header field; see RFC 2616 for more
                  information.)
                
-   .  If the client isn't an interactive browser, at this point
+   . If the client isn't an interactive browser, at this point
                  it probably goes to step 7. If it is interactive, it asks the
                  user for a username and password, and shows the name of the
                  realm the server mentioned.
@@ -1377,7 +1377,7 @@ See Also
                  this time.
    
                
-   .  The server examines the provided credentials. If they're
+   . The server examines the provided credentials. If they're
                  valid, it grants access and returns the document. If they
                  aren't, it responds as it did in step 2.
     

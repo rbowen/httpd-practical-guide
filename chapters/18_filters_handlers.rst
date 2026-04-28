@@ -1051,13 +1051,13 @@ Available flags are:
 +------+---------------------------------------------------------------------------------------+
 | Flag | Meaning                                                                               |
 +------+---------------------------------------------------------------------------------------+
-| i    | Perform a case-insensitive match.                                                     |
+| i    | Perform a case-insensitive match. |
 +------+---------------------------------------------------------------------------------------+
 | n    | By default the pattern is treated as a regular expression. Using the n flag forces    |
 +------+---------------------------------------------------------------------------------------+
 | f    | The f flag causes mod_substitute to flatten the result of a substitution allowing for |
 +------+---------------------------------------------------------------------------------------+
-| q    | The q flag causes mod_substitute to not flatten the buckets after each substitution.  |
+| q    | The q flag causes mod_substitute to not flatten the buckets after each substitution. |
 +------+---------------------------------------------------------------------------------------+
 
 
@@ -1345,7 +1345,7 @@ The value specified can be one of the following:
 +-----------+---------------------------------------------------------------+
 | map       | If the keyword ``map`` is specified, a menu will be generated |
 +-----------+---------------------------------------------------------------+
-| referer   | Links back to the refering document.                          |
+| referer   | Links back to the refering document. |
 +-----------+---------------------------------------------------------------+
 | nocontent | Returns a 204 ``No Content`` response, telling the cvlient    |
 +-----------+---------------------------------------------------------------+
@@ -1533,7 +1533,7 @@ In addition to the ``Accept-Language`` header, a client can send headers
 indicating preferred content type and encoding.
 
 The ``Accept`` request header indicates a preferred content type and
-subtype.  Example ``Accept`` headers might be:
+subtype. Example ``Accept`` headers might be:
 
 
 .. code-block:: text

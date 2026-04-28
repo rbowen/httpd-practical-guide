@@ -589,7 +589,7 @@ Discussion
 
 Whereas **Alias** maps a URL to
 something in the local filesystem, **Redirect** maps a URL to another
-URL.  The second argument is either a full URL, or a URL-path,
+URL. The second argument is either a full URL, or a URL-path,
 starting with a slash. The redirected URL is sent back
 to the client (browser), which makes a second request for the new
 URL. In the case that the target is a URL-path (such as

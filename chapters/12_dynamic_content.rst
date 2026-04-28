@@ -343,7 +343,7 @@ Or:
 
 The two examples above should go in your main server configuration
 file. Ordinarily, **.htaccess** files are not enabled in **ScriptAlias**
-directories.  However, if you do have **.htaccess** files enabled in
+directories. However, if you do have **.htaccess** files enabled in
 your **ScriptAlias** directory, and wish to use the **RewriteRule**
 technique in one, remember that the directory path is stripped from
 the requested URI before the **RewriteRule** is applied, so your rule
@@ -431,7 +431,7 @@ For example, a Perl program might start with the line:
 
 
 The shell running the script looks in this first line and uses the
-program at the indicated path to interpret and execute the script.  In
+program at the indicated path to interpret and execute the script. In
 this way, files with arbitrary file extensions (or no extension at
 all) may be invoked with any interpreter desired. In the case of Perl,
 for example, one might have several versions of Perl installed, and
@@ -459,7 +459,7 @@ prevents unintentional command execution.
 
 This feature can be very useful for users who are running multiple
 servers, some on Unixish operating systems and others on Windows, but
-who want the same CGI programs to run both places.  Because Perl, for
+who want the same CGI programs to run both places. Because Perl, for
 example, is unlikely to be located at **/usr/bin/perl** on your Windows
 machine, using the **ScriptInterpreterSource** directive allows you to
 run the script unedited on Windows, simply by virtue of it having a
@@ -580,7 +580,7 @@ Problem
 ~~~~~~~
 
 
-You want to test that you have CGI enabled correctly.  Alternatively,
+You want to test that you have CGI enabled correctly. Alternatively,
 you are receiving an error message when you try to run your CGI script
 and you want to ensure the problem doesn't lie in the Web server
 before you try to find a problem in the script.
@@ -734,7 +734,7 @@ example, to find the correct location for Perl, you would type:
 
 
 The other scenario is that the file has been corrupted somehow so that
-the ``#!`` line is illegible.  The most common cause of this second
+the ``#!`` line is illegible. The most common cause of this second
 condition is when a script file is transferred from a Windows machine
 to a Unixish machine, **via** FTP, in binary mode rather than ASCII
 mode. This results in a file with the wrong type of end-of-line
@@ -872,7 +872,7 @@ Discussion
 
 
 The exact solution to this will vary from one programming language to
-another, and so examples are given here in two languages.  Note that
+another, and so examples are given here in two languages. Note that
 each of these examples uses an external library to do the actual
 parsing of the form content. This is important, because it is easy to
 parse forms incorrectly. By using one of these libraries, you ensure
@@ -983,7 +983,7 @@ Solution
 
 
 Use the **Action** directive to create a custom handler, which will be
-implemented by a CGI program.  Then use the **AddHandler** directive to
+implemented by a CGI program. Then use the **AddHandler** directive to
 associate a particular file extension with this handler:
 
 
@@ -1150,12 +1150,12 @@ Discussion
 SSIs provide a way to add dynamic content to an HTML page **via** a
 variety of simple tags. This functionality is implemented by the
 ``mod_include`` module, which is documented at
-http://httpd.apache.org/docs/mod/mod_include.html.  There
+http://httpd.apache.org/docs/mod/mod_include.html. There
 is also a how-to-style document available at
 http://httpd.apache.org/docs/howto/ssi.html.
 
 The first solution provided here tells httpd to parse all **.shtml**
-files for SSI directives.  So, to test that the solution has been
+files for SSI directives. So, to test that the solution has been
 effective, create a file called **something.shtml**, and put the
 following line in it:
 
@@ -1267,7 +1267,7 @@ Discussion
 
 
 The **config** SSI directive allows you to configure a few settings
-governing SSI output formats.  In this case, it's being used to
+governing SSI output formats. In this case, it's being used to
 configure the format in which date/time information is displayed. The
 default format for date output is ``04-Dec-2037 19:58:15 EST``, which is
 not the most user-friendly style. The recipe provided changes this to
@@ -1508,11 +1508,11 @@ be invoked, as shown in the Solution.
 A **User** and **Group** directive may be specified in a **VirtualHost**
 container, and all CGI programs executed within the context of that
 virtual host are executed as that user and group. Note that this only
-applies to CGI programs.  Normal documents and other types of dynamic
+applies to CGI programs. Normal documents and other types of dynamic
 content are still accessed as the user and group specified in the
 **User** and **Group** directives in the main server configuration, not
 those in the virtual host, and need to be readable by that user and
-group.  Second, any CGI program run out of a **UserDir** directory is
+group. Second, any CGI program run out of a **UserDir** directory is
 run with the permissions of the owner of that directory. That is, if a
 CGI program is accessed **via** the URL
 http://example.com/~rbowen/cgi-bin/test.cgi, then that
@@ -1595,7 +1595,7 @@ Problem
 
 
 You want to install one of the many ``mod_perl`` handler modules
-available on CPAN.  For example, you want to install the
+available on CPAN. For example, you want to install the
 **Apache::Perldoc** module, which generates HTML documentation for any
 Perl module that you happen to have installed.
 
@@ -1797,7 +1797,7 @@ following directive in the httpd configuration file:
    PerlRequire /path/to/startup.pl
 
 
-This tells Perl to also look in that directory for Perl modules.  This
+This tells Perl to also look in that directory for Perl modules. This
 time, if your module is called **Apache::Cookbook::Example**, you would
 now place it at the location
 ``/home/rbowen/perl_libs/Apache/Cookbook/Example.pm``.

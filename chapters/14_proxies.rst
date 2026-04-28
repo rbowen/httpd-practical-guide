@@ -2091,7 +2091,7 @@ This tells ``mod_proxy_http`` to honor ``Upgrade: websocket``
 requests and tunnel them transparently. This is now the recommended
 approach in the official documentation. However,
 ``mod_proxy_wstunnel`` remains fully functional, widely deployed,
-and appropriate for use on older versions.  If you are running 2.4.47
+and appropriate for use on older versions. If you are running 2.4.47
 or later and are setting up a new configuration, the
 ``upgrade=websocket`` approach on ``ProxyPass`` is simpler and avoids
 the need for separate ``ws://`` rules.

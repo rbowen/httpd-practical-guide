@@ -916,7 +916,7 @@ Example output from the ``?auto`` argument is shown below:
 .. code-block:: text
 
    localhost
-   ServerVersion: Apache/2.4.23 (Fedora) PHP/7.0.13
+   ServerVersion: Apache/2.4.62 (Fedora) PHP/8.3
    ServerMPM: prefork
    Server Built: Dec  5 2016 16:41:37
    CurrentTime: Thursday, 15-Dec-2016 12:21:42 EST

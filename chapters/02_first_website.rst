@@ -1118,15 +1118,15 @@ Possible values for the ``Options`` directive are:
 +------------------------------+-----------------------------------------------------------------+
 | **``None``**                 | Disable all categories of options                               |
 +------------------------------+-----------------------------------------------------------------+
-| **``ExecCGI``**              | Execution of CGI scripts using mod_cgi is permitted.            |
+| **``ExecCGI``**              | Execution of CGI scripts using mod_cgi is permitted. |
 +------------------------------+-----------------------------------------------------------------+
-| **``FollowSymLinks``**       | The server will follow symbolic links in this directory.        |
+| **``FollowSymLinks``**       | The server will follow symbolic links in this directory. |
 +------------------------------+-----------------------------------------------------------------+
 | **``SymLinksIfOwnerMatch``** |                                                                 |
 +------------------------------+-----------------------------------------------------------------+
-| **``Includes``**             | Server-side includes provided by _mod_include_ are permitted.   |
+| **``Includes``**             | Server-side includes provided by _mod_include_ are permitted. |
 +------------------------------+-----------------------------------------------------------------+
-| **``IncludesNOEXEC``**       | Server-side includes are permitted, but ``#exec`` is disabled.  |
+| **``IncludesNOEXEC``**       | Server-side includes are permitted, but ``#exec`` is disabled. |
 +------------------------------+-----------------------------------------------------------------+
 | **``Indexes``**              |                                                                 |
 +------------------------------+-----------------------------------------------------------------+

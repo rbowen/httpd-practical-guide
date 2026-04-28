@@ -109,11 +109,11 @@ A basic regex vocabulary
 +-----------+--------------------------------------------------+
 | Character | Meaning                                          |
 +-----------+--------------------------------------------------+
-| .         | Matches any character. This is the wildcard      |
+| . | Matches any character. This is the wildcard      |
 +-----------+--------------------------------------------------+
-| +         | Matches one or more of the previous character.   |
+| +         | Matches one or more of the previous character. |
 +-----------+--------------------------------------------------+
-| *         | Matches zero or more of the previous character.  |
+| *         | Matches zero or more of the previous character. |
 +-----------+--------------------------------------------------+
 | ?         | Makes the previous character optional. For       |
 +-----------+--------------------------------------------------+
@@ -224,31 +224,31 @@ Predefined regular expression character classes
 +-----------------+-------------------------------------------------+
 | \w              | Any 'word' character; that is, an underscore or |
 +-----------------+-------------------------------------------------+
-| \W              | Any nonword character.                          |
+| \W              | Any nonword character. |
 +-----------------+-------------------------------------------------+
-| [:alnum:]       | Any alphanumeric character.                     |
+| [:alnum:]       | Any alphanumeric character. |
 +-----------------+-------------------------------------------------+
-| [:alpha:]       | Any alphabetical character.                     |
+| [:alpha:]       | Any alphabetical character. |
 +-----------------+-------------------------------------------------+
-| [:blank:]       | A space or horizontal tab.                      |
+| [:blank:]       | A space or horizontal tab. |
 +-----------------+-------------------------------------------------+
-| [:cntrl:]       | A control character.                            |
+| [:cntrl:]       | A control character. |
 +-----------------+-------------------------------------------------+
-| [:digit:]       | A decimal digit.                                |
+| [:digit:]       | A decimal digit. |
 +-----------------+-------------------------------------------------+
-| [:graph:]       | A nonspace, noncontrol character.               |
+| [:graph:]       | A nonspace, noncontrol character. |
 +-----------------+-------------------------------------------------+
-| [:lower:]       | A lowercase letter.                             |
+| [:lower:]       | A lowercase letter. |
 +-----------------+-------------------------------------------------+
 | [:print:]       | Same as graph, but also space and               |
 +-----------------+-------------------------------------------------+
-| [:punct:]       | A punctuation character.                        |
+| [:punct:]       | A punctuation character. |
 +-----------------+-------------------------------------------------+
 | [:space:]       | Any whitespace character, including newline and |
 +-----------------+-------------------------------------------------+
-| [:upper:]       | An uppercase letter.                            |
+| [:upper:]       | An uppercase letter. |
 +-----------------+-------------------------------------------------+
-| [:xdigit:]      | A valid hexadecimal digit.                      |
+| [:xdigit:]      | A valid hexadecimal digit. |
 +-----------------+-------------------------------------------------+
 
 

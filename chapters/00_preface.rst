@@ -7,10 +7,13 @@ Preface
 
 .. epigraph::
 
-   It's a long way to the top if you wanna rock 'n' roll.
+   Before the High and Far-Off Times, O my Best Beloved, came the
+   Time of the Very Beginnings; and that was in the days when the
+   Eldest Magician was getting Things ready. First he got the Earth
+   ready; then he got the Sun ready; and then he told all the Animals
+   that they could come out and play.
 
-   -- AC/DC, *It's a Long Way to the Top*
-
+   -- Rudyard Kipling, *Just So Stories*, "The Crab that Played with the Sea"
 
 .. index:: Preface
 
@@ -490,15 +493,19 @@ Acknowledgments
 .. index:: Acknowledgements
 
 
-Originally, each recipe was going to be individually attributed,
-but that turned out to be logistically impossible.
-
 Many people have helped us during the writing of this book, by
 posing a problem, providing a solution, proofreading, reviewing,
 editing, or just (!) providing moral support. This multitude, to each of
-whom I am profoundly grateful, includes ...
+whom I am profoundly grateful.
 
-
+I have to explicitly acknowledge that much of the heavy lifting, grunt
+work, and research for this book has been done by AI agents. This book
+was a massive undertaking, and earlier editions took years to put
+together. AI has made it possible to do this in a much shorter period.
+However, it would not be accurate to say that the book is "AI
+generated", in that every single page and recipe in this book
+has been personally scrutinized and edited by me, and the errors are all
+my responsibility.
 
 This book is dedicated:
 
@@ -509,18 +516,14 @@ Apache Software Foundation, for their years of enriching my life, not
 to mention my career.
 
 To the kind strangers who took me under their wings when I stumbled
-across Apache httpd back in the late 1900s - Ken Coar, Jim Jagielski,
-and Sally Khudairi - and who have become my friends as well as my
+across Apache httpd back in the late 1900s, many of whom
+have become my friends as well as my
 mentors.
 
 To the denizens of the ``#httpd`` IRC channel on Libera Chat. You provided
 most of the questions here, as well as hours and days and years of
 fine-tuning the answers. This book would literally not exist without
 you.
-
-To the wonderful people we worked with at O'Reilly on earlier editions,
-especially Ally MacDonald, who put up with our painfully slow progress
-for more than 3 years.
 
 To Terry Pratchett, Arthur C. Clarke, and Ray Bradbury, who told me the 
 stories that got me writing in the first place. I miss you.

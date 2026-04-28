@@ -298,7 +298,7 @@ Solution
 
 
 Various columns can be suppressed with one of the **Suppress*** 
-arguments to the **IndexOptions** directive.  For example, to suppress the 
+arguments to the **IndexOptions** directive. For example, to suppress the 
 last modified date column:
 
 
@@ -355,7 +355,7 @@ Problem
 
 
 You want to allow the end user to specify how the list will be
-formatted.  
+formatted. 
 
 
 .. _Solution_Client-formatting:

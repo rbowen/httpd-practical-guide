@@ -97,7 +97,7 @@ be seen at http://incubator.apache.org/
 
 Finally, there are also some projects - 41 of them at the time of this 
 writing - which have retired for one reason or another, and reside in 
-the Attic.  This isn't a shameful thing - some projects are simply no longer
+the Attic. This isn't a shameful thing - some projects are simply no longer
 relevant in today's technology, while others have achieved feature
 completeness, and so the development community around the project has
 moved on to other things. The Attic exists to permanently archive the
@@ -222,7 +222,7 @@ https://lists.apache.org/list.html?dev@httpd.apache.org.
 Traffic on the developer list is somewhat higher than the users list,
 at about 5 to 10 messages a day. Traffic levels vary greatly,
 depending on who is actively working on features, and how close we are
-to a release.  Messages tend to be of a much more
+to a release. Messages tend to be of a much more
 technical nature, and tend to require some understanding of the code,
 and of the C programming language.
 
@@ -538,6 +538,125 @@ See Also
 
 .. _Recipe_Patch:
 
+.. admonition:: DRAFT — Review needed
+
+   The following recipe was auto-generated and needs editorial review.
+
+
+.. _Recipe_svn_basics:
+
+Subversion basics for httpd contributors
+-----------------------------------------
+
+.. index:: Subversion
+.. index:: SVN
+.. index:: svn checkout
+.. index:: svn update
+.. index:: svn diff
+
+
+Problem
+~~~~~~~
+
+You want to contribute to the httpd project but are unfamiliar
+with Subversion (SVN), the version control system used by the
+Apache Software Foundation.
+
+
+Solution
+~~~~~~~~
+
+Install Subversion, then check out the httpd source tree:
+
+.. code-block:: bash
+
+   # Debian/Ubuntu:
+   sudo apt install subversion
+   # Fedora/RHEL/AlmaLinux:
+   sudo dnf install subversion
+   # macOS:
+   brew install subversion
+
+   # Check out httpd trunk (development branch)
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
+
+   # Or check out the stable 2.4.x branch
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x httpd-2.4
+
+
+Discussion
+~~~~~~~~~~
+
+Subversion is a centralized version control system — unlike Git,
+there is a single central repository that everyone commits to.
+The ASF hosts its SVN repository at ``svn.apache.org``.
+
+Here are the commands you'll use most often:
+
+**Updating your working copy:**
+
+.. code-block:: bash
+
+   cd httpd-trunk
+   svn update
+
+Run this before starting any new work to make sure you have the
+latest changes.
+
+**Viewing your changes:**
+
+.. code-block:: bash
+
+   svn status
+   svn diff
+
+``svn status`` shows which files you've modified. ``svn diff``
+shows the actual changes in unified diff format.
+
+**Creating a patch:**
+
+.. code-block:: bash
+
+   svn diff > my_fix.patch
+
+Attach this file to a Bugzilla ticket or send it to the
+``dev@httpd.apache.org`` mailing list.
+
+**Reverting changes:**
+
+.. code-block:: bash
+
+   svn revert filename.c
+   svn revert -R .
+
+The first reverts a single file; the second reverts everything.
+
+**Browsing the repository without checking out:**
+
+.. code-block:: bash
+
+   svn ls https://svn.apache.org/repos/asf/httpd/httpd/branches/
+   svn ls https://svn.apache.org/repos/asf/httpd/httpd/tags/
+
+You can also browse via the web at
+https://svn.apache.org/viewvc/httpd/httpd/.
+
+.. note::
+
+   A read-only Git mirror exists at https://github.com/apache/httpd
+   for browsing, but the canonical source is SVN. Patches should be
+   generated with ``svn diff`` and submitted through the ASF workflow.
+
+
+See Also
+~~~~~~~~
+
+* Subversion documentation: https://subversion.apache.org/docs/
+* Subversion quick-start: https://subversion.apache.org/quick-start
+* ASF contributor guide: https://www.apache.org/dev/contributors
+
+
+
 Your first patch
 ----------------
 
@@ -547,7 +666,7 @@ Your first patch
 
 .. index:: Making a code change
 
-.. index:: git
+.. index:: Subversion
 
 
 .. _Problem_Patch:
@@ -574,19 +693,19 @@ process with httpd:
 
 .. code-block:: text
 
-   git clone https://github.com/apache/httpd.git httpd-trunk
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
 
 
 2. Edit the source code file with your favorite editor.
 
 3. Test your change!
 
-4. Create a patch using ``git diff``.
+4. Create a patch using ``svn diff``.
 
 
 .. code-block:: text
 
-   git diff > my_patch.diff
+   svn diff > my_patch.diff
 
 
 5. Send the patch as an attachment to the ``dev@httpd.apache.org``
@@ -600,17 +719,18 @@ Discussion
 ~~~~~~~~~~
 
 
-The source code of httpd is maintained in Git,
-hosted on GitHub at https://github.com/apache/httpd.
-Git is a distributed version control
-system which allows everyone to edit the same code base at the same
+The source code of httpd is maintained in Subversion (SVN)
+at https://svn.apache.org/repos/asf/httpd/httpd/.
+Subversion is a centralized version control
+system. Everyone works against the same central repository at
 time, resolve conflicts, and contribute to a single central shared
 repository.
 
-If you do not already have ``git`` installed on your
+If you do not already have ``svn`` (Subversion) installed on your
 development machine, you will need to obtain it and install it first.
-See https://git-scm.com/downloads for installation instructions
-for a wide variety of platforms.
+See https://subversion.apache.org/packages.html for installation
+instructions, or install via your package manager (``apt install
+subversion`` or ``dnf install subversion``).
 
 The ``checkout`` command obtains a local copy of the source code, called
 your working copy, where you can make changes and test those changes
@@ -627,7 +747,7 @@ recipe above:
 
 .. code-block:: text
 
-   git clone https://github.com/apache/httpd.git httpd-trunk
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
 
 
 The second argument to the command created a directory called, in this
@@ -645,7 +765,7 @@ the ``2.4`` branch, you'd use the following command:
 
 .. code-block:: text
 
-   git clone https://github.com/apache/httpd.git httpd-2.4
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x httpd-2.4
    cd httpd-2.4
    git checkout 2.4.x
 
@@ -687,7 +807,7 @@ and Testing*, for more discussion of testing your server.
 
 Once you are sure that your changes work to your satisfaction, and
 don't break anything else, you need to send those changes to the
-community for consideration. The ``git diff`` command shows just the
+community for consideration. The ``svn diff`` command shows just the
 changes that you made, so that reviewers can examine these changes
 very quickly, without having to read through the entire file looking
 to see what changed.
@@ -779,7 +899,8 @@ process is still in place to ensure code quality.
 You can view the change history of every file in the project in
 ``viewvc``, which is a web utility for seeing what changed, when, by
 whom, and why. You can see ``viewvc`` for httpd trunk at
-https://github.com/apache/httpd
+https://svn.apache.org/viewvc/httpd/httpd/trunk/
+
 
 Actually teaching you to hack on the httpd source code is beyond
 the scope of this book. See the developer documentation, at 
@@ -797,13 +918,13 @@ See Also
 
 * Developer documentation: http://www.apache.org/dev/
 
-* Git repository: https://github.com/apache/httpd
+* SVN repository: https://svn.apache.org/repos/asf/httpd/httpd/
 
-* Git installation instructions: https://git-scm.com/downloads
+* Subversion installation instructions: https://subversion.apache.org/packages.html
 
 * :ref:`Recipe_Mailing_lists`
 
-* viewvc interface for viewing source code history: https://github.com/apache/httpd
+* viewvc interface: https://svn.apache.org/viewvc/httpd/httpd/
 
 * The Apache Modules Book:
   https://www.amazon.com/Apache-Modules-Book-Application-Development/dp/0132409674
@@ -969,7 +1090,7 @@ branches of the code (currently trunk and 2.4).
 
 .. code-block:: text
 
-   git clone https://github.com/apache/httpd.git httpd-trunk
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/trunk httpd-trunk
 
 
 When you're in any one of these working copy directories, you can
@@ -1003,7 +1124,7 @@ checkout, and type the following command:
 
 .. code-block:: text
 
-   git clone https://github.com/apache/httpd-docs-build.git build
+   svn checkout https://svn.apache.org/repos/asf/httpd/docs-build/trunk build
 
 
 This will create a ``build`` directory containing the build tools which
@@ -1036,7 +1157,7 @@ procedure described in :ref:`Recipe_Patch`:
 
 .. code-block:: text
 
-   git diff > my_changes.diff
+   svn diff > my_changes.diff
 
 
 Finally, if all of this is, for whatever reason, too much work, we

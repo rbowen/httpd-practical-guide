@@ -195,7 +195,7 @@ Discussion
 
 
 As was mentioned in the previous recipe, it is certainly possible to
-build httpd with SSL from source on Microsoft Windows.  However, to
+build httpd with SSL from source on Microsoft Windows. However, to
 be honest, this is beyond the expertise of most of us.
 
 So, save yourself some pain, take advantage of the great work that has
@@ -388,7 +388,7 @@ The private is encrypted if you used one option like
 **-des3** to encrypt it or if the openssl you are using 
 does that by default.
 The key encrypted so that only someone with the passphrase can read
-the contents of the key.  A side-effect of this is that every time you
+the contents of the key. A side-effect of this is that every time you
 start up your httpd, you will need to type in the
 passprase. This is extremely inconvenient, as it means that starting
 up the Web server always requires a manual step. This is particularly
@@ -499,7 +499,7 @@ handy script, called **CA.pl**, which simplifies the process of creating
 keys. The use of **CA.pl** is described in
 :ref:`Generating_a_Trusted_CA_id139220` so you can see it in action. It
 is useful, however, to know some of what is going on behind the
-script. At least, I tend to think so.  It also gives you considerably
+script. At least, I tend to think so. It also gives you considerably
 more control as to how the certificate is made.
 
 
@@ -763,7 +763,7 @@ host; it merely forbids non-SSL access.
 The third recipe, using **RewriteCond** and **RewriteRule** directives,
 requires that you have ``mod_rewrite`` installed and enabled. Using
 the **RewriteCond** directive to check if the client is already using
-SSL, the **RewriteRule** is invoked only if they are not.  In that case,
+SSL, the **RewriteRule** is invoked only if they are not. In that case,
 the request is redirected to a request for the same content but using
 HTTPS instead of HTTP.
 

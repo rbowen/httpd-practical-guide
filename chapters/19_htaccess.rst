@@ -216,7 +216,7 @@ of them:
 +------------+-------------------------------------------------------------+
 | Limit      | Permit the use of directives controlling host access - that |
 +------------+-------------------------------------------------------------+
-| Nonfatal   | Defines how to handle errors in ``.htaccess`` files.        |
+| Nonfatal   | Defines how to handle errors in ``.htaccess`` files. |
 +------------+-------------------------------------------------------------+
 | Options    | Permit use of the ``Options`` directive. See                |
 +------------+-------------------------------------------------------------+
@@ -629,7 +629,7 @@ The ``Nonfatal`` keyword can take one of three possible arguments:
 +-------------------+----------------------------------------------------+
 | Nonfatal=Unknown  | Treats unknown directives as nonfatal. This covers |
 +-------------------+----------------------------------------------------+
-| Nonfatal=All      | Treats both the above as nonfatal.                 |
+| Nonfatal=All      | Treats both the above as nonfatal. |
 +-------------------+----------------------------------------------------+
 
 

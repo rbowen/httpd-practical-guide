@@ -45,7 +45,18 @@ Sphinx/RST book format.
 - **Oxford comma**: always ("addresses, hostnames, and ports")
 - **Contractions**: acceptable and encouraged for natural tone
 
-## RST Markup Conventions
+## Spacing
+
+- **One space after a period** — never two. This is a modern typesetting standard.
+
+## Version Numbers in Examples
+
+- Use a recent version (currently **2.4.62**) for all example filenames and
+  commands: `httpd-2.4.62.tar.gz`, `cd httpd-2.4.62`, etc.
+- **Do NOT change** "Available since 2.4.x" references — those are facts.
+- Always point readers to `https://httpd.apache.org/download.cgi` for the
+  current release rather than stating "the latest version is X."
+
 
 ### Inline Markup
 
