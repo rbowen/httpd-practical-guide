@@ -94,7 +94,7 @@ restrict access from malicious or otherwise undesirable clients.
 
 
 Authentication and Authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 .. sidebar:: Authentication and Authorization
 
@@ -122,247 +122,13 @@ Authentication and Authorization
    was in authentication. This is to prevent would-be attackers from being
    able to tell when they have valid credentials, but just don't happen
    to be allowed to see that particular resource.
+
+.. refcosplay
+
    
 
 
 
-
-.. admonition:: DRAFT — Review needed
-
-   The following recipe was auto-generated and needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
-
-.. _Recipe_access_compat_migration:
-
-Migrating from mod_access_compat to the 2.4 Authorization Model
----------------------------------------------------------------
-
-.. index:: mod_access_compat
-
-.. index:: Modules,mod_access_compat
-
-.. index:: Migration,2.2 to 2.4
-
-.. index:: Order Allow Deny
-
-.. index:: Require directive
-
-.. index:: Access control,migration
-
-.. index:: Satisfy directive
-
-.. index:: mod_authz_host
-
-
-.. _Problem_access_compat_migration:
-
-Problem
-~~~~~~~
-
-You are upgrading from Apache 2.2 to 2.4 and your configuration uses
-``Order``, ``Allow``, ``Deny``, and ``Satisfy`` directives that now
-generate deprecation warnings or behave unexpectedly.
-
-
-.. _Solution_access_compat_migration:
-
-Solution
-~~~~~~~~
-
-Replace the legacy :module:`mod_access_compat` directives with the
-equivalent ``Require`` directives provided by :module:`mod_authz_core`
-and :module:`mod_authz_host`. The table below shows side-by-side
-translations for the most common patterns.
-
-**Allow everyone:**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order allow,deny
-   Allow from all
-
-   # Apache 2.4
-   Require all granted
-
-**Deny everyone:**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order deny,allow
-   Deny from all
-
-   # Apache 2.4
-   Require all denied
-
-**Allow from a network, deny everyone else:**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order deny,allow
-   Deny from all
-   Allow from 10.0.0.0/8
-
-   # Apache 2.4
-   Require ip 10.0.0.0/8
-
-**Allow from a domain:**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order deny,allow
-   Deny from all
-   Allow from .example.com
-
-   # Apache 2.4
-   Require host .example.com
-
-**Deny a specific host, allow everyone else:**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order allow,deny
-   Allow from all
-   Deny from 192.168.1.205
-
-   # Apache 2.4
-   <RequireAll>
-       Require all granted
-       Require not ip 192.168.1.205
-   </RequireAll>
-
-**Combining IP restriction with password authentication (Satisfy Any):**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order deny,allow
-   Deny from all
-   Allow from 10.0.0.0/8
-   AuthType Basic
-   AuthName "Staff Area"
-   AuthUserFile /etc/httpd/conf/passwords
-   Require valid-user
-   Satisfy Any
-
-   # Apache 2.4
-   <RequireAny>
-       Require ip 10.0.0.0/8
-       Require valid-user
-   </RequireAny>
-   AuthType Basic
-   AuthName "Staff Area"
-   AuthBasicProvider file
-   AuthUserFile /etc/httpd/conf/passwords
-
-**Requiring both IP and password (Satisfy All):**
-
-.. code-block:: text
-
-   # Apache 2.2
-   Order deny,allow
-   Deny from all
-   Allow from 10.0.0.0/8
-   AuthType Basic
-   AuthName "Restricted"
-   AuthUserFile /etc/httpd/conf/passwords
-   Require valid-user
-   Satisfy All
-
-   # Apache 2.4
-   <RequireAll>
-       Require ip 10.0.0.0/8
-       Require valid-user
-   </RequireAll>
-   AuthType Basic
-   AuthName "Restricted"
-   AuthBasicProvider file
-   AuthUserFile /etc/httpd/conf/passwords
-
-
-.. _Discussion_access_compat_migration:
-
-Discussion
-~~~~~~~~~~
-
-When Apache 2.4 was released, the entire access control model
-changed. In Apache 2.2, access control used two separate mechanisms:
-the ``Order``/``Allow``/``Deny`` directives for host-based
-restrictions, and the ``Require`` directive for user authentication.
-The ``Satisfy`` directive glued these two worlds together by
-specifying whether one or both conditions had to be met.
-
-Apache 2.4 unified everything under the ``Require`` directive and
-the ``<RequireAll>``, ``<RequireAny>``, and ``<RequireNone>``
-container directives. This is both simpler and more powerful -- you
-can nest authorization requirements to any depth, expressing
-arbitrarily complex access policies. See :ref:`Recipe_RequireAll`
-for a detailed discussion of these containers.
-
-:module:`mod_access_compat` exists solely as a bridge. It provides
-the old ``Order``/``Allow``/``Deny``/``Satisfy`` directives in
-Apache 2.4 so that configurations written for 2.2 continue to work
-without immediate changes. However, these directives are deprecated,
-and mixing old and new syntax in the same context leads to
-unpredictable behavior. The official documentation warns:
-
-   *Mixing old directives like Order, Allow, or Deny with new ones
-   like Require is technically possible but discouraged.*
-
-**When to remove mod_access_compat:** Once you have completed
-converting all your ``Order``/``Allow``/``Deny``/``Satisfy``
-directives -- including those in ``.htaccess`` files and in any
-included configuration fragments -- you can safely remove
-:module:`mod_access_compat` from your module list. Removing it
-eliminates any risk of accidental mixing and makes the error messages
-clearer if an unconverted directive slips through.
-
-**Finding unconverted directives:** Use ``grep`` to search your
-entire configuration tree for remaining legacy directives:
-
-.. code-block:: bash
-
-   grep -rn -E '^\s*(Order|Allow from|Deny from|Satisfy)' \
-       /etc/httpd/conf/ /etc/httpd/conf.d/ /var/www/
-
-.. tip::
-
-   Don't forget ``.htaccess`` files. If your site allows overrides with
-   ``AllowOverride Limit`` or ``AllowOverride All``, users may have
-   ``.htaccess`` files containing ``Order``/``Allow``/``Deny`` directives.
-   These will still work while :module:`mod_access_compat` is loaded but
-   will break the moment you remove it.
-
-**The Order directive's evaluation model** is notoriously confusing.
-``Order allow,deny`` means: evaluate ``Allow`` rules first, then
-``Deny`` rules, and default to deny. ``Order deny,allow`` means the
-opposite: evaluate ``Deny`` first, then ``Allow``, and default to
-allow. The last-matching rule wins. This logic tripped up even
-experienced administrators and was one of the primary motivations for
-the 2.4 redesign. For detailed discussion of combining requirements in
-2.4, see :ref:`Recipe_RequireAll`.
-
-
-.. _See_Also_access_compat_migration:
-
-See Also
-~~~~~~~~
-
-* :ref:`Recipe_RequireAll`
-
-* :ref:`Recipe_OpenDoor`
-
-* :ref:`Recipe_all_denied`
-
-* :ref:`Recipe_Authorization_by_host`
-
-* http://httpd.apache.org/docs/2.4/mod/mod_access_compat.html
-
-* http://httpd.apache.org/docs/2.4/upgrading.html
 
 
 .. _Recipe_authn_provider_architecture:
@@ -2127,7 +1893,7 @@ See Also
 .. _Recipe_Form_Auth:
 
 Form-based authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 .. index:: Authentication,Form
 
@@ -2251,7 +2017,7 @@ step individually. These steps are:
 * Create password file to validate against
 
 Enabling modules
-----------------
+^^^^^^^^^^^^^^^^
 
 
 First of all, form authentication requires several modules that are
@@ -2291,7 +2057,7 @@ adding (or uncommenting) the relevant ``LoadModule`` directives:
 
 
 The authenticated area
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 
 In order to trigger the authentication in the first place, we need to
@@ -2336,7 +2102,7 @@ any of the various ``*Match`` equivalents, or use these directives in a
 ``.htaccess`` file.
 
 The login form
---------------
+^^^^^^^^^^^^^^
 
 
 Next, we create the login form itself.
@@ -2372,7 +2138,7 @@ fields, you can do so using the ``AuthFormUsername`` and
 
 
 The login action
-----------------
+^^^^^^^^^^^^^^^^
 
 
 The login action is handled by the ``form-login-handler`` Handler, which
@@ -2389,7 +2155,7 @@ upon successful login. It usually makes sense for this to be the
 to access.
 
 The password file
------------------
+^^^^^^^^^^^^^^^^^
 
 
 The ``AuthFormProvider`` and ``AuthUserFile`` directives indicate the
@@ -2404,7 +2170,7 @@ However, in the recipe above, we assume a standard ``htpasswd`` style
 password file. 
 
 Testing
--------
+^^^^^^^
 
 
 To test your setup, point a browser at the password-protected URL. You
@@ -3810,7 +3576,7 @@ See Also
 .. _Recipe_Authorization_by_host:
 
 Authorization_by_host
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 .. index:: Authorization,host
 
@@ -4361,7 +4127,7 @@ See Also
 
 
 Weak and Strong Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 .. sidebar:: Weak and Strong Authentication
 
@@ -4638,6 +4404,9 @@ See Also
 * The **Require file-group** keyword at 
   http://httpd.apache.org/docs/mod/mod_auth.html#require
 
+.. refcosplay
+
+
 
 .. _Recipe_Username:
 
@@ -4723,6 +4492,9 @@ See Also
 
 
 * :ref:`Recipe_GetPassword`
+
+.. refcosplay
+
 
 
 .. _Recipe_GetPassword:
@@ -4892,6 +4664,9 @@ See Also
 * :ref:`Recipe_mod_security_recipes`
 
 * http://modsecurity.org/
+
+.. refcosplay
+
 
 
 .. _Recipe_Creds_In_URL:
@@ -5716,6 +5491,154 @@ See Also
 
 * https://httpd.apache.org/docs/2.4/mod/mod_allowmethods.html
 
+
+
+.. _Recipe_Migrate_Access_Compat:
+
+Migrating from Order/Allow/Deny to Require
+-------------------------------------------
+
+.. index:: mod_access_compat
+
+.. index:: Modules,mod_access_compat
+
+.. index:: Order Allow Deny, migration
+
+.. _Problem_Migrate_Access_Compat:
+
+Problem
+~~~~~~~
+
+You are upgrading from httpd 2.2 to 2.4 and your configuration still uses
+``Order``, ``Allow``, and ``Deny`` directives from
+:module:`mod_access_compat`.  You want to replace them with the modern
+``Require`` syntax so you can remove :module:`mod_access_compat` entirely.
+
+.. _Solution_Migrate_Access_Compat:
+
+Solution
+~~~~~~~~
+
+The table below shows the most common 2.2-era patterns and their 2.4
+equivalents.  The modern directives come from :module:`mod_authz_core` and
+:module:`mod_authz_host`, both loaded by default.
+
+**Allow from all** — grant unrestricted access:
+
+.. code-block:: apache
+
+   # 2.2 (mod_access_compat)
+   Order allow,deny
+   Allow from all
+
+   # 2.4 (mod_authz_core)
+   Require all granted
+
+**Deny from all** — block all access:
+
+.. code-block:: apache
+
+   # 2.2
+   Order deny,allow
+   Deny from all
+
+   # 2.4
+   Require all denied
+
+**Restrict to a subnet**:
+
+.. code-block:: apache
+
+   # 2.2
+   Order deny,allow
+   Deny from all
+   Allow from 192.168.1.0/24
+
+   # 2.4
+   Require ip 192.168.1.0/24
+
+**Restrict to a domain**:
+
+.. code-block:: apache
+
+   # 2.2
+   Order deny,allow
+   Deny from all
+   Allow from .example.com
+
+   # 2.4
+   Require host example.com
+
+**Block a single host, allow everyone else**:
+
+.. code-block:: apache
+
+   # 2.2
+   Order allow,deny
+   Allow from all
+   Deny from 10.0.0.99
+
+   # 2.4
+   <RequireAll>
+       Require all granted
+       Require not ip 10.0.0.99
+   </RequireAll>
+
+**Combining host restriction with authentication** (the old ``Satisfy Any``
+pattern — allow either a valid password *or* the right IP):
+
+.. code-block:: apache
+
+   # 2.2
+   Order deny,allow
+   Deny from all
+   Allow from 192.168.1.0/24
+   AuthType Basic
+   AuthName "Staff Only"
+   AuthUserFile "/etc/httpd/passwd/staff"
+   Require valid-user
+   Satisfy Any
+
+   # 2.4
+   AuthType Basic
+   AuthName "Staff Only"
+   AuthUserFile "/etc/httpd/passwd/staff"
+   <RequireAny>
+       Require ip 192.168.1.0/24
+       Require valid-user
+   </RequireAny>
+
+Once every ``Order``, ``Allow``, ``Deny``, and ``Satisfy`` directive has been
+converted, remove :module:`mod_access_compat` from your ``LoadModule`` list
+(or comment it out) and restart httpd.
+
+.. _Discussion_Migrate_Access_Compat:
+
+Discussion
+~~~~~~~~~~
+
+:module:`mod_access_compat` exists solely for backward compatibility.  Mixing
+old-style and new-style directives in the same section is technically possible
+but strongly discouraged — the evaluation order becomes unpredictable.  Pick
+one model and use it consistently.
+
+The ``Require`` system is also more composable.  The container directives
+``<RequireAll>``, ``<RequireAny>``, and ``<RequireNone>`` give you explicit
+boolean logic that was difficult to express with ``Order``.
+
+A useful migration technique: set ``LogLevel authz_core:debug`` temporarily.
+httpd will log exactly which ``Require`` directive granted or denied each
+request, making it easy to verify that your converted rules behave identically
+to the originals.
+
+.. _See_Also_Migrate_Access_Compat:
+
+See Also
+~~~~~~~~
+
+* `mod_access_compat reference <https://httpd.apache.org/docs/current/mod/mod_access_compat.html>`_
+* `Upgrading to 2.4 from 2.2 <https://httpd.apache.org/docs/current/upgrading.html>`_
+* :ref:`Recipe_Authz_User` — the ``Require`` directives for user-based access
 
 
 Summary

@@ -734,9 +734,8 @@ Problem
 
 
 You need a single configuration file to work correctly across multiple
-versions of Apache httpd -- for example, during a phased migration
-from 2.2 to 2.4, or across a fleet where not every server has been
-upgraded at the same time.
+versions of Apache httpd -- for example, across a fleet where not
+every server has been upgraded to the same point release.
 
 
 .. _Solution_mod_version:
@@ -752,12 +751,8 @@ versions:
 
 .. code-block:: text
 
-   <IfVersion >= 2.4>
-       Require all granted
-   </IfVersion>
-   <IfVersion < 2.4>
-       Order allow,deny
-       Allow from all
+   <IfVersion >= 2.4.17>
+       Protocols h2 h2c http/1.1
    </IfVersion>
 
 
@@ -793,42 +788,24 @@ If you omit the operator entirely, ``=`` is assumed. So
 ``<IfVersion 2.4.2>`` is equivalent to ``<IfVersion = 2.4.2>``.
 
 Any operator can be negated by prefixing it with an exclamation mark.
-For example, ``<IfVersion !~ ^2.2>`` matches everything that is
-*not* a 2.2.x release.
-
-**Handling the 2.2 to 2.4 authorization change**
-
-One of the most common uses for ``<IfVersion>`` is the authorization
-syntax change between 2.2 and 2.4. In httpd 2.4 the old ``Order``,
-``Allow``, and ``Deny`` directives were replaced by ``mod_authz_core``
-and the ``Require`` directive. A shared configuration can handle both:
+For example, ``<IfVersion !~ ^2\.4\.1>`` matches everything that is
+*not* a 2.4.1x release.
 
 
-.. code-block:: text
+**Guarding directives from specific point releases**
 
-   <Directory "/var/www/html">
-       <IfVersion >= 2.4>
-           Require all granted
-       </IfVersion>
-       <IfVersion < 2.4>
-           Order allow,deny
-           Allow from all
-       </IfVersion>
-   </Directory>
-
-
-**Enabling features only available in newer versions**
-
-Some directives were introduced in specific point releases. For
-example, ``Protocols`` (for HTTP/2 support) appeared in 2.4.17. You
-can guard it so that older 2.4.x installations don't throw an error:
+As shown in the Solution above, ``<IfVersion>`` is especially useful
+when a directive was introduced in a specific 2.4.x point release.
+Here's another example -- ``MDomain`` (for ACME/Let's Encrypt) was
+added in 2.4.30:
 
 
 .. code-block:: text
 
-   <IfVersion >= 2.4.17>
-       Protocols h2 h2c http/1.1
+   <IfVersion >= 2.4.30>
+       MDomain example.com
    </IfVersion>
+
 
 
 **Testing for specific minor versions with regular expressions**
@@ -870,10 +847,6 @@ asks *"What version of httpd is running?"* The distinction matters:
   itself -- for example, when the core syntax changed between
   releases, or a directive was added in a specific point release.
 
-* In migration scenarios, ``<IfVersion>`` is usually the right choice,
-  because the old and new directives may both be recognized by a
-  transitional version (via ``mod_access_compat``) but only one
-  set is correct.
 
 Because ``<IfVersion>`` is evaluated at configuration time and not at
 request time, it carries no per-request performance cost. The

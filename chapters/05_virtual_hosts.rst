@@ -81,6 +81,135 @@ virtual hosts.
    :module:`mod_rewrite`, :module:`mod_vhost_alias`
 
 
+.. _vhost_matching:
+
+.. index:: pair: virtual hosts; matching algorithm
+.. index:: pair: virtual hosts; IP-based matching
+.. index:: pair: virtual hosts; name-based matching
+.. index:: pair: virtual hosts; SNI
+.. index:: pair: virtual hosts; Host header
+.. index:: pair: virtual hosts; default vhost
+.. index:: pair: virtual hosts; _default_
+.. index:: httpd -S
+.. index:: apachectl -S
+
+How Virtual Host Matching Works
+--------------------------------
+
+Before diving into the recipes, it's worth understanding the algorithm
+httpd uses to decide which ``<VirtualHost>`` handles a given request.
+The process has two phases, and getting them confused is the single
+most common source of virtual host problems.
+
+Phase 1: IP address and port matching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a connection first arrives, httpd looks at the **destination IP
+address and port** — not the hostname — and searches its list of
+``<VirtualHost>`` addresses in strict priority order:
+
+.. list-table:: VirtualHost address matching priority
+   :header-rows: 1
+   :widths: 10 35 30
+
+   * - Priority
+     - Match type
+     - Example
+   * - 1
+     - Exact IP, exact port
+     - ``<VirtualHost 10.0.0.1:80>``
+   * - 2
+     - Exact IP, wildcard port
+     - ``<VirtualHost 10.0.0.1:*>``
+   * - 3
+     - Wildcard address, exact port
+     - ``<VirtualHost *:80>``
+   * - 4
+     - Wildcard address, wildcard port
+     - ``<VirtualHost *:*>``
+   * - 5
+     - Main server
+     - (no matching ``<VirtualHost>``)
+
+Once a match is found at a given priority level, **lower-priority
+levels are not considered** — even if a lower-priority vhost has a
+``ServerName`` that perfectly matches the request's ``Host`` header.
+This is the most important thing to understand about virtual host
+matching: a ``<VirtualHost *:80>`` will never be considered if an
+exact-IP vhost at the same port matched first.
+
+If Phase 1 produces exactly **one** matching ``<VirtualHost>``, that
+vhost handles the request. No further matching occurs — the ``Host``
+header is irrelevant.
+
+Phase 2: Name-based matching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If Phase 1 produces **multiple** ``<VirtualHost>`` definitions at the
+same priority level (the common case when you have several
+``<VirtualHost *:80>`` blocks), httpd performs name-based matching
+using the ``Host`` header from the HTTP request.
+
+For SSL/TLS connections, if the client sent the Server Name Indication
+(SNI) extension during the TLS handshake, httpd uses that hostname
+instead. All modern clients send SNI; its absence is only an issue
+with very old software.
+
+The matching vhosts are searched **in configuration file order**:
+
+1. The ``ServerName`` and all ``ServerAlias`` entries of each vhost
+   are compared against the hostname from the request.
+
+2. The first match wins.
+
+3. If no ``ServerName`` or ``ServerAlias`` matches, the **first vhost
+   listed at that priority level** is used. This is the *default
+   vhost* for that address:port combination.
+
+That last point is critical: the **first** ``<VirtualHost>`` block in
+your configuration for a given address:port pair acts as the catch-all
+for unrecognized hostnames. If you want a specific default behavior
+(such as returning a 403 or a "site not found" page), make sure that
+first block is configured accordingly. See
+:ref:`Recipe_Default_name_based_vhost` for a worked example.
+
+.. note::
+
+   For SSL connections, the certificate is selected during the TLS
+   handshake — before the HTTP ``Host`` header is available. With SNI
+   support (the norm today), httpd can select the correct certificate
+   based on the requested hostname. Without SNI, the certificate from
+   the first vhost at that address:port is used for *all* connections,
+   regardless of the requested hostname.
+
+The following diagram illustrates the two-phase process:
+
+.. only:: html
+
+   .. figure:: ../images/vhost_matching_flow.svg
+      :width: 100%
+      :alt: Flowchart showing the two-phase virtual host matching algorithm
+
+.. only:: latex or epub
+
+   *The virtual host matching flowchart is available in the HTML edition of this book at* https://httpd-guide.com/
+
+Debugging with ``httpd -S``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most useful tool for virtual host problems is ``httpd -S`` (or
+``apachectl -S``), which dumps the parsed virtual host configuration
+and shows:
+
+- Which vhosts are name-based vs. IP-based
+- Which vhost is the default for each address:port
+- The file and line number of each ``<VirtualHost>`` definition
+
+If your requests are going to the wrong vhost, run ``httpd -S`` first
+and compare the output against your expectations. Nine times out of
+ten, the answer is visible in that output.
+
+
 .. _Recipe_name_vhosts:
 
 Setting Up Name-Based Virtual Hosts

@@ -1,3 +1,14 @@
+### ✅ ~~Must-Fix Before Publish~~ — ALL RESOLVED (May 3, 2026)
+- ~~Apache 2.2/2.0/1.3 references~~ — Ch13 cleaned
+- ~~Bitnami references~~ — all removed
+- ~~O'Reilly references~~ — remaining are legitimate book credits
+- ~~modules.apache.org~~ — Ch03 rewritten for GitHub
+- ~~Build errors (153)~~ — all fixed, build is clean
+- ~~Module coverage gaps (15 HIGH)~~ — all 15 inserted
+- ~~SVG build error~~ — vhost_matching_flow.svg made HTML-only with LaTeX fallback
+
+---
+
 
 ### 🔴 Windows "Starting httpd at Boot" recipe — likely wrong
 - [ ] The Windows service installation recipe may be incorrect for modern Windows
@@ -27,13 +38,10 @@ We use **x.y** format (not x.y.z). Bump the version in ALL THREE places:
 **Target**: Publish 4th edition within 1–2 weeks (by ~May 9, 2026)
 **Updated**: 2026-04-25
 
-## 🔴 Rename Git Repo (BEFORE PUBLISH)
+## ✅ ~~Rename Git Repo~~ — RESOLVED
 
-The repo is currently `httpd-practical-guide`. "Apache Cookbook" is a trademark of
-O'Reilly Media from the original editions. We need a new repo name before
-going public. Candidates:
-- `apache-httpd-guide`, `practical-httpd`, `httpd-practical-guide`
-- Must also update `conf.py` `html_theme_options.github_repo`, README, any CI config
+Repo lives at `git@github.com:rbowen/httpd-practical-guide.git` — name avoids
+the "Apache Cookbook" trademark. Website: https://httpd-guide.com/
 
 ---
 
@@ -364,3 +372,15 @@ Items from the mod_rewrite project that need to be replicated here:
 | `ml_research/` | 10-year mailing list research (2016–2025) |
 | `build_html.log` | Latest HTML build log |
 | `build_latex.log` | Latest LaTeX build log |
+
+---
+
+## 🔵 Future / Post-Publish
+
+### AH Error Message Reference (online resource)
+- 3,477 unique AH error codes exist in the httpd source (AH00001–AH10546)
+- Too large for a book appendix (~1,000 pages)
+- Build as a searchable online companion at httpd-guide.com
+- Research report: see session artifacts `httpd_error_messages_research.md`
+- Scope: extract all APLOGNO() entries, categorize by module/severity,
+  write cause/fix descriptions for the most common ~500

@@ -468,6 +468,9 @@ See Also
 
 * **Mastering Regular Expressions** by Jeffrey Friedl (O'Reilly)
 
+.. todo:: Is Friedl's regex book (3rd ed., 2006) still the best regex
+   reference, or has something better/more current appeared?
+
 .. index:: Mastering Regular Expressions
 
 

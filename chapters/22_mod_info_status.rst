@@ -155,6 +155,9 @@ See Also
 * All of the following recipes, which detail what information is
   provided by ``mod_info``.
 
+.. refcosplay
+
+
 
 .. _Recipe_mod_info_config:
 
@@ -397,6 +400,9 @@ See Also
 * http://localhost/server-info?list
 
 * https://httpd.apache.org/docs/mod/mod_info.html#queries
+
+.. refcosplay
+
 
 
 .. _Recipe_mod_info_module_details:
@@ -1138,7 +1144,11 @@ See Also
 
 
 * Regular Expressions Cookbook by Jan Goyvaerts and Steven Levithan -
-  https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/
+  (O'Reilly, 2nd ed., 2012)
+
+.. todo:: The *Regular Expressions Cookbook* (2012) is still solid
+   but getting long in the tooth. Is there a newer practical regex
+   reference? Also removed the oreilly.com URL (may go stale).
 
 * The :module:`mod_status` documentation at
   https://httpd.apache.org/docs/current/mod/mod_status.html

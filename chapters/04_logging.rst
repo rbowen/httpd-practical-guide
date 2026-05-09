@@ -1,4 +1,3 @@
-
 .. _Chapter_Logging:
 
 =======
@@ -7,1196 +6,1053 @@ Logging
 
 .. epigraph::
 
-   | Every breath you take, every move you make,
-   | every bond you break, every step you take,
-   | I'll be watching you.
+   | The palest ink is better than the best memory.
 
-   -- The Police, *Every Breath You Take*
+   -- Chinese proverb
 
 
 .. index:: Logging
 
 .. index:: Log files
 
+.. index:: Access log
 
-Apache httpd can, and usually does, record information about every request
-it processes. Controlling how this is done and extracting useful
-information out of these logs after the fact is at least as important as
-gathering the information in the first place.
-
-The logfiles may record two types of data: information about the
-request itself, and possibly one or more messages about abnormal
-conditions encountered during processing (such as file permissions).
-
-As the server administrator, you have a great deal of control over the
-format, location, and contents, of these log files. In the 2.4 version
-of the server, even more options have been added for you to determine
-what is logged, and how that information is presented.
-
-One aspect of activity logging you should be aware of is that most
-logging is done **after** the request has been completely processed.
-This means that the interval between the time a request begins
-and when it finishes may be long enough to matter in certain cases.
-
-For example, if your logfiles are rotated while a particularly large
-file is being downloaded, the log entry for the request will appear in the
-new logfile when the request completes, rather than in the old logfile
-when the request was started. In contrast, an error message is written to
-the error log as soon as it is encountered.
-
-The Web server will continue to record information in its logfiles as
-long as it's running. This can result in extremely large logfiles for
-a busy site and uncomfortably large ones even for a modest site. To
-keep the file sizes from growing ever larger, most sites rotate or
-**roll over** their logfiles on a semi-regular basis. Rolling over a
-logfile simply means persuading the server to stop writing to the
-current file and start recording to a new one. Because of httpd's
-determination to see that no records are lost, cajoling it to do this
-according to a specific timetable may require a bit of effort; some of
-the recipes in this chapter cover how to accomplish the task
-successfully and reliably.
-
-(see Recipes :ref:`Recipe_Rotate_By_Time` and
-:ref:`Recipe_System_logrotate`)
-.. index:: containers,<VirtualHost>
-
-The log declaration directives, **CustomLog** and **ErrorLog**, can appear
-inside **&lt;VirtualHost&gt;** containers, outside them (in what's
-called the main or global server, or sometimes the global scope), or
-both. Entries will only be logged in one set or the other; if a
-**&lt;VirtualHost&gt;** container applies to the request or error and
-has an applicable log directive, the message will be written only to
-that vhost's logs and won't appear in any globally declared files. By
-contrast if no **&lt;VirtualHost&gt;** log directive applies, the server
-will fall back on logging the entry according to the global
-directives.
-
-In 2.4 and later, you can also declare log directives in a
-**per**-directory scope, so that certain log files reflect only a smaller
-portion of your web content.
-
-However, whichever scope is used for determining what logging
-directives to use, all **CustomLog** directives in that scope are
-processed and treated independently. That is, if you have a
-**CustomLog** directive in the global scope and two inside a
-**&lt;VirtualHost&gt;** container, **both** of these will be
-used. Similarly, if a **CustomLog** directive uses the ``env=`` option, it
-has no effect on what requests will be logged by other **CustomLog**
-directives in the same scope.
-.. index:: directives,CustomLog
-
-.. index:: directives,<VirtualHost>
-
-.. index:: containers,<VirtualHost>
+.. index:: Error log
 
 
-.. refcosplay
+Every request that arrives at your server tells a story. Who asked for
+what, when they asked, how long it took, and whether it worked. Your
+log files are the only witnesses to these stories, and if you haven't
+configured them well, those witnesses are useless — either mute or
+babbling incoherently.
+
+Apache HTTP Server provides one of the most flexible logging systems of
+any web server. You can log almost any piece of information about a
+request, in almost any format, to almost any destination. You can split
+logs by virtual host, filter them by condition, pipe them to external
+programs, format them as JSON for your observability stack, or send them
+straight to the systemd journal. The defaults are reasonable, but the
+defaults are also thirty years old. Modern infrastructure demands more.
+
+This chapter covers both the fundamentals — understanding what's in your
+logs and how to control it — and the modern patterns you'll need in 2026:
+structured logging for automated ingestion, timing instrumentation for
+performance work, and integration with centralized logging
+infrastructure. I'll assume you know what a log file is. I won't assume
+you've memorized every ``%`` format token.
+
 
 .. admonition:: Modules covered in this chapter
 
-   :module:`mod_dumpio`, :module:`mod_log_config`, :module:`mod_logio`,
-   :module:`mod_macro`, :module:`mod_setenvif`
+   :module:`mod_log_config`, :module:`mod_logio`,
+   :module:`mod_log_forensic`, :module:`mod_log_debug`,
+   :module:`mod_journald`, :module:`mod_syslog`,
+   :module:`mod_remoteip`, :module:`mod_setenvif`,
+   :module:`mod_unique_id`
 
 
-.. _Recipe_Understanding_CLF:
 
-Understanding the Common Log Format
------------------------------------
+.. _HTTP_Status_Code_Reference:
 
-.. index:: Common Log Format; see Logging,Common Log Format
+.. topic:: HTTP status codes in your logs
+
+   For quick reference when reading access logs, here are the status codes
+   you'll see most often:
+
+   +-------+---------------------------+-------------------------------------------+
+   | Code  | Name                      | What it means in your logs                |
+   +-------+---------------------------+-------------------------------------------+
+   | 200   | OK                        | Normal successful response                |
+   +-------+---------------------------+-------------------------------------------+
+   | 206   | Partial Content           | Range request (video streaming, resume)   |
+   +-------+---------------------------+-------------------------------------------+
+   | 301   | Moved Permanently         | Permanent redirect (check your Redirect   |
+   |       |                           | directives)                               |
+   +-------+---------------------------+-------------------------------------------+
+   | 302   | Found                     | Temporary redirect                        |
+   +-------+---------------------------+-------------------------------------------+
+   | 304   | Not Modified              | Conditional GET — client cache is valid   |
+   +-------+---------------------------+-------------------------------------------+
+   | 400   | Bad Request               | Malformed request from client             |
+   +-------+---------------------------+-------------------------------------------+
+   | 401   | Unauthorized              | Authentication required but not provided  |
+   +-------+---------------------------+-------------------------------------------+
+   | 403   | Forbidden                 | Access denied (check permissions,         |
+   |       |                           | Require directives)                       |
+   +-------+---------------------------+-------------------------------------------+
+   | 404   | Not Found                 | File doesn't exist (most common error)    |
+   +-------+---------------------------+-------------------------------------------+
+   | 408   | Request Timeout           | Client too slow sending request           |
+   +-------+---------------------------+-------------------------------------------+
+   | 500   | Internal Server Error     | Something crashed (check error log!)      |
+   +-------+---------------------------+-------------------------------------------+
+   | 502   | Bad Gateway               | Backend didn't respond properly (proxy)   |
+   +-------+---------------------------+-------------------------------------------+
+   | 503   | Service Unavailable       | Backend overloaded or down                |
+   +-------+---------------------------+-------------------------------------------+
+   | 504   | Gateway Timeout           | Backend too slow (proxy timeout)          |
+   +-------+---------------------------+-------------------------------------------+
+
+   A healthy production server's log should be dominated by 200s and 304s.
+   A sudden increase in 5xx codes means something is broken on your end. A
+   flood of 4xx codes usually means either broken links (404), scrapers
+   hitting non-existent paths (404), or an authentication misconfiguration
+   (401/403).
+
+
+.. _Recipe_Understanding_Log_Formats:
+
+.. _Section_Log_Fundamentals:
+
+Log file fundamentals
+---------------------
+
+.. index:: Common Log Format
 
 .. index:: CLF; see Logging,Common Log Format
 
-.. index:: Logging,Common Log Format
+.. index:: Combined log format
 
-.. index:: Logging,CLF; see Logging,Common Log Format
+.. index:: LogFormat directive
 
-.. index:: Understanding the Common Log Format (CLF)
-
-
-.. _Problem_Understanding_CLF:
-
-Problem
-~~~~~~~
-
-
-You'd like to understand what information is being logged in the
-common log format that httpd uses by default.
-
-
-.. _Solution_Understanding_CLF:
-
-Solution
-~~~~~~~~
-
-
-The Common Log Format is defined by the following **LogFormat** directive:
 .. index:: directives,LogFormat
 
+.. index:: directives,CustomLog
 
-.. code-block:: text
+.. index:: ErrorLog directive
+
+.. index:: directives,ErrorLog
+
+.. index:: LogLevel directive
+
+.. index:: directives,LogLevel
+
+.. index:: Logging,error log
+
+.. index:: Logging,per-module log level
+
+.. index:: LogFormat tokens
+
+.. index:: Logging,custom fields
+
+.. index:: Logging,request headers
+
+.. index:: Logging,response headers
+
+.. index:: Logging,environment variables
+
+.. index:: Logging,notes
+
+
+httpd maintains two separate log streams: the **access log**, which
+records every request the server handles, and the **error log**, which
+records problems, diagnostics, and anything the server needs to tell you
+that isn't tied to a single successful response. You need to understand
+both before you can configure them effectively.
+
+
+.. _Section_Access_Log_Formats:
+
+Access log formats
+~~~~~~~~~~~~~~~~~~
+
+httpd ships with two standard log formats. The Common Log Format (CLF)
+records the bare essentials:
+
+.. code-block:: apache
 
    LogFormat "%h %l %u %t \"%r\" %>s %b" common
 
+The Combined Log Format adds the ``Referer`` and ``User-Agent`` request
+headers:
 
-It consists of 7 fields:
+.. code-block:: apache
 
-.. index:: Logging,Common log format,fields
+   LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 
+You then reference either format by its nickname in a ``CustomLog``
+directive:
 
-.. _CLF_fields:
+.. code-block:: apache
 
+   CustomLog "/var/log/httpd/access_log" combined
 
-**Common Log Format Fields**
-
-
-+----------------+---------------------------------------------------------+
-| Field          | Description                                             |
-+----------------+---------------------------------------------------------+
-| Remote host    | The IP address of the requesting client                 |
-+----------------+---------------------------------------------------------+
-| Remote logname | Usually blank - the remote username supplied by identd. |
-+----------------+---------------------------------------------------------+
-| Remote user    | The username, if the request was authenticated          |
-+----------------+---------------------------------------------------------+
-| Timestamp      | The request timestamp, in standard english format       |
-+----------------+---------------------------------------------------------+
-| Request        | The first line of the request                           |
-+----------------+---------------------------------------------------------+
-| Status         | The final request status code                           |
-+----------------+---------------------------------------------------------+
-| Bytes          | The number of bytes transferred to the client           |
-+----------------+---------------------------------------------------------+
-
-
-.. _Discussion_Understanding_CLF:
-
-Discussion
-~~~~~~~~~~
-
-
-When you are using the common log format, entries in your
-log file will look something like the following:
-
+A typical Combined log entry looks like this:
 
 .. code-block:: text
 
-   164.75.17.12 - - [02/Jun/2015:11:14:00 -0400] "GET /icons/blank.gif HTTP/1.1" 200 148
+   192.0.2.47 - jdoe [09/May/2026:14:23:01 -0400] "GET /api/v2/users HTTP/1.1" 200 1543 "https://example.com/dashboard" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+
+Broken apart, field by field:
+
++-------------------+------------------+------------------------------------------+
+| Format token      | Example value    | Meaning                                  |
++-------------------+------------------+------------------------------------------+
+| ``%h``            | 192.0.2.47       | Remote hostname (IP unless                |
+|                   |                  | ``HostnameLookups On``)                   |
++-------------------+------------------+------------------------------------------+
+| ``%l``            | ``-``            | Remote logname from identd (always        |
+|                   |                  | ``-`` in practice — leave it alone)       |
++-------------------+------------------+------------------------------------------+
+| ``%u``            | jdoe             | Authenticated username (``-`` if none)    |
++-------------------+------------------+------------------------------------------+
+| ``%t``            | [09/May/2026:... | Timestamp when request was received       |
++-------------------+------------------+------------------------------------------+
+| ``%r``            | GET /api/v2/...  | First line of the request                 |
++-------------------+------------------+------------------------------------------+
+| ``%>s``           | 200              | Final HTTP status code                    |
++-------------------+------------------+------------------------------------------+
+| ``%b``            | 1543             | Response body size in bytes (``-`` if     |
+|                   |                  | zero)                                     |
++-------------------+------------------+------------------------------------------+
+| ``%{Referer}i``   | https://...      | Referer header from request               |
++-------------------+------------------+------------------------------------------+
+| ``%{User-Agent}i``| Mozilla/5.0 ...  | User-Agent header from request            |
++-------------------+------------------+------------------------------------------+
+
+The ``>`` in ``%>s`` means "use the final status" — the one actually sent
+to the client. Without it, ``%s`` gives you the status of the original
+request before any internal redirect. For almost every use case, ``%>s``
+is what you want.
+
+The ``%l`` field exists for historical reasons. The identd protocol it
+queries is essentially dead. You'll see a dash there on every single
+request, but it occupies its spot in the format because removing it would
+break every log parser ever written for CLF. Leave it.
+
+The ``LogFormat`` directive has two forms. When you give it a nickname (the
+last argument), it defines a named format you can reference later. When you
+use it without a nickname, it sets the default format for any
+``TransferLog`` directives. In practice, always use the named form with
+``CustomLog`` — it's clearer and more maintainable.
 
 
-This represents various details about who made a request to your
-server, what they requested, when it happened, and what the result
-was.
+.. _Section_Format_Tokens:
 
-The Common Log Format, or CLF, has been a standard for web server
-access logs since the very earliest days of the Web. The Common Log
-Format was defined by the developers of the earliest web servers, and
-have stuck with us ever since, although modern web servers offer the
-option of extending this log format, as you will see in further
-recipes, below.
+Format tokens
+~~~~~~~~~~~~~
 
-.. index:: Logging,format names
-
-.. index:: Logging,format names,common
-
-The **LogFormat** directive shown above defines a log format named
-'``common``', which can then be used in **CustomLog** directives elsewhere
-in your configuration files:
-.. index:: directives,LogFormat
-
-.. index:: directives,CustomLog
-
+The ``LogFormat`` string supports a rich set of ``%{name}X`` tokens. The
+letter after the closing brace tells httpd where to look:
 
 .. code-block:: text
 
-   CustomLog /var/log/httpd/access_log common
+   %{Foobar}i    - Request header "Foobar"
+   %{Foobar}o    - Response header "Foobar"
+   %{Foobar}e    - Environment variable "Foobar"
+   %{Foobar}n    - Note from another module (e.g., mod_rewrite)
+   %{Foobar}C    - Cookie "Foobar" from the request
+
+**Request headers** (``%{name}i``): Log any header sent by the client.
+Common uses include ``%{X-Forwarded-For}i`` for proxy chains,
+``%{Accept-Language}i`` for content negotiation debugging, and
+``%{Authorization}i`` (be careful — this contains credentials).
+
+**Response headers** (``%{name}o``): Log any header your server sends
+back. Useful for cache debugging (``%{X-Cache}o``), content type
+verification (``%{Content-Type}o``), or custom application headers.
+
+**Environment variables** (``%{name}e``): Log any variable set by
+``SetEnv``, ``SetEnvIf``, ``RewriteRule``, or your application. This is
+how you inject application-level metadata into the access log — set a
+variable in your app or rewrite rules, then log it.
+
+**Notes** (``%{name}n``): Internal module notes. For example,
+:module:`mod_rewrite` sets notes you can log. The forensic ID from
+:module:`mod_log_forensic` is available as ``%{forensic-id}n``.
+
+**Cookies** (``%{name}C``): Log a specific cookie value from the request.
+Useful for session tracking, though be mindful of privacy regulations.
+
+**Status-code filtering**: You can restrict a token to only log for
+certain status codes:
+
+.. code-block:: apache
+
+   # Only log Referer on 400 and 404 errors
+   LogFormat "%h %t \"%r\" %>s %400,404{Referer}i" errors_with_referer
+
+   # Log User-Agent on everything EXCEPT 200 and 304
+   LogFormat "%h %t \"%r\" %>s %!200,304{User-Agent}i" non_success_agents
+
+When a token doesn't match the condition, it outputs ``-``.
+
+**Redirect tracking**: The ``<`` and ``>`` modifiers choose between the
+original request and the final (redirected) request:
+
+.. code-block:: apache
+
+   # Original request URI (before internal redirect)
+   %<U
+   # Final status (after all internal redirects)
+   %>s
 
 
-You can also define your own log formats, using any of the variables
-supplied by ``mod_log_config`` and supporting modules such as
-``mod_logio``. (See :ref:`Recipe_logging_logio` below.)
-.. index:: Modules,mod_log_config
+**Recommended log formats for different use cases**:
 
-.. index:: Modules,mod_logio
+.. code-block:: apache
 
+   # Development: verbose, human-readable
+   LogFormat "%a %u [%{%H:%M:%S}t] \"%m %U%q\" %>s %b %{ms}T" dev
 
-A few of the fields in the above table require a little extra
-explanation.
+   # Production: combined + timing + request ID (the minimum I'd recommend)
+   LogFormat "%a %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %{ms}T %L" production
 
-The 'Remote logname' field is a historical artifact, and is almost
-always going to be empty. That is, rather than actual data being
-logged here, you'll see '-' as a placeholder in this field.
+   # API server: focused on method, path, status, timing
+   LogFormat "%a [%{%Y-%m-%dT%H:%M:%S}t.%{msec_frac}t] \"%m %U\" %>s %B %{ms}T \"%{X-Request-ID}i\"" api
 
-In the earliest days of the web, this would often contain identifying
-information about the person requesting the web resource. Often it was
-their email address, or other identifying username information.
+   # CDN/static: focused on bandwidth
+   LogFormat "%a %t \"%r\" %>s %O %{ms}T \"%{Referer}i\"" cdn
 
-Things were simpler then.
-
-Very soon, this information started to be exploited to send spam to
-these website visitors, and most web clients (browsers) disabled this
-feature.
-
-However, by this time, there were already a number of popular software
-packages available for doing log file analysis, so the log format was
-maintained unchanged, even though this field is almost always blank.
-
-The remote user field is also usually blank, since most web content is
-not authenticated. If, however, you use HTTP Authentication to require
-a user to authenticate in order to access a resource, the provided
-username will be logged in this field. These days, most people use
-some other type of authentication (such as cookie-based), which does
-not populate the ``REMOTE_USER`` environmental variable, so it is fairly
-uncommon to see anything in this field.
-
-See :ref:`Chapter_AAA`, *Authentication, Authorization and Access
-Control*, for more discussion of user authentication.
-
-See :ref:`Recipe_Status_codes` for discussion of what the status code
-field means.
+Pick the one closest to your needs and adjust. There's no "one true
+format" — the right format depends on what questions you'll be asking
+your logs.
 
 
-.. _See_Also_Understanding_CLF:
+.. _Section_Error_Log:
 
-See Also
-~~~~~~~~
+The error log
+~~~~~~~~~~~~~
+
+The error log is where httpd tells you about problems: configuration
+errors, runtime failures, access denials, and module diagnostics. Unlike
+the access log, you don't control its format — the format is fixed and
+includes a timestamp, module name, severity level, client address (when
+applicable), and the message.
+
+The error log location and verbosity are controlled by two directives:
+
+.. code-block:: apache
+
+   ErrorLog "/var/log/httpd/error_log"
+   LogLevel warn
+
+A typical error log entry in httpd 2.4 looks like:
+
+.. code-block:: text
+
+   [Fri May 09 14:23:01.738219 2026] [core:error] [pid 12345:tid 67890] [client 192.0.2.47:54321] AH00124: Request exceeded the limit of 10 internal redirects
+
+The fields are:
+
+1. **Timestamp** with microsecond precision
+2. **Module and level** in brackets: ``[module:level]``
+3. **Process and thread ID**: ``[pid:tid]``
+4. **Client address** (when the error relates to a specific request)
+5. **Error code and message**: the ``AH#####`` codes are stable identifiers
+   you can search for
+
+The ``LogLevel`` directive accepts these severity levels, from most to
+least severe:
+
+.. code-block:: text
+
+   emerg, alert, crit, error, warn, notice, info, debug, trace1-trace8
+
+The default ``warn`` is appropriate for production. You'll see errors,
+critical issues, and warnings, but not the firehose of informational
+messages.
 
 
-* :ref:`Recipe_Understanding_Combined_Log_Format`
+.. _Section_Per_Module_LogLevel:
 
-* :ref:`Recipe_Status_codes`
+Per-module log levels
+~~~~~~~~~~~~~~~~~~~~~
 
-* :ref:`Chapter_AAA`, **Authentication, Authorization and Access Control**
+The per-module syntax (available since httpd 2.4) is enormously useful for
+debugging. Instead of setting the entire server to ``debug`` — which
+generates gigabytes of output on a busy server — you can surgically
+increase logging for just the module you're troubleshooting:
 
-* http://httpd.apache.org/docs/mod/mod_log_config.html
+.. code-block:: apache
+
+   # Debug SSL handshake issues without flooding everything else
+   LogLevel warn
+   LogLevel mod_ssl:debug
+
+   # Trace mod_rewrite rule processing
+   LogLevel warn
+   LogLevel mod_rewrite:trace6
+
+   # See mod_proxy connection details
+   LogLevel warn
+   LogLevel mod_proxy:debug
+   LogLevel mod_proxy_http:debug
+
+The trace levels (``trace1`` through ``trace8``) produce increasingly
+detailed output. For :module:`mod_rewrite`, ``trace3`` shows you which
+rules match, ``trace6`` shows the full rewrite processing, and
+``trace8`` dumps everything including pattern matching details.
+
+.. warning::
+
+   Never leave ``trace`` levels enabled in production. They generate
+   enormous volumes of output and will fill your disk. Use them for
+   debugging, then remove them.
 
 
-.. refcosplay
+**Reading the AH error codes**: Every error message from httpd's core and
+bundled modules includes a stable error code like ``AH00124``. These are
+searchable — both in the httpd documentation and on the web. When you see
+an error you don't understand, search for the AH code first. It's far
+more reliable than searching for the error message text, which may vary
+between versions.
 
-.. _Recipe_Understanding_Combined_Log_Format:
+**Common error log entries and what they mean**:
 
-Understanding Combined Log Format
----------------------------------
+.. code-block:: text
 
-.. index:: Combined Log Format; see Logging,Common Log Format
+   [core:error] AH00124: Request exceeded the limit of 10 internal redirects
 
-.. index:: Logging,Combined Log Format
+Your ``RewriteRule`` directives are looping. A rule redirects to a path
+that matches the same rule again. Add a ``RewriteCond`` to break the
+cycle, or check for ``[L]`` flag usage.
 
-.. index:: mod_log_config; see Modules,mod_log_config
+.. code-block:: text
 
-.. index:: Modules,mod_log_config
+   [core:error] AH00126: Invalid URI in request GET /%s HTTP/1.1
 
-.. index:: Understanding the Combined Log Format (CLF)
+A bot or scanner sent a malformed request. Not actionable unless you see
+it at high volume (which might indicate an attack).
+
+.. code-block:: text
+
+   [authz_core:error] AH01630: client denied by server configuration
+
+Your ``Require`` directives are blocking access. Check your
+``<Directory>`` or ``<Location>`` access control.
+
+.. code-block:: text
+
+   [proxy:error] AH00957: HTTP: attempt to connect to 10.0.1.5:8080 failed
+
+Your backend is down or unreachable. This is the #1 error you'll see in a
+reverse proxy setup.
+
+.. code-block:: text
+
+   [ssl:error] AH02032: Hostname provided via SNI and target URL don't match
+
+A client is connecting with a ``ServerName`` that doesn't match any
+configured virtual host. Common with bots probing IP addresses directly.
+
+**Silencing noisy errors**: Some errors are informational noise that
+clutters your logs. You can suppress specific modules:
+
+.. code-block:: apache
+
+   # Reduce noise from SSL renegotiation messages
+   LogLevel warn
+   LogLevel ssl:error
+
+   # Suppress favicon 404 noise (handle it instead)
+   <Location "/favicon.ico">
+       ErrorDocument 404 "No favicon"
+       LogLevel crit
+   </Location>
+
+Per-directory ``LogLevel`` (available since 2.4.10) lets you silence
+errors for specific paths without affecting the rest of your site.
 
 
-.. _Problem_Understanding_Combined_Log_Format:
+Correlating error and access log entries
+-----------------------------------------
+
+.. index:: Log correlation
+
+.. index:: %L format token
+
+.. index:: Logging,unique ID
+
+.. index:: mod_unique_id
+
+
+.. _Problem_Correlating_Logs:
 
 Problem
 ~~~~~~~
 
+A client reports an error, and you can see it in the error log, but you
+can't tell which access log entry it corresponds to. You need a way to
+link the two.
 
-You'd like to understand what information is being logged in the
-common log format that Apache httpd uses by default.
 
-
-.. _Solution_Understanding_Combined_Log_Format:
+.. _Solution_Correlating_Logs:
 
 Solution
 ~~~~~~~~
 
+Use the ``%L`` token in your ``LogFormat``. httpd assigns each request
+a unique log ID that appears in both the error log and the access log:
 
-The Combined Log Format is defined by the following **LogFormat** directive:
-.. index:: directives,LogFormat
+.. code-block:: apache
 
+   LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %L" combined_with_id
+   CustomLog "/var/log/httpd/access_log" combined_with_id
+
+Now when you see an error log entry like:
 
 .. code-block:: text
 
-   LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined
+   [Fri May 09 14:23:01.738219 2026] [proxy:error] [pid 12345:tid 67890] (111)Connection refused: AH00957: HTTP: attempt to connect to 10.0.1.5:8080 (backend) failed [log_id: Yx8AAFmaIgQAAGR2D-gAAAAD]
+
+You can grep the access log for that same ID:
+
+.. code-block:: bash
+
+   grep 'Yx8AAFmaIgQAAGR2D-gAAAAD' /var/log/httpd/access_log
 
 
-It consists of 9 fields:
-
-
-.. _CombinedLF_fields:
-
-
-**Common Log Format Fields**
-
-
-+----------------+---------------------------------------------------------+
-| Field          | Description                                             |
-+----------------+---------------------------------------------------------+
-| Remote host    | The IP address of the requesting client                 |
-+----------------+---------------------------------------------------------+
-| Remote logname | Usually blank - the remote username supplied by identd. |
-+----------------+---------------------------------------------------------+
-| Remote user    | The username, if the request was authenticated          |
-+----------------+---------------------------------------------------------+
-| Timestamp      | The request timestamp, in standard english format       |
-+----------------+---------------------------------------------------------+
-| Request        | The first line of the request                           |
-+----------------+---------------------------------------------------------+
-| Status         | The final request status code                           |
-+----------------+---------------------------------------------------------+
-| Bytes          | The number of bytes transferred to the client           |
-+----------------+---------------------------------------------------------+
-| Referer        | The URL that linked to the requested resource           |
-+----------------+---------------------------------------------------------+
-| User agent     | The browser identifier string for the requesting client |
-+----------------+---------------------------------------------------------+
-
-
-.. _Discussion_Understanding_Combined_Log_Format:
+.. _Discussion_Correlating_Logs:
 
 Discussion
 ~~~~~~~~~~
 
+The ``%L`` token was introduced to solve a real operational pain point.
+Before it existed, correlating errors with requests on a busy server
+required matching timestamps and client IPs — unreliable at best when
+you're handling hundreds of requests per second.
 
-.. index:: Logging; see Logging,Common Log Format
+The log ID is generated internally by httpd whenever an error is logged
+for a request. If no error occurs for a given request, ``%L`` outputs
+``-`` in the access log (since no error log entry needs correlation).
 
-Although the Common Log Format became standard very quickly, there
-were of course other things that people wanted to log. In the early
-days, two other log directives - **RefererLog** and **AgentLog** - created
-log files that logged, respectively, the request referrer and the user
-agent (browser) string making the request.
-.. index:: directives,RefererLog
+There's also ``%{c}L`` which gives you the *connection* log ID rather
+than the request log ID. This is useful for correlating connection-level
+errors (like TLS handshake failures) that happen before a request is
+fully formed.
 
-.. index:: directives,AgentLog
+If you're already using :module:`mod_unique_id`, the unique ID it
+generates is separate from the log ID. You can log both:
 
+.. code-block:: apache
+
+   LogFormat "%h %t \"%r\" %>s %b %L %{UNIQUE_ID}e" full_id
+
+The ``UNIQUE_ID`` from :module:`mod_unique_id` is useful for passing to
+backend applications (it's available as an environment variable and
+request header), while ``%L`` is specifically for error-to-access log
+correlation.
+
+
+.. _See_Also_Correlating_Logs:
+
+See Also
+~~~~~~~~
+
+* :ref:`Section_Error_Log` for error log format details
+* :ref:`Recipe_Forensic_Logging` for even more detailed request capture
+* :module:`mod_unique_id` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_unique_id.html
+
+
+.. _Recipe_Conditional_Logging:
+
+Conditional logging
+--------------------
+
+.. index:: Conditional logging
+
+.. index:: SetEnvIf directive
+
+.. index:: directives,SetEnvIf
+
+.. index:: env= clause
+
+.. index:: Logging,excluding requests
+
+.. index:: Logging,filtering
+
+
+.. _Problem_Conditional_Logging:
+
+Problem
+~~~~~~~
+
+You want to exclude certain requests from your access log — health
+checks, static assets, internal monitoring probes — without losing the
+ability to log them separately if needed.
+
+
+.. _Solution_Conditional_Logging:
+
+Solution
+~~~~~~~~
+
+Use ``SetEnvIf`` (or ``SetEnvIfNoCase``) to set an environment variable,
+then use the ``env=`` clause on ``CustomLog`` to include or exclude
+requests:
+
+.. code-block:: apache
+
+   # Mark requests we want to suppress
+   SetEnvIf Request_URI "^/health$" no_log
+   SetEnvIf Request_URI "^/status$" no_log
+   SetEnvIf User-Agent "^ELB-HealthChecker" no_log
+   SetEnvIf Remote_Addr "^10\.0\.0\." internal_request
+
+   # Main log excludes marked requests
+   CustomLog "/var/log/httpd/access_log" combined env=!no_log
+
+   # Separate log captures only internal requests
+   CustomLog "/var/log/httpd/internal_access_log" combined env=internal_request
+
+To exclude image requests from the main log:
+
+.. code-block:: apache
+
+   SetEnvIf Request_URI "\.(gif|jpg|jpeg|png|svg|ico|webp|woff2|css|js)$" static_asset
+   CustomLog "/var/log/httpd/access_log" combined env=!static_asset
+   CustomLog "/var/log/httpd/static_log" combined env=static_asset
+
+
+.. _Discussion_Conditional_Logging:
+
+Discussion
+~~~~~~~~~~
+
+The ``env=`` clause is evaluated *after* the request is processed but
+*before* the log entry is written. The environment variable just needs to
+exist — its value doesn't matter. You're testing presence, not content.
+
+The ``!`` prefix inverts the test: ``env=!no_log`` means "log this
+request only if the ``no_log`` variable is NOT set."
+
+Each ``CustomLog`` directive is independent. You can have multiple
+directives, each with different conditions, writing to different files in
+different formats. This lets you maintain a clean primary log while still
+capturing everything in a verbose secondary log:
+
+.. code-block:: apache
+
+   # Everything goes to the verbose log (for compliance)
+   CustomLog "/var/log/httpd/full_access_log" combined
+
+   # The operational log skips noise
+   CustomLog "/var/log/httpd/access_log" combined env=!no_log
+
+You can also use ``expr=`` for more complex conditions (available since
+httpd 2.4.13):
+
+.. code-block:: apache
+
+   # Only log requests that took more than 1 second
+   CustomLog "/var/log/httpd/slow_requests.log" combined "expr=%T > 1"
+
+   # Only log 5xx errors
+   CustomLog "/var/log/httpd/errors.log" combined "expr=%{REQUEST_STATUS} >= 500"
+
+The ``expr=`` syntax gives you access to the full ``ap_expr`` expression
+parser, which is far more powerful than ``SetEnvIf`` for complex
+conditions.
 
 .. note::
 
-   **Yes, I know**
-
-   The misspelling of "Referrer" as "Referer" is a legacy artifect from
-   the earliest days of the web. Don't bother reporting it. It makes a
-   lot of people grind their teeth when they see it, but we're kind of
-   stuck with it.
+   Be aware that ``SetEnvIf`` runs early in request processing, before
+   authentication and most other modules. If you need to filter based on
+   information that's only available later (like the response status),
+   use ``expr=`` instead.
 
 
 
-A combined log file was desired - one that logged the referrer and the
-agent string alongside the request itself, rather than separately,
-with no correlation to the actual resource being requested.
+**Practical filtering patterns I use frequently**:
 
-Thus the combined log format was created.
+.. code-block:: apache
 
-Later on, when all log file configuration was consolidated into the
-_mod_log_config_ module, these special-purpose log directives were
-deprecated, and all log file formatting is now done with the
-**LogFormat** directive.
-.. index:: Modules,mod_log_config
+   # Suppress Kubernetes liveness/readiness probes
+   SetEnvIf Request_URI "^/healthz$" no_log
+   SetEnvIf Request_URI "^/readyz$" no_log
 
-.. index:: directives,LogFormat
+   # Suppress Let's Encrypt ACME challenges
+   SetEnvIf Request_URI "^/\.well-known/acme-challenge/" no_log
 
+   # Suppress Prometheus metrics scraping
+   SetEnvIf Request_URI "^/server-status$" no_log
+   SetEnvIf Request_URI "^/metrics$" no_log
 
-Log entries in the combined log format look something like:
+   # Suppress requests from your monitoring system by User-Agent
+   SetEnvIf User-Agent "^Datadog Agent" no_log
+   SetEnvIf User-Agent "^Prometheus" no_log
 
+   # Mark requests from specific client IP ranges
+   SetEnvIf Remote_Addr "^192\.168\." internal_net
+   SetEnvIf Remote_Addr "^10\." internal_net
 
-.. code-block:: text
+The ``env=`` filtering happens per ``CustomLog`` directive independently.
+This means you can set up a layered logging strategy:
 
-   17.42.199.8 - - [03/Jun/2015:13:27:34 -0400] "GET
-   /products/pony.html HTTP/1.1" 200 4241
-   "http://anothersite.com/ponies.html" "Mozilla/5.0 (X11; Linux
-   x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81
-   Safari/537.36"
+.. code-block:: apache
 
+   # Layer 1: Verbose log captures everything (for compliance/forensics)
+   CustomLog "/var/log/httpd/full.log" combined
 
-This looks very much like the above-mentioned common log format, but
-with two new fields added on the end.
+   # Layer 2: Operational log skips health checks and static assets
+   CustomLog "/var/log/httpd/ops.log" combined env=!no_log
 
-The two additions were the **Referer** (yes, "Referer" with one r. Dee
-the note above. It's spelled incorrectly in the specifications) and
-the **User-agent**.
+   # Layer 3: Error-only log for alerting (5xx responses only)
+   CustomLog "/var/log/httpd/errors.log" combined "expr=%{REQUEST_STATUS} >= 500"
 
-**Referer** is the URL of the page that linked to the current
-request. For example, if file **a.html** contains a link such as:
+   # Layer 4: Slow request log for performance monitoring
+   CustomLog "/var/log/httpd/slow.log" performance "expr=%T >= 3"
 
-
-.. code-block:: text
-
-   <a href="b.html">another page</a>
-
-
-When the link is followed, the request header for **b.html** will
-contain a **Referer** field that has the URL of **a.html** as its value.
-
-The **Referer** field is not required nor reliable; some users prefer
-software or anonymizing tools that ensure that you can't tell where
-they've been. However, this is usually a fairly small number and may
-be disregarded for most Web sites.
-
-Request headers also often include a field called the
-**User-agent**. This is defined as the name and version of the client
-software being used to make the request. For instance, a **User-agent**
-field value might look like this:
+This layered approach costs minimal extra I/O (the data is already in
+memory) but gives you purpose-built logs for different operational needs.
 
 
-.. code-block:: text
-
-   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-   Gecko) Chrome/43.0.2357.81 Safari/537.36"
-
-
-This tells you that the client is claiming to be Mozilla 5.0
-running on a Linux system.
-
-I say "claiming to be" because the ``User-agent`` field is neither
-required nor reliable; many users prefer software or anonymizing tools
-that ensure that you can't tell what they're using. Some software
-even lies about itself so it can work around sites that cater
-specifically to one browser or another. It's a good idea to design
-your site to be as browser-agnostic (**i.e.**, works for any browser) as
-possible for this reason, among others. If you're going to make
-decisions based on the value of the field, you might as well believe
-it hasn't been faked—because there's no way to tell if it has.
-
-
-.. tip::
-
-   **Mobile user or not?**
-
-   Many Web sites use the value of the **User-agent** field to determine
-   whether the visitor is using a mobile device (**e.g.**, a tablet or
-   smartphone) or not, in order to tailor the page layout for better
-   readability.
-
-
-
-To use the combined log format in your access log, invoke it with the
-**CustomLog** directive:
-.. index:: directives,CustomLog
-
-
-.. code-block:: text
-
-   CustomLog /var/log/httpd/access_log combined
-
-
-.. _See_Also_Understanding_Combined_Log_Format:
+.. _See_Also_Conditional_Logging:
 
 See Also
 ~~~~~~~~
 
-
-* :ref:`Recipe_Understanding_CLF`
-
-* http://httpd.apache.org/docs/mod/mod_log_config.html
-
-* :ref:`Recipe_Logging_request_header`
-
-* :ref:`Recipe_image-theft`
+* :ref:`Section_Format_Tokens` for logging the variables themselves
+* ``ap_expr`` documentation:
+  https://httpd.apache.org/docs/2.4/expr.html
+* :module:`mod_setenvif` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_setenvif.html
 
 
-.. refcosplay
+.. _Recipe_Per_Vhost_Logging:
 
-.. _Recipe_Status_codes:
+Per-virtual-host logging
+-------------------------
 
-Understanding HTTP status codes
+.. index:: Virtual hosts,logging
+
+.. index:: Logging,per virtual host
+
+.. index:: Logging,vhost
+
+
+.. _Problem_Per_Vhost_Logging:
+
+Problem
+~~~~~~~
+
+You run multiple virtual hosts and want each one to log to its own
+file, rather than mixing everything into a single access log.
+
+
+.. _Solution_Per_Vhost_Logging:
+
+Solution
+~~~~~~~~
+
+Place ``CustomLog`` and ``ErrorLog`` directives inside each
+``<VirtualHost>`` block:
+
+.. code-block:: apache
+
+   <VirtualHost *:443>
+       ServerName www.example.com
+       DocumentRoot "/var/www/example"
+
+       ErrorLog "/var/log/httpd/example.com-error_log"
+       CustomLog "/var/log/httpd/example.com-access_log" combined
+   </VirtualHost>
+
+   <VirtualHost *:443>
+       ServerName api.example.com
+       DocumentRoot "/var/www/api"
+
+       ErrorLog "/var/log/httpd/api.example.com-error_log"
+       CustomLog "/var/log/httpd/api.example.com-access_log" combined
+   </VirtualHost>
+
+If you have many virtual hosts and want automatic file naming without
+repeating yourself, use the ``%v`` token in a global ``CustomLog``:
+
+.. code-block:: apache
+
+   LogFormat "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
+   CustomLog "/var/log/httpd/all_vhosts_access_log" vhost_combined
+
+
+.. _Discussion_Per_Vhost_Logging:
+
+Discussion
+~~~~~~~~~~
+
+When a ``CustomLog`` or ``ErrorLog`` directive appears inside a
+``<VirtualHost>`` block, it overrides the global directive for that
+vhost. The request will *only* appear in the vhost's log — it will not
+also appear in the global log. This is a common point of confusion.
+
+If you want both — a per-vhost log and a combined global log — you need
+``CustomLog`` in both scopes, or you can use just the global
+``CustomLog`` with ``%v`` prepended to identify which vhost served
+each request.
+
+The ``%v`` approach (a single log file with the virtual host name
+prepended) has a practical advantage: you end up with one file instead of
+dozens. You can then split it later with a tool like ``split-logfile``
+(shipped with httpd in the :file:`support/` directory), or ingest it
+directly into a log aggregator that can filter by field.
+
+The per-file approach has its own advantage: you can apply different
+retention policies, different rotation schedules, or hand individual log
+files to different teams or customers.
+
+For ``ErrorLog``, per-vhost separation is especially valuable. Without
+it, all errors from all vhosts land in one file, and a misbehaving vhost
+can drown out errors from others. You can also set different ``LogLevel``
+per vhost:
+
+.. code-block:: apache
+
+   <VirtualHost *:443>
+       ServerName staging.example.com
+       ErrorLog "/var/log/httpd/staging-error_log"
+       LogLevel info
+   </VirtualHost>
+
+
+
+**Using macros for DRY vhost logging**:
+
+If you have many virtual hosts with a consistent naming pattern, you can
+use :module:`mod_macro` to avoid repeating yourself:
+
+.. code-block:: apache
+
+   <Macro VHostLog $domain>
+       ErrorLog "/var/log/httpd/${domain}-error_log"
+       CustomLog "/var/log/httpd/${domain}-access_log" combined
+   </Macro>
+
+   <VirtualHost *:443>
+       ServerName www.example.com
+       Use VHostLog example.com
+       # ... rest of vhost config
+   </VirtualHost>
+
+   <VirtualHost *:443>
+       ServerName shop.example.com
+       Use VHostLog shop.example.com
+       # ... rest of vhost config
+   </VirtualHost>
+
+**Directory-scoped logging** (since httpd 2.4): You can place
+``CustomLog`` inside ``<Directory>``, ``<Location>``, or ``<Files>``
+containers:
+
+.. code-block:: apache
+
+   # Log all API requests to a separate file
+   <Location "/api/">
+       CustomLog "/var/log/httpd/api_access_log" combined
+   </Location>
+
+This is useful when different teams own different URL spaces and want
+their own logs, or when you need different log verbosity for different
+parts of your site.
+
+
+.. _See_Also_Per_Vhost_Logging:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_Rotating_Logs` for managing many log files
+* The ``split-logfile`` utility:
+  https://httpd.apache.org/docs/2.4/programs/split-logfile.html
+
+
+.. _Recipe_Rotating_Logs:
+
+Rotating log files
+-------------------
+
+.. index:: Log rotation
+
+.. index:: rotatelogs program
+
+.. index:: logrotate
+
+.. index:: Logging,rotation
+
+
+.. _Problem_Rotating_Logs:
+
+Problem
+~~~~~~~
+
+Your access logs grow indefinitely, consuming disk space and making
+analysis unwieldy. You need to rotate them — either by time interval
+or by file size — without losing any entries or restarting the server.
+
+
+.. _Solution_Rotating_Logs:
+
+Solution
+~~~~~~~~
+
+**Method 1: rotatelogs (built-in, no restart needed)**
+
+Time-based rotation (new file every 24 hours):
+
+.. code-block:: apache
+
+   CustomLog "|/usr/sbin/rotatelogs /var/log/httpd/access_log.%Y-%m-%d 86400" combined
+   ErrorLog "|/usr/sbin/rotatelogs /var/log/httpd/error_log.%Y-%m-%d 86400"
+
+Size-based rotation (new file every 100 MB):
+
+.. code-block:: apache
+
+   CustomLog "|/usr/sbin/rotatelogs /var/log/httpd/access_log.%Y-%m-%d-%H%M%S 100M" combined
+
+Combined (rotate every 24 hours OR at 500 MB, whichever comes first):
+
+.. code-block:: apache
+
+   CustomLog "|/usr/sbin/rotatelogs -f /var/log/httpd/access_log.%Y-%m-%d 86400 500M" combined
+
+**Method 2: logrotate (system-level, requires graceful restart)**
+
+Create :file:`/etc/logrotate.d/httpd`:
+
+.. code-block:: text
+
+   /var/log/httpd/*_log {
+       daily
+       rotate 30
+       compress
+       delaycompress
+       missingok
+       notifempty
+       sharedscripts
+       postrotate
+           /usr/bin/systemctl reload httpd.service > /dev/null 2>&1 || true
+       endscript
+   }
+
+
+.. _Discussion_Rotating_Logs:
+
+Discussion
+~~~~~~~~~~
+
+These two approaches solve the same problem differently:
+
+**rotatelogs** uses piped logging — httpd writes to a pipe, and the
+``rotatelogs`` program receives the data and writes it to the
+appropriate file. Because the pipe stays open, httpd never needs to be
+restarted or signaled. The ``-f`` flag forces ``rotatelogs`` to open the
+file immediately on startup (useful so monitoring tools don't complain
+about a missing file).
+
+The filename argument supports ``strftime(3)`` format tokens. Common
+patterns:
+
+- ``%Y-%m-%d`` — daily rotation: :file:`access_log.2026-05-09`
+- ``%Y-%m-%d-%H`` — hourly rotation: :file:`access_log.2026-05-09-14`
+- ``%Y%m%d%H%M%S`` — used with size-based rotation to get unique names
+
+The ``rotatelogs`` approach has a subtle timing consideration: the
+rotation happens at UTC epoch boundaries unless you pass the ``-l`` flag
+for local time:
+
+.. code-block:: apache
+
+   CustomLog "|/usr/sbin/rotatelogs -l /var/log/httpd/access_log.%Y-%m-%d 86400" combined
+
+**logrotate** is the traditional Unix approach. It renames the current
+file and signals httpd to reopen its logs. The ``postrotate`` script
+sends a ``SIGUSR1`` (graceful restart) which causes httpd to close and
+reopen all log file handles. The brief moment between the rename and
+the signal is theoretically a window for lost entries, but in practice
+``delaycompress`` and the graceful restart make this reliable.
+
+Choose ``rotatelogs`` when:
+
+- You can't tolerate any possibility of lost entries
+- You want rotation without system-level cron/logrotate infrastructure
+- You're in a container where logrotate might not be available
+
+Choose ``logrotate`` when:
+
+- You want compression, retention policies, and other logrotate features
+- You prefer a single system-wide log management approach
+- Your monitoring expects predictable file paths (no timestamps in names)
+
+
+
+**Cleanup of old rotated files**: ``rotatelogs`` doesn't delete old files.
+You'll need a separate cron job:
+
+.. code-block:: bash
+
+   # Delete access logs older than 30 days
+   find /var/log/httpd/ -name "access_log.*" -mtime +30 -delete
+
+Or use the ``-n`` flag (available since httpd 2.4.5) to keep only a
+specified number of files:
+
+.. code-block:: apache
+
+   # Keep only the 7 most recent rotated files
+   CustomLog "|/usr/sbin/rotatelogs -n 7 /var/log/httpd/access_log 86400" combined
+
+With ``-n``, ``rotatelogs`` uses numeric suffixes (``.1``, ``.2``, etc.)
+instead of timestamp-based names, and automatically removes older files
+beyond the specified count.
+
+**Rotation for ErrorLog**: Don't forget the error log. It grows too:
+
+.. code-block:: apache
+
+   ErrorLog "|/usr/sbin/rotatelogs -l /var/log/httpd/error_log.%Y-%m-%d 86400"
+
+**Multiple vhosts with rotatelogs**: Each piped ``CustomLog`` spawns its
+own ``rotatelogs`` process. If you have 50 vhosts each with their own
+rotated log, that's 50 extra processes (100 if you rotate both access and
+error logs). On servers with many vhosts, consider using a single log with
+``%v`` and splitting later, or use ``logrotate`` instead.
+
+
+.. _See_Also_Rotating_Logs:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_Piped_Logging` for more piped logging patterns
+* ``rotatelogs`` documentation:
+  https://httpd.apache.org/docs/2.4/programs/rotatelogs.html
+
+
+.. _Recipe_Logging_Behind_Proxy:
+
+Logging behind a reverse proxy
 -------------------------------
 
-.. index:: HTTP
+.. index:: Reverse proxy logging
 
-.. index:: HTTP,status codes
+.. index:: X-Forwarded-For header
 
-.. index:: Status Codes; see HTTP,status codes
+.. index:: mod_remoteip
 
-.. index:: HTTP,status codes,understanding them
+.. index:: Logging,proxy
 
-
-.. _Problem_Status_codes:
-
-Problem
-~~~~~~~
+.. index:: %a vs %h
 
 
-You'd like to know what the HTTP status codes in your log file mean.
-
-
-.. _Solution_Status_codes:
-
-Solution
-~~~~~~~~
-
-
-The various HTTP status codes are defined in the HTTP specification
-itself, as follows:
-
-
-.. refcosplay
-
-.. _HTTP_status_codes:
-
-
-HTTP status codes
----------------------
-
-+-----------------------+---------------------------------+
-| Code                  | Abstract                        |
-+-----------------------+---------------------------------+
-| **Informational 1xx** |                                 |
-+-----------------------+---------------------------------+
-| 100                   | Continue                        |
-+-----------------------+---------------------------------+
-| 101                   | Switching protocols             |
-+-----------------------+---------------------------------+
-| **Successful 2xx**    |                                 |
-+-----------------------+---------------------------------+
-| 200                   | OK                              |
-+-----------------------+---------------------------------+
-| 201                   | Created                         |
-+-----------------------+---------------------------------+
-| 202                   | Accepted                        |
-+-----------------------+---------------------------------+
-| 203                   | Nonauthoritative information    |
-+-----------------------+---------------------------------+
-| 204                   | No content                      |
-+-----------------------+---------------------------------+
-| 205                   | Reset content                   |
-+-----------------------+---------------------------------+
-| 206                   | Partial content                 |
-+-----------------------+---------------------------------+
-| **Redirection 3xx**   |                                 |
-+-----------------------+---------------------------------+
-| 300                   | Multiple choices                |
-+-----------------------+---------------------------------+
-| 301                   | Moved permanently               |
-+-----------------------+---------------------------------+
-| 302                   | Found                           |
-+-----------------------+---------------------------------+
-| 303                   | See other                       |
-+-----------------------+---------------------------------+
-| 304                   | Not modified                    |
-+-----------------------+---------------------------------+
-| 305                   | Use proxy                       |
-+-----------------------+---------------------------------+
-| 306                   | (Unused)                        |
-+-----------------------+---------------------------------+
-| 307                   | Temporary redirect              |
-+-----------------------+---------------------------------+
-| **Client error 4xx**  |                                 |
-+-----------------------+---------------------------------+
-| 400                   | Bad request                     |
-+-----------------------+---------------------------------+
-| 401                   | Unauthorized                    |
-+-----------------------+---------------------------------+
-| 402                   | Payment required                |
-+-----------------------+---------------------------------+
-| 403                   | Forbidden                       |
-+-----------------------+---------------------------------+
-| 404                   | Not found                       |
-+-----------------------+---------------------------------+
-| 405                   | Method not allowed              |
-+-----------------------+---------------------------------+
-| 406                   | Not acceptable                  |
-+-----------------------+---------------------------------+
-| 407                   | Proxy authentication required   |
-+-----------------------+---------------------------------+
-| 408                   | Request timeout                 |
-+-----------------------+---------------------------------+
-| 409                   | Conflict                        |
-+-----------------------+---------------------------------+
-| 410                   | Gone                            |
-+-----------------------+---------------------------------+
-| 411                   | Length required                 |
-+-----------------------+---------------------------------+
-| 412                   | Precondition failed             |
-+-----------------------+---------------------------------+
-| 413                   | Request entity too large        |
-+-----------------------+---------------------------------+
-| 414                   | Request-URI too long            |
-+-----------------------+---------------------------------+
-| 415                   | Unsupported media type          |
-+-----------------------+---------------------------------+
-| 416                   | Requested range not satisfiable |
-+-----------------------+---------------------------------+
-| 417                   | Expectation failed              |
-+-----------------------+---------------------------------+
-| **Server error 5xx**  |                                 |
-+-----------------------+---------------------------------+
-| 500                   | Internal server error           |
-+-----------------------+---------------------------------+
-| 501                   | Not implemented                 |
-+-----------------------+---------------------------------+
-| 502                   | Bad gateway                     |
-+-----------------------+---------------------------------+
-| 503                   | Service unavailable             |
-+-----------------------+---------------------------------+
-| 504                   | Gateway timeout                 |
-+-----------------------+---------------------------------+
-| 505                   | HTTP version not supported      |
-+-----------------------+---------------------------------+
-
-
-.. _Discussion_Status_codes:
-
-Discussion
-~~~~~~~~~~
-
-.. index:: RFC
-
-.. index:: Request for Comments; see RFC
-
-.. index:: RFC,HTTP Protocol (2616)
-
-.. index:: RFC,HTTP Status Codes (additional) (6585)
-
-The status codes are defined
-by the HTTP protocol specification documents, which
-you can access at http://tools.ietf.org/html/rfc2616.
-:ref:`HTTP_status_codes` gives a brief description of the
-codes defined in the HTTP specification. Other RFCs, such as RCF 6585
-(http://tools.ietf.org/html/rfc6585) propose other status
-codes, so this list may not be complete.
-
-Codes are in 5 categories. Codes starting with 1 are informational.
-Status values starting with 2 indicate a successful request. Status
-values starting with 3 indicate that the request was redirected to
-some other resource. Status values starting with 4 indicate that an
-error occurred on the client side. And status values starting with 5
-indicate that an error occurred on the server side.
-
-The RFCs mentioned above discuss the detailed meaning of each error
-code in greater detail.
-
-
-.. _See_Also_Status_codes:
-
-See Also
-~~~~~~~~
-
-
-* http://tools.ietf.org/html/rfc2616 (HTTP Protocol)
-* http://tools.ietf.org/html/rfc6585 (Additional HTTP Status Codes)
-
-
-.. _Recipe_LogFormat:
-
-Adding more information to the access log
------------------------------------------
-
-.. index:: directives,LogFormat
-
-.. index:: Logging,Access log
-
-.. index:: Logging,LogFormat
-
-.. index:: Logging,Adding more information to the access log
-
-
-.. _Problem_LogFormat:
+.. _Problem_Logging_Behind_Proxy:
 
 Problem
 ~~~~~~~
 
-
-You want to add more information to your access log file.
-
-
-.. _Solution_LogFormat:
-
-Solution
-~~~~~~~~
-
-.. index:: directives,LogFormat
-
-Use the **LogFormat** directive to create a new log format, adding the
-variables that you're interested in. There's a wide variety of
-variables available, including any environment variable, request
-header field, and many other things.
-
-.. index:: Modules,mod_log_config
-
-These are documented in the ``mod_log_config`` documentation at
-http://httpd.apache.org/docs/mod/mod_log_config.html.
+Your httpd instance sits behind a load balancer, CDN, or reverse proxy.
+The access log shows the proxy's IP address for every request instead of
+the actual client's address.
 
 
-For example, if you wanted to log the ``QUERY_STRING```, you could create
-a query string log format:
-.. index:: directives,LogFormat
-
-.. index:: directives,CustomLog
-
-.. index:: Logging,format names
-
-
-.. code-block:: text
-
-   LogFormat "%t \"%r\" %q" querylog
-   CustomLog /var/log/httpd/query_log querylog
-
-
-.. _Discussion_LogFormat:
-
-Discussion
-~~~~~~~~~~
-
-
-The following variables are available for use in **LogFormat**
-directives.
-
-.. index:: Modules,mod_remoteip
-
-.. index:: Modules,mod_headers
-
-.. index:: Modules,mod_setenvif
-
-.. index:: Modules,mod_identd
-
-.. index:: Logging,Common Log Format
-
-
-.. _LogFormat_fields:
-
-
-**LogFormat available variables**
-
-
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Format String                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%%``                        | The percent sign.                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%a``                        | Client IP address of the request (see the _mod_remoteip_ module).                                                                                                                                                                                                                                                                                                                                                                                                         |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{c}a``                     | Underlying peer IP address of the connection (see the _mod_remoteip_ module).                                                                                                                                                                                                                                                                                                                                                                                             |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%A``                        | Local IP-address.                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%B``                        | Size of response in bytes, excluding HTTP headers.                                                                                                                                                                                                                                                                                                                                                                                                                        |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%b``                        | Size of response in bytes, excluding HTTP headers. In CLF format, **i.e.**, a '-' rather than a 0 when no bytes are sent.                                                                                                                                                                                                                                                                                                                                                 |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``VARNAME````**}C``   | The contents of cookie **VARNAME** in the request sent to the server. Only version 0 cookies are fully supported.                                                                                                                                                                                                                                                                                                                                                         |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%D``                        | The time taken to serve the request, in microseconds.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| %{**``VARNAME``**}e           | The contents of the environment variable **VARNAME**.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%f``                        | Filename.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%h``                        | Remote hostname. Will log the IP address if **HostnameLookups** is set to ``Off``, which is the default. If it logs the hostname for only a few hosts, you probably have access control directives mentioning them by name. See the **Require host** documentation.                                                                                                                                                                                                       |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%H``                        | The request protocol.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``VARNAME``**``}i``   | The contents of the **VARNAME**: header field(s) in the request sent to the server. Changes made by other modules (**e.g.**, _mod_headers_) affect this. If you're interested in what the request header was prior to when most modules would have modified it, use _mod_setenvif_ to copy the header into an internal environment variable and log that value with the **``%{``***``VARNAME``***``}e``** described above.                                                |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%k``                        | Number of keepalive requests handled on this connection. Interesting if **KeepAlive** is being used, so that, for example, a '1' means the first keepalive request after the initial one, '2' the second, etc...; otherwise this is always 0 (indicating the initial request).                                                                                                                                                                                            |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%l``                        | Remote logname (from **identd**, if supplied). This will return a dash unless _mod_ident_ is present and **IdentityCheck** is set to ``On``.                                                                                                                                                                                                                                                                                                                              |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%L``                        | The request log ID from the error log (or '-' if nothing has been logged to the error log for this request). Look for the matching error log line to see what request caused what error.                                                                                                                                                                                                                                                                                  |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%m``                        | The request method.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``VARNAME``**``}n``   | The contents of note **VARNAME** from another module.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``VARNAME``**``}o``   | The contents of **VARNAME**: header field(s) in the response.                                                                                                                                                                                                                                                                                                                                                                                                             |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%p``                        | The canonical port of the server serving the request.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``format``**``}p``    | The canonical port of the server serving the request, or the server's actual port, or the client's actual port. Valid formats are ``canonical``, ``local``, or ``remote``.                                                                                                                                                                                                                                                                                                |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%P``                        | The process ID of the child that serviced the request.                                                                                                                                                                                                                                                                                                                                                                                                                    |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``format``**``}P``    | The process ID or thread ID of the child that serviced the request. Valid formats are ``pid``, ``tid``, and ``hextid``. ``hextid`` requires APR 1.2.0 or higher.                                                                                                                                                                                                                                                                                                          |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%q``                        | The query string (prepended with a ``?`` if a query string exists, otherwise an empty string).                                                                                                                                                                                                                                                                                                                                                                            |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%r``                        | First line of request.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%R``                        | The handler generating the response (if any).                                                                                                                                                                                                                                                                                                                                                                                                                             |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%s``                        | Status. For requests that have been internally redirected, this is the status of the original request. Use ``%>s`` for the final status.                                                                                                                                                                                                                                                                                                                                  |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%t``                        | Time the request was received, in the format **``[18/Sep/2011:19:18:28 -0400]``**. The last number indicates the timezone offset from GMT.                                                                                                                                                                                                                                                                                                                                |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``format``**``}t``    | The time, in the form given by ``format``, which should be in an extended ``strftime(3)`` format (potentially localized). If the format starts with **``begin:``** (default) the time is taken at the beginning of the request processing. If it starts with **``end:``** it is the time when the log entry gets written, close to the end of the request processing. In addition to the formats supported by ``strftime(3)``, the following format tokens are supported: |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%T``                        | The time taken to serve the request, in seconds.                                                                                                                                                                                                                                                                                                                                                                                                                          |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``UNIT``**``}T``      | The time taken to serve the request, in a time unit given by **``UNIT``**. Valid units are **``ms``** for milliseconds, **``us``** for microseconds, and **``s``** for seconds. Using **``s``** gives the same result as **``%T``** without any format; using **``us``** gives the same result as **``%D``**. Combining **``%T``** with a unit is available in 2.4.13 and later.                                                                                          |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%u``                        | Remote user if the request was authenticated. May be bogus if return status (``%s``) is 401 (unauthorized).                                                                                                                                                                                                                                                                                                                                                               |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%U``                        | The URL path requested, not including any query string.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%v``                        | The canonical **ServerName** of the server serving the request.                                                                                                                                                                                                                                                                                                                                                                                                           |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%V``                        | The server name according to the **UseCanonicalName** setting.                                                                                                                                                                                                                                                                                                                                                                                                            |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%X``                        | Connection status when response is completed:                                                                                                                                                                                                                                                                                                                                                                                                                             |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``X =``                       | Connection aborted before the response completed.                                                                                                                                                                                                                                                                                                                                                                                                                         |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``\`` =+                      | Connection may be kept alive after the response is sent.                                                                                                                                                                                                                                                                                                                                                                                                                  |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``- =``                       | Connection will be closed after the response is sent.                                                                                                                                                                                                                                                                                                                                                                                                                     |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%I``                        | Bytes received, including request and headers. Cannot be zero. You need to enable _mod_logio_ to use this.                                                                                                                                                                                                                                                                                                                                                                |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%O``                        | Bytes sent, including headers. May be zero in rare cases such as when a request is aborted before a response is sent. You need to enable _mod_logio_ to use this.                                                                                                                                                                                                                                                                                                         |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%S``                        | Bytes transferred (received and sent), including request and headers, cannot be zero. This is the combination of **``%I``** and **``%O``**. You need to enable _mod_logio_ to use this.                                                                                                                                                                                                                                                                                   |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``VARNAME``**``}^ti`` | The contents of **VARNAME**: trailer line(s) in the request sent to the server.                                                                                                                                                                                                                                                                                                                                                                                           |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``%{``**``VARNAME``**``}^to`` | The contents of **VARNAME**: trailer line(s) in the response sent from the server.                                                                                                                                                                                                                                                                                                                                                                                        |
-+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-
-Any of these variables can be strung together to create your own
-custom access log format, and you can have as many access logs as you
-wish, logging this information.
-
-
-.. _See_Also_LogFormat:
-
-See Also
-~~~~~~~~
-
-
-* **LogFormat** documentation at http://httpd.apache.org/docs/mod/mod_log_config.html
-* _mod_headers_ documentation at http://httpd.apache.org/docs/mod/mod_headers.html
-* _mod_logio_ documentation at http://httpd.apache.org/docs/mod/mod_logio.html
-* _mod_remoteid_ documentation at http://httpd.apache.org/docs/mod/mod_remoteid.html
-* _mod_setenvif_ documentation at http://httpd.apache.org/docs/mod/mod_setenvif.html
-* **``man 3 strftime``**
-
-
-.. refcosplay
-
-.. _Recipe_Understanding_ErrorLog:
-
-Understanding your error_log
-----------------------------
-
-.. index:: ErrorLog
-
-.. index:: Logging,ErrorLog
-
-.. index:: Error log format
-
-.. index:: Understanding your error_log
-
-
-.. _Problem_Understanding_ErrorLog:
-
-Problem
-~~~~~~~
-
-
-You want to understand what the entries in the error log mean.
-
-
-.. _Solution_Understanding_ErrorLog:
+.. _Solution_Logging_Behind_Proxy:
 
 Solution
 ~~~~~~~~
 
-
-Error log entries contain a few standard fields, and then a free-form
-error message.
-
-The default error log format looks like:
-
-
-.. code-block:: text
-
-   [Wed Oct 11 14:32:52 2000] [error] [client 127.0.0.1] client denied by
-   server configuration: /export/home/live/ap/htdocs/test
-
-
-The fields in this error message are:
-
-* Date/Time of error condition
-* Log level at which the error message was logged
-* The elient address making the request
-* Free-form error message
-
-The error log format can be customized with the ``ErrorLogFormat`` directive. By default it looks like:
-
-
-.. code-block:: text
-
-   [Fri Jun 05 16:28:52.598613 2015] [core:info] [pid 31581:tid
-   140214657406720] [client 127.0.0.1:57772] AH00128: File does not
-   exist: /var/www/html/missing
-
-
-The fields in the error message are:
-
-* Date/Time of the error condition
-* The module reporting the error, and the log level at which it was
-  logged
-* Process ID, and thread ID, which handled the request
-* The client IP address and port number
-* Error code, starting with 'AH'
-* Free-form error message
-
-
-.. _Discussion_Understanding_ErrorLog:
-
-Discussion
-~~~~~~~~~~
-
-
-You can use the ``ErrorLogFormat`` directive to create your own custom error
-log format to include additional information to help in
-troubleshooting.
-
-The error code - in the example above it is AH00128 - is a unique
-identifier that can help you find troubleshooting tips online.
-Eventually, we will have these tips in the Apache httpd documentation,
-but searching online for this code will find numerous third-party
-websites telling you how to resolve the problem.
-
-
-.. _See_Also_Understanding_ErrorLog:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_Correlating_error_access`
-
-* ``ErrorLogFormat`` documentation at
-  http://httpd.apache.org/docs/mod/core.html#errorlogformat
-
-
-.. _Recipe_Detailed_Errors:
-
-Getting More Detailed Errors
-----------------------------
-
-.. index:: Debug logging
-
-.. index:: LogLevel
-
-.. index:: Logging,Detailed errors
-
-.. index:: Logging,LogLevel
-
-.. index:: Getting more detailed errors
-
-
-.. _Problem_Detailed_Errors:
-
-Problem
-~~~~~~~
-
-
-You want more information in the error log in order to debug a
-problem.
-
-
-.. _Solution_Detailed_Errors:
-
-Solution
-~~~~~~~~
-
-
-Change (or add) the **LogLevel** line in your **httpd.conf** file.
-There are several possible arguments, which are enumerated
-here.
-
-For example:
-
-
-.. code-block:: text
-
-   LogLevel debug
-
-
-In 2.4 and later, this tuning can be done **per**-module, as well as
-globally:
-
-
-.. code-block:: text
-
-   LogLevel warn rewrite:trace6
-
-
-.. _Discussion_Detailed_Errors:
-
-Discussion
-~~~~~~~~~~
-
-
-There are several hierarchical levels of error logging
-available, each identified by its own keyword. The default value of
-**LogLevel** is **warn**. Listed in descending order of importance, the possible values
-are:
-
-``emerg``::
-Emergencies; Web server is unusable
-
-
-``alert``::
-Action must be taken immediately
-
-
-``crit``::
-Critical conditions
-
-
-``error``::
-Error conditions
-
-
-``warn``::
-Warning conditions
-
-
-``notice``::
-Normal but significant condition
-
-
-``info``::
-Informational
-
-
-``debug``::
-Debug-level messages
-
-
-``emerg`` results in the least information being recorded and ``debug`` in the most. However, at ``debug`` level a lot of information will
-probably be recorded that is unrelated to the issue you're
-investigating, so it's a good idea to revert to the previous setting
-when the problem is solved.
-
-In 2.4 and later, additional log levels ``trace1`` through ``trace8``
-have been added, to provide trace messages that can be used to
-troubleshoot code-level problems. These are also used to replace the
-old ``RewriteLog`` functionalty:
-
-
-.. code-block:: text
-
-   LogLevel warn rewrite:trace5
-
-
-Even though the various logging levels are hierarchical in
-nature, one oddity is that ``notice``
-level messages are **always** logged regardless of
-the setting of the **LogLevel** directive.
-
-The severity levels are rather loosely defined and even more
-loosely applied. In other words, the severity at which a particular
-error condition gets logged is decided at the discretion of the
-developer who wrote the code—your opinion may differ.
-
-Here are some sample messages of various severities, taken from the
-log file of an Apache httpd server:
-
-
-.. code-block:: text
-
-   [Thu Apr 18 01:37:40 2002] [alert] [client 64.152.75.26] /home/smith/public_html/
-        test/.htaccess: Invalid command 'Test', perhaps mis-spelled or defined by a
-        module not included in the server configuration
-   [Thu Apr 25 22:21:58 2002] [error] PHP Fatal error:  Call to undefined function:
-        decode_url(  ) in /usr/apache/htdocs/foo.php on line 8
-   [Mon Apr 15 09:31:37 2002] [warn] pid file /usr/apache/logs/httpd.pid overwritten --
-        Unclean shutdown of previous Apache run?
-   [Mon Apr 15 09:31:38 2002] [info] Server built: Apr 12 2002 09:14:06
-   [Mon Apr 15 09:31:38 2002] [notice] Accept mutex: sysvsem (Default: sysvsem)
-
-
-On a 2.4 server, they would look different, depending on how you have
-``ErrorLogFormat`` set (See :ref:`Recipe_Understanding_ErrorLog` for more
-details), but might look something like:
-
-
-.. code-block:: text
-
-   [Mon Jul 13 06:35:16.436308 2015] [authz_core:error] [pid 16776:tid
-   139634570925824] [client 155.94.138.10:40830] AH01630: client denied
-   by server configuration: /var/www/vhosts/k2/register, referer:
-   http://kenya.rcbowen.com/
-
-
-More information is included in 2.4 error messages, including the
-module that is logging the message (``authz_core`` in this case), the
-client address (``155.94.138.10``) and an error code (``AH01630``) which
-is useful in looking up detailed remediation techniques on your
-favorite search engine.
-
-These are fairly normal messages that you might encounter on a
-production Web server. If you set the logging level to
-Debug, however, you might see many more messages of
-cryptic import, such as:
-
-
-.. code-block:: text
-
-   [Thu Mar 28 10:29:50 2002] [debug] proxy_cache.c(992): No CacheRoot, so no caching. Declining.
-   [Thu Mar 28 10:29:50 2002] [debug] proxy_http.c(540): Content-Type: text/html
-
-
-These are exactly what they seem to be: debugging messages
-intended to help an httpd developer figure out what the proxy module
-is doing.
-
-And, in the 2.4 version, you can set your ``LogLevel`` to one of the
-trace levels to get even more information:
-
-
-.. code-block:: text
-
-   [Thu Jul 16 21:53:01.342801 2015] [proxy:trace2] [pid 4923:tid
-   140434407937792] proxy_util.c(2754): FCGI: fam 2 socket created to
-   connect to 127.0.0.1
-
-
-.. _See_Also_Detailed_Errors:
-
-See Also
-~~~~~~~~
-
-
-* See the detailed documentation of the **LogLevel**
-
-directive at the httpd site: http://httpd.apache.org/docs/mod/core.html#loglevel
-
-* :ref:`Problem_Understanding_ErrorLog`
-
-
-.. _Recipe_logging_proxied_ipaddress:
-
-Logging a Proxied Client's IP Address
--------------------------------------
-
-.. index:: Logging,logging a proxied client's address
-
-.. index:: Proxies,logging a proxied client's address
-
-
-.. _Problem_logging_proxied_ipaddress:
-
-Problem
-~~~~~~~
-
-
-You want to log the IP address of the actual client requesting
-your pages, even if they're being requested through a proxy.
-
-
-.. _Solution_logging_proxied_ipaddress:
-
-Solution
-~~~~~~~~
-
-
-.. admonition:: DRAFT — Review needed
-
-   The following content needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
-
-Use :module:`mod_remoteip` with the ``RemoteIPHeader`` directive to
-replace the connection-level client IP with the address reported in the
-``X-Forwarded-For`` header (or a similar header set by your proxy or
-load balancer):
+Use :module:`mod_remoteip` to replace the connection's remote address
+with the client IP from the ``X-Forwarded-For`` header:
 
 .. code-block:: apache
 
@@ -1205,2140 +1061,1303 @@ load balancer):
    RemoteIPHeader X-Forwarded-For
    RemoteIPTrustedProxy 10.0.0.0/8
    RemoteIPTrustedProxy 172.16.0.0/12
-   RemoteIPTrustedProxy 192.168.0.0/16
 
-
-.. _Discussion_logging_proxied_ipaddress:
-
-Discussion
-~~~~~~~~~~
-
-
-.. admonition:: DRAFT — Review needed
-
-   The following content needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
-
-When a client connects through a reverse proxy or load balancer, the
-IP address that httpd sees is the address of the proxy, not the
-original client. Most proxies add an ``X-Forwarded-For`` header
-containing the real client IP, but by default httpd ignores this
-header and logs only the direct connection's address.
-
-:module:`mod_remoteip` solves this. When loaded, it overrides the
-client IP for the connection with the address from the header you
-specify in ``RemoteIPHeader``. This affects everything that uses the
-client IP — log format tokens like ``%a`` and ``%h``, access control
-with ``Require ip``, and environment variables like
-``REMOTE_ADDR`` passed to CGI scripts.
-
-**Trust only your proxies.**
-The ``RemoteIPTrustedProxy`` directive is essential. Without it,
-:module:`mod_remoteip` trusts *any* host presenting the header, which
-means a client could forge its IP address by sending a fake
-``X-Forwarded-For`` header directly. Always list only the addresses
-of your actual proxies and load balancers:
+Once :module:`mod_remoteip` is configured, the ``%a`` format token
+automatically reflects the true client IP:
 
 .. code-block:: apache
 
-   # Trust only the load balancer at 10.0.1.50
-   RemoteIPTrustedProxy 10.0.1.50
+   LogFormat "%a %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+   CustomLog "/var/log/httpd/access_log" combined
 
-If you have internal proxies on RFC 1918 networks, use
-``RemoteIPInternalProxy`` instead — it additionally trusts private
-IP addresses reported within the header chain:
+If you need to log both the proxy IP and the client IP:
 
 .. code-block:: apache
 
-   RemoteIPInternalProxy 10.0.2.0/24
-
-**Multiple proxies.** When a request passes through several proxies,
-the ``X-Forwarded-For`` header contains a comma-separated list of
-addresses. :module:`mod_remoteip` processes this list from right to
-left, stopping at the first address that isn't in the trusted proxy
-list. That address becomes the client IP for the request.
-
-**Verifying it works.** After enabling :module:`mod_remoteip`, check
-your access log. The ``%a`` format token should now show the real
-client address rather than the proxy's address. You can also use the
-``%{REMOTE_ADDR}e`` token to confirm the environment variable is set
-correctly.
+   LogFormat "%a %{c}a %l %u %t \"%r\" %>s %b" proxy_aware
 
 
-.. _See_Also_logging_proxied_ipaddress:
-
-See Also
-~~~~~~~~
-
-
-* The :module:`mod_remoteip` documentation at
-  https://httpd.apache.org/docs/current/mod/mod_remoteip.html
-
-* The HTTP/1.1 specification (RFC 7230-7235) at
-  https://httpwg.org/specs/
-
-
-.. _Recipe_Correlating_error_access:
-
-Correlating error log entries with access log entries
------------------------------------------------------
-
-.. index:: LogFormat
-
-.. index:: ErrorLogFormat
-
-.. index:: Correlating log entries
-
-.. index:: Logging,ErrorLogFormat
-
-.. index:: Logging,LogFormat
-
-.. index:: Logging,Correlating entries
-
-
-.. _Problem_Correlating_error_access:
-
-Problem
-~~~~~~~
-
-
-You have the error log and the access log, but it's hard to tell which
-error messages go with which access log entries.
-
-
-.. _Solution_Correlating_error_access:
-
-Solution
-~~~~~~~~
-
-
-Prior to version 2.4, there's no good solution to this, other than
-comparing time stamps, which is error prone on very busy servers,
-where multiple request may arrive within a given second.
-
-In 2.4, a new log format variable, ``%L``, can be put in both the access
-log and the error log, and will log a request ID which can then be
-correlated between the two log files.
-
-
-.. code-block:: text
-
-   LogFormat "%h %t [log id %L] \"%r\"" access_with_id
-   CustomLog /var/log/httpd/access_log_id access_with_id
-   
-   ErrorLogFormat "[%{u}t] [%-m:%l] [log id %L] [pid %P:tid %T]
-       %7F: %E: [client\ %a] %M% ,\ referer\ %{Referer}i"
-   ErrorLog /var/log/httpd/error_log_id
-
-
-.. _Discussion_Correlating_error_access:
+.. _Discussion_Logging_Behind_Proxy:
 
 Discussion
 ~~~~~~~~~~
 
-
-A common problem when troubleshooting is attempting to correlate an
-error message with the request that resulted in the error condition.
-
-If you have direct access to the server at the exact moment that the
-error condition is happening, you can ``tail -f`` both the error log and
-the access log, in order to see what conditions happen at the same
-time. This can be difficult, though, on a server with any traffic, as
-messages will scroll off the screen before you can figure out what's
-happening.
-
-Usually, though, you have the error log and the access log, and you're
-trying to correlate an error message with the request that happened at
-the same time.
-
-Another difficulty, as mentioned in the introduction to this chapter,
-is that while error messages are logged immediately when they occur,
-access log entries happen only when the request has been completed.
-This time lag can occasionally be long enough that it's difficult to
-correlate messages.
-
-The ``%L`` log format variable addresses this
-difficulty. A unique request ID will be put in each log file that uses
-this variable, so that all log entries can be directly correlated.
-
-
-.. _See_Also_Correlating_error_access:
-
-See Also
-~~~~~~~~
-
-
-* ``ErrorLogFormat`` documentation at
-  http://httpd.apache.org/docs/mod/core.html#errorlogformat
-
-* ``LogFormat`` documentation at
-  http://httpd.apache.org/docs/mod/mod_log_config.html#logformat
-
-
-.. _Recipe_Log_MAC_Address:
-
-Logging the value of the MAC address
-------------------------------------
-
-.. index:: Logging,MAC address
-
-.. index:: MAC address,Logging
-
-
-.. _Problem_Log_MAC_Address:
-
-Problem
-~~~~~~~
-
-
-You want to record the MAC (hardware) address of clients that
-access your server.
-
-
-.. _Solution_Log_MAC_Address:
-
-Solution
-~~~~~~~~
-
-
-This cannot be logged reliably in most network situations and
-not by httpd at all.
-
-
-.. _Discussion_Log_MAC_Address:
-
-Discussion
-~~~~~~~~~~
-
-
-The MAC address is not meaningful except on local area networks
-(LANs) and is not available in wide area network transactions. When a
-network packet goes through a router, such as when leaving a LAN, the
-router will typically rewrite the MAC address field with the router's
-hardware address. Thus, in practice, the MAC address of the original
-client machine making the request is never available to the web server
-actually responding to the request.
-
-
-.. _See_Also_Log_MAC_Address:
-
-See Also
-~~~~~~~~
-
-
-* The TCP/IP protocol specifications (see
-
-http://www.rfc-editor.org/cgi-bin/rfcsearch.pl
-and search for "TCP" in the title field)
-
-
-.. _Recipe_logging_cookies:
-
-Logging Cookies
----------------
-
-.. index:: Cookies
-
-.. index:: Logging,cookies
-
-.. index:: Logging cookies
-
-
-.. _Problem_logging_cookies:
-
-Problem
-~~~~~~~
-
-
-You want to record all the cookies sent to your server by
-clients and all the cookies your server asks clients to set in their
-databases; this can be useful when debugging Web applications that use
-cookies.
-
-
-.. _Solution_logging_cookies:
-
-Solution
-~~~~~~~~
-
-
-To log cookies received from the client:
-
-
-.. code-block:: text
-
-   CustomLog logs/cookies_in.log "%{UNIQUE_ID}e %{Cookie}i"
-   CustomLog logs/cookies2_in.log "%{UNIQUE_ID}e %{Cookie2}i"
-
-
-To log cookie values set and sent by the server to the
-        client:
-
-
-.. code-block:: text
-
-   CustomLog logs/cookies_out.log "%{UNIQUE_ID}e %{Set-Cookie}o"
-   CustomLog logs/cookies2_out.log "%{UNIQUE_ID}e %{Set-Cookie2}o"
-
-
-Use the
-%{Set-Cookie}o format variable for debugging cookies. See the Discussion text for
-additional details.
-
-
-.. _Discussion_logging_cookies:
-
-Discussion
-~~~~~~~~~~
-
-
-Cookie fields tend to be very long and complex, so the previous
-statements will create separate files for logging them. The cookie log
-entries can be correlated against the client request access log using
-the server-set ``UNIQUE_ID``
-environment variable (assuming that ``mod_unique_id`` is active in the server and
-that the activity log format includes the environment variable with a
-%{UNIQUE_ID}e format variable).
-
-The ``Cookie`` and ``Set-Cookie`` header fields are the standard
-mechanism for HTTP cookies. The older ``Cookie2`` and
-``Set-Cookie2`` fields were designed to correct
-some of the shortcomings in the original specifications, but they
-never achieved widespread adoption and are now obsolete.
-
-Because of the manner in which the syntax of the cookie header
-fields has changed over time, these logging instructions may or may
-not capture the complete details of the cookies.
-
-Bear in mind that these logging directives will record all
-cookies, and not just the ones in which you may be particularly
-interested. For example, here is the log entry for a client request
-that included two cookies, one named ``RFC2109-1`` and one named ``RFC2109-2``:
-
-
-.. code-block:: text
-
-   PNCSUsCoF2UAACI3CZs RFC2109-1="This is an old-style cookie, with space characters
-        embedded"; RFC2109-2=This_is_a_normal_old-style_cookie
-
-
-Even though there's only one log entry, it contains information about
-two cookies.
-
-On the cookie-setting side, here are the ``Set-Cookie`` header fields
-sent by the server in its response header:
-
-
-.. code-block:: text
-
-   Set-Cookie: RFC2109-1="This is an old-style cookie, with space characters embedded";
-        Version=1; Path=/; Max-Age=60; Comment="RFC2109 demonstration cookie"
-   Set-Cookie: RFC2109-2=This_is_a_normal_old-style_cookie; Version=1; Path=/; Max-
-        Age=60; Comment="RFC2109 demonstration cookie"
-
-
-And here's the corresponding log entry for the response (this
-was all one line in the logfile, so line wrapping was added to make it
-all fit on the page):
-
-
-.. code-block:: text
-
-   eCF1vsCoF2UAAHB1DMIAAAAA RFC2109-1=\"This is an old-style cookie, with space
-       characters embedded\"; Version=1; Path=/; Max-Age=60; Comment=\"RFC2109
-       demonstration cookie\", RFC2109-2=This_is_a_normal_old-style_cookie;
-       Version=1; Path=/; Max-Age=60; Comment=\"RFC2109 demonstration cookie\"
-
-
-
-
-
-.. _See_Also_logging_cookies:
-
-See Also
-~~~~~~~~
-
-
-* RFC 2109, "HTTP State Management Mechanism" (IETF definition of
-  ``Cookie`` and ``Set-Cookie`` header fields) at
-  ```ftp://ftp.isi.edu/in-notes/rfc2109.txt`` <``ftp://ftp.isi.edu/in-notes/rfc2109.txt``>`_
-
-
-* RFC 2965, "HTTP State Management Mechanism" (IETF definition of
-  ``Cookie2`` and ``Set-Cookie2`` header fields) at
-  ```ftp://ftp.isi.edu/in-notes/rfc2965.txt`` <``ftp://ftp.isi.edu/in-notes/rfc2965.txt``>`_
-
-
-* The original Netscape cookie proposal at
-  http://home.netscape.com/newsref/std/cookie_spec.html
-
-
-.. _Recipe_dont_log_local:
-
-Not Logging Image Requests from Local Pages
--------------------------------------------
-
-.. index:: Logging,don't log image requests
-
-.. index:: Not logging image requests from local pages
-
-
-.. _Problem_dont_log_local:
-
-Problem
-~~~~~~~
-
-
-You want to log requests for images on your site, except when
-they're requests from one of your own pages. You might want to do this
-to keep your logfile size down, or possibly to track down sites that
-are hijacking your artwork and using it to adorn their pages.
-
-
-.. _Solution_dont_log_local:
-
-Solution
-~~~~~~~~
-
-.. index:: directives,SetEnvIfNoCase
-
-
-Use **SetEnvIfNoCase** to restrict logging to only those requests from
-outside of your site:
-
-
-.. code-block:: text
-
-   <FilesMatch \.(jpg|gif|png)$>
-       SetEnvIfNoCase Referer "^http://www.example.com/" local_referrer=1
-   </FilesMatch>
-   CustomLog logs/access_log combined env=!local_referrer
-
-
-.. _Discussion_dont_log_local:
-
-Discussion
-~~~~~~~~~~
-
-
-In many cases, documents on a Web server include references to
-images also kept on the server, but the only item of real interest for
-log analysis is the referencing page itself. How can you keep the
-server from logging all the requests for the images that happen when
-such a local page is accessed?
-
-The **SetEnvIfNoCase** directive will set an environment variable if the
-page that linked to the image is from the **www.example.com** site
-(obviously, you should replace that site name with your own) and the
-request is for a GIF, PNG, or JPEG image.
-
-
-.. _apacheckbk-CHP-3-NOTE-83:
-
-
-.. tip::
-
-   .. index:: directives,SetEnvIf
-
-   **SetEnvIfNoCase** is the same as **SetEnvIf** except that variable
-   comparisons are done in a case-insensitive manner.
-
-
-.. index:: directives,CustomLog
-
-The **CustomLog** directive will log all requests that do not have that
-environment variable set, **i.e.**, everything except requests for
-images that come from links on your own pages.
-
-This recipe only works for clients that actually report the
-referring page. Some people regard the URL of the referring page to be
-no business of anyone but themselves, and some clients permit the user
-to select whether to include this information or not. There are also
-'anonymizing' sites on the Internet that act as proxies and conceal
-this information.
-
-
-.. _See_Also_dont_log_local:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_image-theft`
-
-
-.. _Recipe_Rotate_By_Time:
-
-Rotating Logfiles at a Particular Time
---------------------------------------
-
-.. index:: Commands,rotatelogs
-
-.. index:: Logging,rotation of files
-
-.. index:: Rotating log files; see Logging,rotation of log files
-
-.. index:: CustomLog; see directives,CustomLog
-
-
-.. _Problem_Rotate_By_Time:
-
-Problem
-~~~~~~~
-
-
-You want to automatically roll over the httpd logs every day
-without having to shut down and restart the server.
-
-
-.. _Solution_Rotate_By_Time:
-
-Solution
-~~~~~~~~
-
-.. index:: directives,CustomLog
-
-.. index:: Commands,rotatelogs
-
-
-Use **CustomLog** and the **rotatelogs** program:
-
-
-.. code-block:: text
-
-   CustomLog "| /usr/sbin/rotatelogs /var/log/httpd/access_log.%Y-%m-%d 86400" combined
-
-
-.. _Discussion_Rotate_By_Time:
-
-Discussion
-~~~~~~~~~~
-
-
-The **rotatelogs** script is designed to use an httpd feature called
-piped logging, which is just a fancy name for sending log output to
-another program rather than to a file. By inserting the **rotatelogs**
-script between the Web server and the actual logfiles on disk, you can
-avoid having to restart the server to create new files; the script
-automatically opens a new file at the designated time and starts
-writing to it.
-
-.. index:: functions,strftime(3)
-
-The first argument to the
-**rotatelogs** script is the base name of the file to which records
-should be logged. If it contains one or more **``%``** characters, it
-will be treated as a ``strftime(3)`` format string; otherwise, the
-rollover time (in seconds since 1 January 1970), in the form of a
-10-digit number, will be appended to the base name. For example, a
-base name of ``foo`` would result in logfile names like
-**foo.1020297600**, whereas a base name of ``foo.%Y-%m-%d`` would cause
-the logfiles to be named something like **foo.2002-04-29**.
-
-The second argument is the interval (in seconds) between
-rollovers. Rollovers will occur whenever the system time is a multiple
-of this value. For instance, a 24-hour day contains 86,400 seconds; if
-you specify a rollover interval of 86400, a new logfile will be
-created every night at midnight — when the system time, which is based
-at representing midnight on 1 January 1970, is a multiple of 24
-hours.
-
-
-.. _apacheckbk-CHP-3-NOTE-85:
-
-
-.. tip::
-
-   Note that the rollover interval is in actual clock seconds
-   elapsed, so when time changes because of daylight savings, this does
-   not in any way affect the interval between rollovers.
-
-
-.. _See_Also_Rotate_By_Time:
-
-See Also
-~~~~~~~~
-
-
-* The **rotatelogs** manpage; try:
-
-
-.. code-block:: text
-
-   man rotatelogs
-
-
-* **rotatelogs** documentation online at http://httpd.apache.org/docs/programs/rotatelogs.html
-
-
-.. _Recipe_System_logrotate:
-
-Rotating Logs on the First of the Month
----------------------------------------
-
-.. index:: Commands,logrotate
-
-.. index:: Logile rotation,by system; see Logging,rotation of files
-
-.. index:: Logfile rotation,monthly
-
-.. index:: Logfile rotation
-
-.. index:: Rotating log files; see Logfile rotation
-
-
-.. _Problem_System_logrotate:
-
-Problem
-~~~~~~~
-
-
-You want to close the previous month's logs and open new ones on
-the first of each month.
-
-
-.. _Solution_System_logrotate:
-
-Solution
-~~~~~~~~
-
-
-Use your operating system's **logrotate** facility.
-
-
-.. _Discussion_System_logrotate:
-
-Discussion
-~~~~~~~~~~
-
-
-**rotatelogs**, mentioned in an earlier recipe, has a number of useful
-features, but does not, at this time, have a way to specify a specific
-date and time to rotate your log files. However, almost every Unix
-system comes equipped with a log rotate facility, usually called
-**logrotate**.
-
-While the exact details of this utility will vary from one system to
-another, typically there's a configuration file called
-**``/etc/logrotate.conf``** and a directory of service-specific
-configuration files, often in **``/etc/logrotate.d``**.
-
-Create a file in that directory called **httpd** with the following
-contents:
-
-
-.. code-block:: text
-
-   /var/log/httpd/*log {
-       monthly
-       missingok
-       notifempty
-       sharedscripts
-       delaycompress
-       postrotate
-           /bin/systemctl reload httpd.service > /dev/null 2> /dev/null || true
-       endscript
-   }
-
-
-.. tip::
-
-   The syntax used here is specific to Fedora, RHEL, and
-   other RPM-based distributions, but it will be similar
-   on other Unixes. In particular, you'll need to update the ``postrotate``
-   section to reflect your system's method of restarting services.
-
-
-See the documentation for **logrotate** for other options that are
-available to you.
-
-
-.. _See_Also_System_logrotate:
-
-See Also
-~~~~~~~~
-
-
-* http://httpd.apache.org/docs/logs.html#piped
-
-* **``man logrotate``**
-
-* :ref:`Recipe_Rotate_By_Time`
-
-
-.. _Recipe_Log_Hostnames:
-
-Logging Hostnames Instead of IP Addresses
------------------------------------------
-
-.. index:: Logging,hostnames
-
-.. index:: Logging,IP addresses
-
-.. index:: directives,HostnameLookups
-
-.. index:: Log hostnames
-
-.. index:: Commands,logresolve
-
-
-.. _Problem_Log_Hostnames:
-
-Problem
-~~~~~~~
-
-
-You want to see hostnames in your activity log instead of IP
-addresses.
-
-
-.. _Solution_Log_Hostnames:
-
-Solution
-~~~~~~~~
-
-
-You can let the Web server resolve the hostname when it
-processes the request by enabling runtime lookups with the httpd
-directive:
-
-
-.. code-block:: text
-
-   HostnameLookups On
-
-
-Or you can let httpd use the IP address during normal
-processing and then postprocess the log file using the **logresolve**
-program that comes with the server.
-
-
-.. code-block:: text
-
-   logresolve -c < access_log.raw > access_log.resolved
-
-
-The latter method is greatly recommended, for reasons of performance.
-
-
-.. _Discussion_Log_Hostnames:
-
-Discussion
-~~~~~~~~~~
-
-
-The httpd activity logging mechanism can record either the
-client's IP address or its hostname (or both). Logging the hostname
-directly requires that the server spend some time to perform a DNS
-lookup to turn the IP address (which it already has) into a hostname.
-This can have some serious impact on the server's performance,
-however, because it needs to consult the name service in order to turn
-the address into a name; and while a server child or thread is busy
-waiting for that, it isn't handling client requests.
-
-The alternative suggested in the solution above is to have the
-server record only the client's IP address and resolve the address to
-a name afterwards, perhaps even on a different system that is not
-handling Web traffic, so that it won't impact your server's
-performance.
-
-In theory, this is an excellent choice; in practice, however,
-there are some pitfalls. For one thing, the
-**logresolve** application included with httpd
-(usually installed in the **``bin/``** subdirectory under the ``ServerRoot``)
-will only resolve IP addresses that appear at the very beginning of
-the log entry, and so it's not very flexible if you want to use a
-nonstandard format for your logfile.
-
-For another, if too much time passes between the collection and
-resolution of the IP addresses, the DNS may have changed sufficiently
-so that misleading or incorrect results may be obtained. This is
-especially a problem with dynamically allocated IP addresses such as
-those issued by home service ISPs. Although, for these dynamically
-allocated IP addresses, the hostnames tend not to be particularly
-informative anyway.
-
-In practice, however, all log analysis software provides
-hostname resolution functionality, and it generally makes most sense
-to use that functionality than trying to resolve the IP addresses in
-the logfile before that stage.
-
-
-.. _See_Also_Log_Hostnames:
-
-See Also
-~~~~~~~~
-
-
-* The **logresolve** manpage: **``man logresolve``**
-
-* http://httpd.apache.org/docs/programs/logresolve.html
-
-* :ref:`Recipe_Log_Analysis`
-
-
-.. _Recipe_Per_Vhost_Log:
-
-Maintaining Separate Logs for Each Virtual Host
------------------------------------------------
-
-.. index:: Logging,Virtual hosts
-
-.. index:: Virtual hosts,logging
-
-.. index:: directives,VirtualHost
-
-.. index:: directives,CustomLog
-
-.. index:: Maintaining separate logs for each virtual host
-
-.. index:: Commands,split-logfile
-
-
-.. _Problem_Per_Vhost_Log:
-
-Problem
-~~~~~~~
-
-
-You want to have separate activity logs for each of your virtual
-hosts.
-
-
-.. _Solution_Per_Vhost_Log:
-
-Solution
-~~~~~~~~
-
-
-Unless you have many hundr eds of virtual hosts, it is simpler to have
-a **CustomLog** directive for each **&lt;VirtualHost&gt;** declaration. See
-:ref:`Recipe_log_per_vhost`
-
-However,
-once you get to a certain number, you'll notice performance
-degradation due to the large number of open file handles.
-
-In this case, combine your log files, with a custom log file format
-that inserts the answering hostname:
-
-
-.. code-block:: text
-
-   LogFormat "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined_plus_vhost
-   CustomLog logs/access_log combined_plus_vhost
-
-
-Then, once your log file has been rotated (See
-:ref:`Recipe_System_logrotate` and :ref:`Recipe_Rotate_By_Time`), split the
-log file up using the **split-logfile** program that comes with the
-httpd.
-
-
-.. code-block:: text
-
-   split-logfile < access_log
-
-
-This will produce one log file **per** virtual host.
-
-
-.. _Discussion_Per_Vhost_Log:
-
-Discussion
-~~~~~~~~~~
-
-
-In order for **split-logfile** to work, the logging format you're using
-must begin with "``%v``". This inserts the name of the virtual host at
-the beginning of each log entry; **split-logfile** will use this to
-figure out to which file the entry should be written. The hostname
-will be removed from the record before it gets written.
-
-One log file will be created for each hostname that answered requests.
-For example, the log entries for the ``www.example.org`` virtual host
-will be put in a file named **``www.example.org.log``**.
-
-
-.. _See_Also_Per_Vhost_Log:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_Log_Hostnames`
-
-* http://httpd.apache.org/docs/programs/split-logfile.html
-  - **split-logfile** documentation
-
-* :ref:`Recipe_log_per_vhost`
-
-
-.. _Recipe_Logging_Proxy:
-
-Logging Proxy Requests
-----------------------
-
-.. index:: Proxies,logging
-
-.. index:: Logging proxy requests
-
-
-.. _Problem_Logging_Proxy:
-
-Problem
-~~~~~~~
-
-
-You want to log requests that go through your proxy to a
-different file than the requests coming directly to your
-server.
-
-
-.. _Solution_Logging_Proxy:
-
-Solution
-~~~~~~~~
-
-.. index:: directives,SetEnv
-
-.. index:: directives,CustomLog
-
-Use the **SetEnv** directive to
-earmark those requests that came through the proxy server, in order to
-trigger conditional logging:
-
-
-.. code-block:: text
-
-   <Proxy *>
-       SetEnv is_proxied 1
-   </Proxy>
-   CustomLog logs/proxy_log combined env=is_proxied
-
-
-.. _Discussion_Logging_Proxy:
-
-Discussion
-~~~~~~~~~~
-
-
-The **<Proxy **>* block will be applied to all proxied requests.
-**SetEnv** sets an
-environment variable which can then be used to trigger conditional
-logging with the **CustomLog** directive.
-
-If you wanted to log only requests that were **not** proxied, you could
-negate the conditional:
-
-
-.. code-block:: text
-
-   CustomLog logs/proxy_log combined env=!is_proxied
-
-
-.. _See_Also_Logging_Proxy:
-
-See Also
-~~~~~~~~
-
-
-* _mod_log_config_ documentation at
-  http://httpd.apache.org/docs/mod/mod_log_config.html
-
-* The **Conditional Logs** section on
-  http://httpd.apache.org/docs/logs.html#accesslog
-
-
-.. _Recipe_Logging_server_ip:
-
-Logging Server IP Addresses
----------------------------
-
-.. index:: Logging,server IP address
-
-
-.. _Problem_Logging_server_ip:
-
-Problem
-~~~~~~~
-
-
-You want to log the IP address of the server that responds to a
-request, possibly because you have virtual hosts with multiple
-addresses each.
-
-
-.. _Solution_Logging_server_ip:
-
-Solution
-~~~~~~~~
-
-.. index:: directives,LogFormat
-
-.. index:: directives,CustomLog
-
-
-Use the ``%A`` format variable in a **LogFormat** or **CustomLog** directive:
-
-
-.. code-block:: text
-
-   CustomLog logs/served-by.log "%A"
-
-
-.. _Discussion_Logging_server_ip:
-
-Discussion
-~~~~~~~~~~
-
-
-The ``%A`` logging directive signals the activity
-logging system to insert the local IP address—that is, the address of
-the server—into the log record at the specified point. This can be
-useful when your server handles multiple IP addresses. For example,
-you might have a configuration that includes elements such as the
-following:
-
-
-.. code-block:: text
-
-   Listen 10.0.0.42
-   Listen 192.168.19.243
-   Listen 263.41.0.80
-   <VirtualHost 192.168.19.243>
-       ServerName private.example.com
-   </VirtualHost>
-   <VirtualHost 10.0.0.42 263.41.0.80>
-       ServerName foo.example.com
-       ServerAlias bar.example.com
-   </VirtualHost>
-
-
-This might be meaningful if you want internal users to access
-**Foo.Example.Com** using the ``10.0.0.42`` address rather than the one
-published to the rest of the network (such as to segregate internal
-from external traffic over the network cards). The second virtual host
-is going to receive requests aimed at both addresses even though it
-has only one ``ServerName``; using the
-``%A`` directive in your log format can help you determine
-how many hits on the site are coming in over each network
-interface.
-
-
-.. _See_Also_Logging_server_ip:
-
-See Also
-~~~~~~~~
-
-
-* http://httpd.apache.org/docs/mod/mod_log_config.html
-  - _mod_log_config_ documentation
-
-
-.. _Recipe_Logging_request_header:
-
-Logging Arbitrary Request Header Fields
----------------------------------------
-
-.. index:: Logging,request headers
-
-.. index:: Logging arbitrary request header fields
-
-
-.. _Problem_Logging_request_header:
-
-Problem
-~~~~~~~
-
-
-You want to record the values of arbitrary fields clients send
-to their request header, perhaps to tune the types of content you have
-available to the needs of your visitors.
-
-
-.. _Solution_Logging_request_header:
-
-Solution
-~~~~~~~~
-
-
-Use the **``%{...}i``** log format directive in your
-access log format declaration. For example, to log the ``Host`` header,
-you might use:
-
-
-.. code-block:: text
-
-   %{Host}i
-
-
-.. _Discussion_Logging_request_header:
-
-Discussion
-~~~~~~~~~~
-
-
-The HTTP request sent by a Web browser can be very complex, and
-if the client is a specialized application rather than a browser, it
-may insert additional metadata that's meaningful to the server. For
-instance, one useful request header field is the ``Accept`` field, which tells the server what
-kinds of content the client is capable of and willing to receive.
-Given a **CustomLog** line such as this:
-.. index:: directives,CustomLog
-
-
-.. code-block:: text
-
-   CustomLog logs/accept_log "\"%{Accept}i\""
-
-
-a resulting log entry might look like this:
-
-
-.. code-block:: text
-
-   PNb6VsCoF2UAAH1dAUo "text/html, image/png, image/jpeg, image/gif,
-        image/x-xbitmap, */*"
-
-
-This tells you that the client that made that request is
-explicitly ready to handle HTML pages and certain types of images,
-but, in a pinch, will take whatever the server gives it (indicated by
-the wildcard ``\**/\**`` entry).
-
-
-.. _See_Also_Logging_request_header:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Problem_Understanding_Combined_Log_Format`
-
-* :ref:`Recipe_Logging_response_header`
-
-
-.. _Recipe_Logging_response_header:
-
-Logging Arbitrary Response Header Fields
-----------------------------------------
-
-.. index:: Logging,response headers
-
-.. index:: Logging arbitrary response header fields
-
-
-.. _Problem_Logging_response_header:
-
-Problem
-~~~~~~~
-
-
-You want to record the values of arbitrary fields the server has
-included in a response header, probably to debug a script or
-application.
-
-
-.. _Solution_Logging_response_header:
-
-Solution
-~~~~~~~~
-
-
-Use the **``%{...}o``** log format directive in your
-access log format declaration. For example, to log the ``Last-Modified``
-header field value, you would do the following:
-
-
-.. code-block:: text
-
-   %{Last-Modified}o
-
-
-.. _Discussion_Logging_response_header:
-
-Discussion
-~~~~~~~~~~
-
-
-The HTTP response sent by httpd when answering a request can be
-very complex, according to the server's configuration. Advanced
-scripts or application servers may add custom fields to the server's
-response, and knowing what values were set may be of great help when
-trying to track down an application problem.
-
-Other than the fact that you're recording fields the server is
-**sending** rather than receiving, this recipe is
-analogous to :ref:`Recipe_Logging_request_header` in this
-chapter; refer to that recipe for more details. The only difference in
-the syntax of the logging format variable is that response fields are
-logged using an **``o``** directive, and request fields are
-logged using **``i``**.
-
-
-.. _See_Also_Logging_response_header:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_Logging_request_header`
-
-
-.. _Recipe_logging_to_syslog:
-
-Logging to syslog
------------------
-
-.. index:: syslog
-
-.. index:: Logging to syslog
-
-.. index:: Logging,syslog
-
-
-.. _Problem_logging_to_syslog:
-
-Problem
-~~~~~~~
-
-You want to send your log entries to syslog.
-
-
-.. _Solution_logging_to_syslog:
-
-Solution
-~~~~~~~~
-
-To log your error log to syslog, simply tell httpd to log to
-**syslog**:
-
-
-.. code-block:: text
-
-   ErrorLog syslog:local6.info
-
+There are several format tokens related to the remote address, and the
+distinction matters:
+
+- ``%h`` — Remote hostname (or IP if ``HostnameLookups Off``). With
+  :module:`mod_remoteip` loaded, this reflects the *adjusted* client IP.
+- ``%a`` — Client IP address. With :module:`mod_remoteip`, this is the
+  true client IP extracted from the proxy header.
+- ``%{c}a`` — The *underlying peer* IP address of the TCP connection —
+  always the proxy's IP regardless of :module:`mod_remoteip`.
+
+The ``RemoteIPTrustedProxy`` directive is critical for security. Without
+it, any client could forge an ``X-Forwarded-For`` header and spoof their
+IP. Only IPs listed as trusted proxies will have their forwarded
+addresses honored.
+
+If your proxy uses a non-standard header, adjust accordingly:
+
+.. code-block:: apache
+
+   # For Cloudflare
+   RemoteIPHeader CF-Connecting-IP
+
+   # For custom proxies
+   RemoteIPHeader X-Real-IP
+
+For AWS Application Load Balancers, the ``X-Forwarded-For`` header may
+contain multiple comma-separated IPs (the client, plus each proxy in the
+chain). :module:`mod_remoteip` handles this correctly — it walks the
+chain from right to left, stripping trusted proxy IPs until it finds
+the first untrusted IP, which it treats as the client.
 
 .. note::
 
-   Some other **syslog** reporting
-   class than user, such as ``local1``
-   might be more appropriate in your environment. Consult with your
-   sysadmin for details of your local syslog configuration.
+   If you're using ``%h`` (hostname) in your log format, switch to
+   ``%a`` (IP address). With :module:`mod_remoteip` active, ``%a`` is
+   the canonical way to log the client's address. You should also have
+   ``HostnameLookups Off`` in production — DNS lookups per request are
+   a serious performance penalty.
 
 
-Logging your access log to syslog takes a little more work. Add
-the following to your configuration file:
+
+**The PROXY protocol alternative**: If your load balancer supports the
+PROXY protocol (HAProxy, AWS NLB), you can use :module:`mod_remoteip`
+with ``RemoteIPProxyProtocol``:
+
+.. code-block:: apache
+
+   <VirtualHost *:443>
+       RemoteIPProxyProtocol On
+       RemoteIPProxyProtocolExceptions 127.0.0.1
+   </VirtualHost>
+
+The PROXY protocol passes the client IP at the TCP level, before any HTTP
+headers are parsed. It's more reliable than header-based approaches
+because it can't be spoofed by the client (only the proxy can inject it).
+
+**Logging the full proxy chain**: Sometimes you want to see the entire
+``X-Forwarded-For`` chain, not just the extracted client IP. Log the raw
+header alongside the resolved address:
+
+.. code-block:: apache
+
+   LogFormat "%a [chain: %{X-Forwarded-For}i] %t "%r" %>s %b" proxy_debug
+
+This is useful for debugging multi-tier proxy setups where you're not
+sure which proxy is adding what.
+
+**Testing your mod_remoteip configuration**: After setup, verify it's
+working:
+
+.. code-block:: bash
+
+   # From a machine behind the proxy, make a request
+   curl -H "X-Forwarded-For: 203.0.113.195" http://your-server/test
+
+   # Check the access log - should show 203.0.113.195 as %a
+   # (only if the curl source IP is in RemoteIPTrustedProxy)
 
 
-.. code-block:: text
-
-   CustomLog "| /usr/bin/logger -t apache -p local6.info" combined
-
-
-This will use the **logger** utility, which is standard on any Unix
-system, to log to the **local6.info** syslog facility.
-
-
-.. _Discussion_logging_to_syslog:
-
-Discussion
-~~~~~~~~~~
-
-
-There are several compelling reasons for logging to syslog. The first
-of these is to have many servers log to a central logging
-facility. The second is that there are many existing tools for
-monitoring syslog and sending appropriate notifications on certain
-events. Allow httpd to take advantage of these tools,
-and your particular installation may benefit. Also, in the event that
-your server is either compromised, or has some kind of catastrophic
-failure, having logfiles on a dfferent physical machine can be of
-enormous benefit in finding out what happened.
-
-httpd supports logging your error log to syslog by default.
-This is by far the more useful log to handle this way, since syslog is
-typically used to track error conditions, rather than merely
-informational messages.
-
-.. index:: directives,ErrorLog
-
-The syntax of the **ErrorLog**
-directive allows you to specify ``syslog`` as an argument, or to specify a
-particular syslog facility. In this example, the ``local6`` syslog
-facility was specified. In your **``/etc/syslog.conf``** file, you can
-specify where a particular log facility should be sent—whether to a
-file, or to a remote syslog server.
-
-For example, to send these log files to a remote server, you might put
-the following in **syslog.conf**:
-
-
-.. code-block:: text
-
-   # <level> @<IP>:<port>
-   local6.info @10.11.12.13:514
-
-
-Because httpd does not support logging your access log to
-syslog by default, you need to accomplish this with a piped logfile
-directive.
-
-Consult your **syslogd** manual
-for further detail on setting up a networked syslog server.
-
-
-.. _See_Also_logging_to_syslog:
+.. _See_Also_Logging_Behind_Proxy:
 
 See Also
 ~~~~~~~~
 
-
-* The man pages for **syslogd** and **syslog.conf**
-
-* The docs for **logger**: **``man logger``**
-
-* http://rafaelsteil.com/apache-remote-logging-with-rsyslog/
+* :module:`mod_remoteip` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_remoteip.html
+* :ref:`Recipe_Measuring_Request_Timing` for timing that accounts for
+  proxy latency
 
 
-.. _Recipe_Logging_userdir:
+.. _Recipe_JSON_Logging:
 
-Logging User Directories
+JSON/structured logging
 ------------------------
 
-.. index:: Logging,User directories
+.. index:: JSON logging
 
-.. index:: userdir,Logging
+.. index:: Structured logging
 
-.. index:: mod_userdir
+.. index:: Logging,JSON format
 
-.. index:: Modules,mod_userdir
+.. index:: ELK stack
 
-.. index:: mod_macro
+.. index:: OpenSearch
 
-.. index:: Modules,mod_macro
+.. index:: Splunk
+
+.. index:: CloudWatch Logs
 
 
-.. _Problem_Logging_userdir:
+.. _Problem_JSON_Logging:
 
 Problem
 ~~~~~~~
 
+You want your access logs in JSON format for direct ingestion into a log
+aggregation system (Elasticsearch/OpenSearch, Splunk, CloudWatch Logs,
+Datadog) without needing an intermediate parsing step.
 
-You want each user directory web site (**i.e.**, those that are
-accessed **via** http://server/~username)
-to have its own logfile.
 
-
-.. _Solution_Logging_userdir:
+.. _Solution_JSON_Logging:
 
 Solution
 ~~~~~~~~
 
+Craft a ``LogFormat`` that outputs valid JSON. No extra modules needed —
+:module:`mod_log_config` can do this with a carefully constructed format
+string:
 
-.. index:: directives,RewriteRule
+.. code-block:: apache
 
-.. index:: directives,LogFormat
+   LogFormat "{ \"timestamp\": \"%{%Y-%m-%dT%H:%M:%S%z}t\", \"remote_addr\": \"%a\", \"remote_user\": \"%u\", \"request_method\": \"%m\", \"request_uri\": \"%U%q\", \"protocol\": \"%H\", \"status\": %>s, \"body_bytes_sent\": %B, \"http_referer\": \"%{Referer}i\", \"http_user_agent\": \"%{User-Agent}i\", \"request_time_ms\": %{ms}T, \"vhost\": \"%v\" }" json
 
-.. index:: directives,CustomLog
+   CustomLog "/var/log/httpd/access_log.json" json
 
-Use the following **RewriteRule** to trigger on userdir requests, and
-invoke conditional logging.
+A more complete version that handles edge cases (null values, proper
+escaping):
 
+.. code-block:: apache
 
-.. code-block:: text
+   LogFormat "{ \"time\": \"%{%Y-%m-%dT%H:%M:%S}t.%{usec_frac}t%{%z}t\", \"vhost\": \"%v\", \"client\": \"%a\", \"method\": \"%m\", \"uri\": \"%U\", \"query\": \"%q\", \"protocol\": \"%H\", \"status\": %>s, \"bytes_body\": %B, \"bytes_sent\": %O, \"duration_us\": %D, \"referer\": \"%{Referer}i\", \"useragent\": \"%{User-Agent}i\", \"request_id\": \"%L\" }" json_full
 
-   RewriteRule ^/~([^/]+)/ - [E=userdir:$1]
-   LogFormat "%{userdir}e %h %l %u %t \"%r\" %>s %b" common
-   CustomLog logs/userdir_logs common env=userdir
-
-
-.. index:: Commands,split-logfile
-
-Then use **split-logfile** to break up the log file afterwards.
+   CustomLog "/var/log/httpd/access_log.json" json_full
 
 
-.. code-block:: text
-
-   split-logfile < userdir_logs
-
-
-.. index:: Modules,mod_macro
-
-Or, with 2.4, use a combination of _mod_macro_ and **per**-directory
-logging to give each user his or her own log file:
-
-
-.. code-block:: text
-
-   <Macro userdirlog $username>
-     <Directory /home/$username/public_html>
-       CustomLog /var/log/httpd/logs/$username.access_log combined
-     </Directory>
-   </Macro>
-
-
-You will need to invoke this macro for each user for whom you wish to
-provide a log file:
-
-
-.. code-block:: text
-
-   Use userdirlog rbowen
-   Use userdirlog rhiannon
-   Use userdirlog jbrose
-
-
-.. _Discussion_Logging_userdir:
+.. _Discussion_JSON_Logging:
 
 Discussion
 ~~~~~~~~~~
 
+This approach works because :module:`mod_log_config` lets you put
+arbitrary literal characters in the format string. You're essentially
+constructing JSON by hand using literal braces, colons, commas, and
+escaped quotes around the dynamic tokens.
 
-In many hosting situations, rather than having virtual hosts, users
-run their website in their home directory, and have a userdir type
-URL. That is, a user named, for example, ``rbowen``, would have a
-website address of ``http://pages.example.com/~rbowen`` and the module
-_mod_userdir_ will map those requests to their home directory.
-.. index:: Modules,mod_userdir
+There are a few important considerations:
 
+**Numeric fields**: For fields like ``status`` and ``bytes``, don't wrap
+them in quotes. Use ``%>s`` and ``%B`` bare so they produce valid JSON
+numbers. Note that ``%b`` outputs ``-`` when zero bytes are sent, which
+would break JSON. Use ``%B`` (which outputs ``0``) instead.
 
-In these situations, however, users are typically unable to view their
-own log files without having to filter through the requests to
-everyone else's website as well.
+**The escaping problem**: If a field value contains a literal double
+quote or backslash — and ``User-Agent`` strings sometimes do — your JSON
+will break. httpd 2.4 escapes non-printable characters and quotes in
+logged values using ``\xHH`` notation, which is *not* valid JSON
+escaping. For most real-world traffic this isn't a problem, but be aware
+it can happen.
 
-This recipe attempts to give each user their own log file, to make it
-easier to track their own requests.
+To handle this robustly, you have three options:
 
-The first line of the recipe inspects the URL, and if it is a userdir
-request, it puts the username in an environment variable named
-**userdir**:
+1. Accept that occasional lines may be malformed and configure your
+   ingestion pipeline to skip parse errors
+2. Pipe through a program that sanitizes the output (see
+   :ref:`Recipe_Piped_Logging`)
+3. Use a log shipper (Fluent Bit, Filebeat) that can parse the
+   Combined format natively, and use JSON output from the *shipper*
+   instead
 
+**Timestamp format**: The ``%{%Y-%m-%dT%H:%M:%S%z}t`` produces ISO 8601
+format, which every log aggregator understands. Adding
+``.%{usec_frac}t`` gives you microsecond precision — useful for
+performance analysis.
 
-.. code-block:: text
+**Ingestion examples**:
 
-   RewriteRule ^/~([^/]+)/ - [E=userdir:$1]
-
-
-The regular expression **``^/~([^/]+)/``** matches a URI request
-that starts with **``~``**, and captures everything up to the first
-slash - **i.e.**, the username.
-
-The next two lines of the recipe create a custom log file format named
-'userlog' which looks just like the **common** log file format, but puts
-the **userdir** environment variable on the start of the line, so that
-you know whose request it was.
-
-
-.. code-block:: text
-
-   LogFormat "%{userdir}e %h %l %u %t \"%r\" %>s %b" userlog
-   CustomLog logs/userdir_logs userlog env=userdir
-
-
-Finally, you periodically rotate the log file out, and, using the
-**split-logfile** script, you split that log file into one **per** username.
-
-See :ref:`Recipe_Per_Vhost_Log` for more discussion of the
-**split-logfile** utility.
-
-The biggest problem with this approach is that the user does not have
-a live log file. That is to say, they don't have their own individual
-log file until after you have rotated and post-processed the log file.
-This means that while they can do periodic traffic statistical
-analysis, and otherwise investigate their traffic after the fact, they
-can't do real-time debugging of their site, since the live log file
-intermingles all of the various website requests.
-
-This could be partially addressed by piping the log file through
-**grep** to isolate their own log entries:
-.. index:: Commands,grep
-
-.. index:: Commands,tail
-
+For Fluent Bit reading JSON logs directly:
 
 .. code-block:: text
 
-   tail -f /var/log/httpd/logs/userdir_logs | egrep '^rbowen '
+   [INPUT]
+       Name tail
+       Path /var/log/httpd/access_log.json
+       Parser json
+       Tag  httpd.access
 
+For Filebeat:
 
-The command above, for example would isolate the requests that were
-made to the web space of a user named ``rbowen``.
+.. code-block:: json
 
-A somewhat more elaborate approach could be done with httpd 2.4 using
-_mod_macro_ and **per**-directory logging.
-.. index:: Modules,mod_macro
+   {
+     "filebeat.inputs": [{
+       "type": "log",
+       "paths": ["/var/log/httpd/access_log.json"],
+       "json.keys_under_root": true,
+       "json.add_error_key": true
+     }]
+   }
 
-
-First, you create the macro:
-
-
-.. code-block:: text
-
-   <Macro userdirlog $username>
-     <Directory /home/$username/public_html>
-       CustomLog /var/log/httpd/logs/$username.access_log combined
-     </Directory>
-   </Macro>
-
-
-Then, each time you add a new user account, add an invocation of this
-macro to your configuration file for that user:
-
+For CloudWatch Logs Agent, the JSON format means your fields are
+automatically available for Logs Insights queries without custom parsing:
 
 .. code-block:: text
 
-   Use userdirlog rbowen
-   Use userdirlog sungo
-   Use userdirlog dpitts
+   fields @timestamp, client, method, uri, status, duration_us
+   | filter status >= 500
+   | sort duration_us desc
 
 
-This will create a unique log file for each user who has requests
-going to their home directory.
 
-This approach has the small disadvantage that for systems with many
-thousands of users, you'll end up having thousands of open file
-handles, which can significantly affect file system performance.
+**A production-ready JSON format**:
+
+After much trial and error across many deployments, here's the JSON
+format I recommend as a starting point:
+
+.. code-block:: apache
+
+   # Define the JSON format
+   LogFormat "{      "@timestamp": "%{%Y-%m-%dT%H:%M:%S}t.%{usec_frac}t%{%z}t",      "server": "%v",      "client.ip": "%a",      "client.port": "%{remote}p",      "http.method": "%m",      "url.path": "%U",      "url.query": "%q",      "http.version": "%H",      "http.response.status_code": %>s,      "http.response.body.bytes": %B,      "network.bytes_in": %I,      "network.bytes_out": %O,      "event.duration_us": %D,      "http.request.referrer": "%{Referer}i",      "user_agent.original": "%{User-Agent}i",      "http.request.id": "%L",      "connection.requests": %k,      "tls.protocol": "%{SSL_PROTOCOL}e",      "tls.cipher": "%{SSL_CIPHER}e"    }" json_ecs
+
+   CustomLog "/var/log/httpd/access.json" json_ecs
+
+This format uses field names from the Elastic Common Schema (ECS), which
+makes it immediately useful in OpenSearch/Elasticsearch without field
+mapping gymnastics. Adjust the field names to match your organization's
+schema conventions.
+
+.. tip::
+
+   You can split a long ``LogFormat`` across multiple lines using
+   backslash continuation. httpd treats the whole thing as one line. This
+   dramatically improves readability of complex JSON formats.
+
+**Testing your JSON format**: After configuring, verify the output is
+valid JSON:
+
+.. code-block:: bash
+
+   # Grab the last 10 lines and validate each one
+   tail -10 /var/log/httpd/access.json | while read line; do
+       echo "$line" | python3 -c "import sys,json; json.load(sys.stdin)" 2>&1 || echo "INVALID: $line"
+   done
+
+If you see parse errors, they're almost certainly from unescaped
+characters in user-agent strings or referrer URLs. Decide whether to
+accept occasional invalid lines or implement a sanitization pipe.
 
 
-.. _See_Also_Logging_userdir:
+.. _See_Also_JSON_Logging:
 
 See Also
 ~~~~~~~~
 
-
-* http://httpd.apache.org/docs/mod/mod_log_config.html
-
-* http://httpd.apache.org/docs/programs/split-logfile.html
-
-* http://httpd.apache.org/docs/mod/mod_macro.html
-
-* :ref:`Recipe_Per_Vhost_Log`
+* :ref:`Recipe_Piped_Logging` for post-processing log output
+* :ref:`Recipe_Measuring_Request_Timing` for the timing tokens used above
+* :ref:`Recipe_Log_Analysis` for tools that consume structured logs
 
 
-.. refcosplay
+.. _Recipe_Logging_Journald:
 
-.. _Recipe_Logging_environment_variables:
+Logging to the systemd journal
+-------------------------------
 
-Logging environment variables
------------------------------
+.. index:: systemd journal
 
-.. index:: Logging,Environment variables
+.. index:: journald
 
-.. index:: Environment variables,Logging
+.. index:: mod_journald
 
-.. index:: mod_log_config
-
-.. index:: Modules,mod_log_config
-
-.. index:: directives,LogFormat
-
-.. index:: LogFormat
+.. index:: journalctl
 
 
-.. _Problem_Logging_environment_variables:
+.. _Problem_Logging_Journald:
 
 Problem
 ~~~~~~~
 
+Your server runs on a systemd-based Linux distribution and you want httpd
+to log directly to the systemd journal, taking advantage of structured
+metadata and centralized journal management.
 
-You want to log the value of particular environment variable.
 
-
-.. _Solution_Logging_environment_variables:
+.. _Solution_Logging_Journald:
 
 Solution
 ~~~~~~~~
 
+.. note::
 
-Use the **``%{``**``VARNAME``**``}e``** logging template to log that variable. For
-example, to log a variable named **HairColor**, you'd do the following:
+   :module:`mod_journald` is available in the httpd development trunk
+   (2.5.x) and in some distribution builds that backport it. Check
+   whether your distribution packages include it. On RHEL/Fedora/CentOS
+   Stream, it may be available as a separate package. If you run httpd
+   from source, you'll need to build from trunk or apply the module
+   patch.
+
+Load the module and point ``ErrorLog`` at the journald provider:
+
+.. code-block:: apache
+
+   LoadModule journald_module modules/mod_journald.so
+
+   ErrorLog "journald"
+   LogLevel info
+
+You can also send access logs to the journal:
+
+.. code-block:: apache
+
+   CustomLog "journald" combined
+
+View the logs using ``journalctl``:
+
+.. code-block:: bash
+
+   # All httpd messages
+   journalctl -u httpd.service
+
+   # Only error log messages
+   journalctl -u httpd.service LOG=error_log
+
+   # Filter by virtual host
+   journalctl -u httpd.service SERVER_HOSTNAME=www.example.com
+
+   # Filter by URI
+   journalctl -u httpd.service REQUEST_URI=/api/health
+
+   # Follow in real time
+   journalctl -u httpd.service -f
 
 
-.. code-block:: text
-
-   LogFormat %{HairColor}e haircolor
-   CustomLog /var/log/httpd/haircolor.log haircolor
-
-
-.. _Discussion_Logging_environment_variables:
+.. _Discussion_Logging_Journald:
 
 Discussion
 ~~~~~~~~~~
 
+:module:`mod_journald` provides structured logging to systemd-journald.
+"Structured" here means that each log entry carries typed metadata fields
+— not just a flat string. The journal records these fields:
 
-Any environment variable may be logged using the **``**``{...}``**``e`** variable in a
-**LogFormat** declaration.
+- ``LOG`` — the log name (``error_log`` for ErrorLog, or the first
+  argument of CustomLog)
+- ``REQUEST_HOSTNAME`` — the ``Host`` header value
+- ``REQUEST_USER`` — authenticated username
+- ``REQUEST_USERAGENT_IP`` — client IP address
+- ``REQUEST_URI`` — the request path
+- ``SERVER_HOSTNAME`` — the server's hostname
 
-Presumably you'd also want to add some other identifying information,
-such as a time stamp and the request, to a log entry, so that the log
-file was more useful than merely a list of values.
+This means you can filter and search logs without any text parsing. You
+don't need grep — ``journalctl`` gives you field-based queries natively.
 
-However, just having an anonymized list of values might be useful for
-use in generating statistics. For example, if you just wanted to count
-the occurrences of various values in your **haircolor** log file, you
-could pipe the file through **uniq** to count these items:
-.. index:: Commands,uniq
+**When to use journald logging**:
 
-.. index:: Commands,sort
+- You're already using ``journalctl`` as your primary log interface
+- You want automatic log rotation (the journal handles its own retention)
+- You want structured metadata without crafting JSON format strings
+- You're running httpd in a systemd service and want unified log
+  management
+
+**When NOT to use journald logging**:
+
+- High-throughput access logging. The :module:`mod_journald`
+  documentation explicitly warns that systemd-journald is not designed
+  for high-throughput logging. On a busy server, sending access logs to
+  the journal can significantly impact performance. Use it for error
+  logs; for access logs, stick with files or pipes.
+- You need logs accessible to non-root users who don't have journal
+  permissions
+- You're shipping logs to a remote aggregator (file-based logs are
+  easier for shippers to tail)
+
+A practical compromise: send error logs to journald (low volume, benefits
+from structured queries) and keep access logs in files (high volume,
+easily shipped):
+
+.. code-block:: apache
+
+   ErrorLog "journald"
+   CustomLog "/var/log/httpd/access_log.json" json
 
 
-.. code-block:: text
-
-   % sort haircolor.log | uniq.log
-
-
-This will result in a list of the various unique entiries in the log
-file, and the number of times they occur:
-
-
-.. code-block:: text
-
-       25  brown
-       78  red
-       12  bald
-       98  black
-
-
-.. _See_Also_Logging_environment_variables:
+.. _See_Also_Logging_Journald:
 
 See Also
 ~~~~~~~~
 
-
-* :ref:`Recipe_LogFormat`
-
-* :ref:`Recipe_Securing_Logfiles`
-
-
-.. _Recipe_logging_logio:
-
-Logging the size of uploaded content
-------------------------------------
-
-.. index:: mod_logio
-
-.. index:: Modules,mod_logio
-
-.. index:: Modules,mod_log_config
-
-.. index:: Logging,Full upload and download sizes
-
-.. index:: Logging the size of uploaded content
+* :ref:`Recipe_Logging_Syslog` for the traditional syslog alternative
+* :module:`mod_journald` documentation:
+  https://httpd.apache.org/docs/trunk/mod/mod_journald.html
+* ``journalctl`` man page: ``man journalctl``
 
 
-.. _Problem_logging_logio:
+.. _Recipe_Logging_Syslog:
+
+Logging to syslog and remote syslog
+-------------------------------------
+
+.. index:: syslog
+
+.. index:: mod_syslog
+
+.. index:: Logging,syslog
+
+.. index:: Logging,remote syslog
+
+.. index:: rsyslog
+
+.. index:: syslog-ng
+
+
+.. _Problem_Logging_Syslog:
 
 Problem
 ~~~~~~~
 
+You want to send httpd error logs to the system syslog daemon — either
+for local consolidation with other service logs or for forwarding to a
+remote log server.
 
-_mod_log_config_ usually only logs the size of downloaded files. You
-want to log the complete amount of data transferred, including
-uploaded files.
 
-
-.. _Solution_logging_logio:
+.. _Solution_Logging_Syslog:
 
 Solution
 ~~~~~~~~
 
+For error logs, httpd has built-in syslog support via :module:`mod_syslog`:
 
-Use _mod_logio_ to log the complete data upload and download sizes.
+.. code-block:: apache
 
+   # Default facility (local7)
+   ErrorLog "syslog"
+
+   # Specify a facility
+   ErrorLog "syslog:local6"
+
+For access logs to syslog, pipe through the ``logger`` utility:
+
+.. code-block:: apache
+
+   CustomLog "|/usr/bin/logger -t httpd -p local6.info" combined
+
+To forward these messages to a remote syslog server, configure your
+system's syslog daemon. For rsyslog, add to
+:file:`/etc/rsyslog.d/httpd.conf`:
 
 .. code-block:: text
 
-   LogFormat "%h %t \"%r\" %b %I %O" combined_io
-   CustomLog logs/access_io.log combined_io
+   local6.*    @@logserver.example.com:514
+
+For syslog-ng:
+
+.. code-block:: text
+
+   destination d_remote { tcp("logserver.example.com" port(514)); };
+   filter f_httpd { facility(local6); };
+   log { source(s_local); filter(f_httpd); destination(d_remote); };
 
 
-The ``%I`` variable will log the total bytes of input, and ``%O`` will log
-the total bytes of output. These both include the HTTP headers.
-
-
-.. _Discussion_logging_logio:
+.. _Discussion_Logging_Syslog:
 
 Discussion
 ~~~~~~~~~~
 
+The ``ErrorLog syslog`` syntax uses the :module:`mod_syslog` provider.
+The default facility is ``local7``. You can use any standard syslog
+facility: ``auth``, ``daemon``, ``local0`` through ``local7``, etc.
+Choose a facility that doesn't conflict with other services on your
+system — ``local6`` is a common choice for httpd.
 
-_mod_logio_ must be loaded to use this recipe. That is, your
-configuration file must contain a **LoadModule** directive, something
-like:
-.. index:: directives,LoadModule
+.. warning::
+
+   The syslog facility is effectively global. If you set different
+   facilities in different ``<VirtualHost>`` blocks, the last one wins
+   for the entire server. This is a long-standing limitation.
+
+For access logs, there's no direct ``CustomLog "syslog"`` equivalent in
+2.4 stable. However, the trunk (2.5.x) documentation shows that
+:module:`mod_journald` and :module:`mod_syslog` can serve as providers
+for ``CustomLog``:
+
+.. code-block:: apache
+
+   # Available in trunk / some distributions
+   CustomLog "syslog:user" combined
+
+If this isn't available in your build, the piped ``logger`` approach
+works universally and gives you more control over the syslog tag and
+priority.
+
+**Remote forwarding**: The syslog daemon on your server handles the
+forwarding — httpd doesn't need to know about remote servers. This
+separation of concerns is a feature: you can change your log
+infrastructure (switch from rsyslog to syslog-ng, change the remote
+server, add TLS) without touching httpd's configuration.
+
+**Security considerations**: Syslog over UDP (the default) provides no
+encryption or guaranteed delivery. For sensitive environments:
+
+- Use TCP (``@@`` in rsyslog) instead of UDP (``@``)
+- Configure TLS between your syslog client and server
+- Or use a dedicated log shipper (Fluent Bit, Filebeat) that handles
+  reliable delivery and encryption natively
 
 
-.. code-block:: text
-
-   LoadModule logio_module modules/mod_logio.so
-
-
-The ``%b`` log directive which is used in most access log formats logs
-the size of data sent to the client, not including HTTP headers. Thus,
-if you're really interested in how much data you're using, this is
-only part of the picture, missing not only the HTTP headers, but also
-the size of the request. The request can be large if you allow file
-uploads, or if you have very large HTTP POST forms on your site.
-
-Using _mod_logio_, you can capture the rest of the data transfer size.
-
-``%I`` logs the entire size of the request, including headers and any
-POST data, including file uploads.
-
-``%O`` logs the entire size of the response, including headers.
-
-In httpd 2.4.7, there's also a ``%S`` directive that logs the total bytes
-transferred, both sent and received, including the request and the
-headers.
-
-
-.. _See_Also_logging_logio:
+.. _See_Also_Logging_Syslog:
 
 See Also
 ~~~~~~~~
 
+* :ref:`Recipe_Logging_Journald` for the systemd alternative
+* :ref:`Recipe_Piped_Logging` for more piped logging options
+* rsyslog documentation: https://www.rsyslog.com/doc/
 
-* http://httpd.apache.org/docs/mod/mod_logio.html
 
+.. _Recipe_Forensic_Logging:
 
-.. _Recipe_log_forensic:
+Forensic logging with mod_log_forensic
+----------------------------------------
 
-Logging incomplete requests
----------------------------
+.. index:: Forensic logging
 
 .. index:: mod_log_forensic
 
-.. index:: Modules,mod_log_forensic
+.. index:: ForensicLog directive
 
-.. index:: Long-lived requests
+.. index:: Logging,forensic
 
-.. index:: Logging,incomplete requests
+.. index:: Crash debugging
 
 
-.. _Problem_log_forensic:
+.. _Problem_Forensic_Logging:
 
 Problem
 ~~~~~~~
 
+You need to capture complete request headers *before* the request is
+processed — either because the server crashes during processing (so the
+normal access log entry never gets written) or because you need to know
+exactly what the client sent for debugging or security analysis.
 
-You want to identify requests that never complete.
 
-
-.. _Solution_log_forensic:
+.. _Solution_Forensic_Logging:
 
 Solution
 ~~~~~~~~
 
+Enable :module:`mod_log_forensic`:
 
-Use _mod_log_forensic_ to log requests that never complete.
+.. code-block:: apache
+
+   LoadModule log_forensic_module modules/mod_log_forensic.so
+   ForensicLog "/var/log/httpd/forensic_log"
+
+To correlate forensic entries with your access log, add the forensic ID
+to your ``LogFormat``:
+
+.. code-block:: apache
+
+   LogFormat "%h %l %u %t \"%r\" %>s %b %{forensic-id}n" forensic_combined
+   CustomLog "/var/log/httpd/access_log" forensic_combined
 
 
-.. code-block:: text
-
-   ForensicLog logs/forensic.log
-
-
-.. _Discussion_log_forensic:
+.. _Discussion_Forensic_Logging:
 
 Discussion
 ~~~~~~~~~~
 
+:module:`mod_log_forensic` writes *two* entries for each request:
 
-_mod_log_forensic_ must be loaded to use this recipe. That is, your
-configuration file must contain a **LoadModule** directive, something
-like:
-.. index:: directives,LoadModule
+1. A ``+`` line when the request arrives (before processing), containing
+   the complete request headers
+2. A ``-`` line when the request completes
 
-
-.. code-block:: text
-
-   LoadModule log_forensic_module modules/mod_log_forensic.so
-
-
-Using the recipe above will create a log file that logs two entries
-for every request - one when the request is received, and one when the
-response has been sent and the request completed.
-
-Each initial log entry will look something like:
-
+A forensic log entry looks like:
 
 .. code-block:: text
 
-   +yQtJf8CoAB4AAFNXBIEAAAAA|GET /manual/de/images/down.gif
-   HTTP/1.1|Host:localhost%3a8080|User-Agent:Mozilla/5.0 (X11; U; Linux
-   i686; en-US; rv%3a1.6) Gecko/20040216 Firefox/0.8|Accept:image/png,
-   etc...
+   +3ZdeEj8AAQEAAAx0BbEAAAAA|GET /app/dashboard HTTP/1.1|Host:www.example.com|User-Agent:Mozilla/5.0 ...|Accept:text/html|Cookie:session=abc123
+   -3ZdeEj8AAQEAAAx0BbEAAAAA
+
+Each header is separated by ``|``. The format is fixed — you can't
+customize it.
+
+The key use case is crash debugging. If httpd (or a module) crashes while
+processing a request, the normal access log entry never gets written.
+But the forensic ``+`` line was already written before processing began.
+You can identify crashes by finding ``+`` lines without matching ``-``
+lines:
+
+.. code-block:: bash
+
+   # The check_forensic script ships with httpd
+   check_forensic /var/log/httpd/forensic_log
+
+This script outputs all forensic IDs that have a ``+`` but no ``-`` —
+these are requests that never completed.
+
+.. warning::
+
+   The forensic log captures ALL request headers, including
+   ``Authorization`` headers (which may contain passwords or tokens) and
+   cookies (which contain session IDs). Protect forensic log files
+   with strict permissions and don't retain them longer than necessary.
+
+.. note::
+
+   :module:`mod_log_forensic` is strict about logging. If it can't write
+   the ``+`` entry (disk full, permissions problem), it will cause the
+   child process to exit immediately. This is by design — it prioritizes
+   complete forensic records over availability. Don't enable it on a
+   server where disk space is unreliable.
+
+POST body content is *not* captured by :module:`mod_log_forensic`. It
+records only the request line and headers. If you need to capture request
+bodies (and you should think carefully before doing so), you'd need
+:module:`mod_dumpio` — but that module dumps everything at the
+``trace7`` level to the error log, which is unwieldy.
 
 
-.. index:: Modules,mod_unique_id
 
-If you're using _mod_unique_id_, its generated ID number will be used.
-Otherwise, _mod_log_forensic_ will create its own unique identifier
-and use that.
+**When to enable forensic logging**:
 
-When the request is completed, only the ID number is logged:
+- During active incident investigation (enable temporarily)
+- On servers processing security-sensitive transactions
+- When debugging intermittent crashes that you can't reproduce
+- When you need to prove exactly what a client sent (dispute resolution)
 
+**Forensic logging overhead**: The performance impact is relatively low —
+it's writing one extra log line before processing and one after. The main
+cost is disk I/O and storage. On a server handling 1000 requests/second,
+a forensic log will grow at roughly 500KB-1MB per second, depending on
+average header size. Plan your storage accordingly, and definitely set up
+rotation:
 
-.. code-block:: text
+.. code-block:: apache
 
-   -yQtJf8CoAB4AAFNXBIEAAAAA
+   ForensicLog "|/usr/sbin/rotatelogs /var/log/httpd/forensic_log.%Y-%m-%d 86400"
 
+**Parsing the forensic log programmatically**:
 
-By correlating these two log entries, you can identify which requests
-never completed, and, thus, what resources on your website may be
-long-running, or crashing the server before the request is completed.
+.. code-block:: bash
 
-.. index:: Commands,check_forensic
-
-The script _check_forensic_, which comes with the server, does that
-correlation for you.
-
-
-.. code-block:: text
-
-   % check_forensic forensic.log
-
-
-The output of this script will be a list of requests that don't have a
-matching end-of-request log entry.
+   # Extract all unique User-Agent values from incomplete requests
+   check_forensic /var/log/httpd/forensic_log | while read id; do
+       grep "^+$id" /var/log/httpd/forensic_log | grep -oP 'User-Agent:[^|]+'
+   done | sort -u
 
 
-.. tip::
-
-   The _check_forensic_ script is often not installed in your execution
-   path when the server is installed. It is located in the **support**
-   directory of the source tree, and may be found at
-   ``https://svn.apache.org/repos/asf/httpd/httpd/trunk/support/check_forensic``
-   if you're unable to locate it on your system.
-
-
-You can also add the unique identifier to your access log using the
-**``%{``***``forensic-id``***``}n``** log format variable, for easier
-correlation with the associated log file entry.
-
-
-.. _See_Also_log_forensic:
+.. _See_Also_Forensic_Logging:
 
 See Also
 ~~~~~~~~
 
+* :ref:`Recipe_Correlating_Logs` for the ``%L`` correlation approach
+* :ref:`Recipe_Debug_Logging` for :module:`mod_log_debug`
+* :module:`mod_log_forensic` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_log_forensic.html
 
-* http://httpd.apache.org/docs/trunk/mod/mod_log_forensic.html
 
-* https://svn.apache.org/repos/asf/httpd/httpd/trunk/support/check_forensic
+.. _Recipe_Debug_Logging:
 
-
-.. _Recipe_log_debug:
-
-Logging your own custom messages
---------------------------------
+Debug logging with mod_log_debug
+---------------------------------
 
 .. index:: mod_log_debug
 
-.. index:: Modules,mod_log_debug
-
-.. index:: Logging,Debug
-
-.. index:: Logging,custom log messages
+.. index:: LogMessage directive
 
 .. index:: directives,LogMessage
 
+.. index:: Debug logging
 
-.. _Problem_log_debug:
+.. index:: Conditional debug output
+
+
+.. _Problem_Debug_Logging:
 
 Problem
 ~~~~~~~
 
+You want to inject custom debug messages into the error log based on
+conditions — for example, logging the value of a variable at a specific
+point in request processing, or logging a message only for requests
+matching certain criteria.
 
-You'd like to insert your own messages into the error log as part of
-debugging some problem.
 
-
-.. _Solution_log_debug:
+.. _Solution_Debug_Logging:
 
 Solution
 ~~~~~~~~
 
+:version:`2.4`
 
-Use _mod_log_debug_ to create custom error log messages, and trigger
-them at specified times.
+Use :module:`mod_log_debug` and its ``LogMessage`` directive:
 
-For example, to log that a particular directory has been requested:
+.. code-block:: apache
 
+   LoadModule log_debug_module modules/mod_log_debug.so
 
-.. code-block:: text
+   # Log a message for all requests to /api/
+   <Location "/api/">
+       LogMessage "API request received for %{REQUEST_URI}e"
+   </Location>
 
-   <Location "/ponies/">
-     LogMessage "A resource from /ponies/ has been requested"
+   # Log only when a specific condition is met
+   LogMessage "Slow backend response" "expr=%{RESPONSE_STATUS} == 503"
+
+   # Log the value of a request header
+   <Location "/debug/">
+       LogMessage "X-Debug-Token: %{reqenv:X-Debug-Token}" hook=fixups
+   </Location>
+
+   # Log at every processing hook (for timing analysis)
+   <Location "/problematic/">
+       LogMessage "Hook reached: %{REQUEST_URI}e" hook=all
    </Location>
 
 
-Or, if you want to only log under certain conditions, these can be
-specified. The following recipe, for example, will log every time you
-get a request from an IPv6 address.
-
-
-.. code-block:: text
-
-   LogMessage "IPv6 address %{REMOTE_ADDR} requested a resource." "expr=-T %{IPV6}"
-
-
-.. _Discussion_log_debug:
+.. _Discussion_Debug_Logging:
 
 Discussion
 ~~~~~~~~~~
 
+:module:`mod_log_debug` (available since httpd 2.3.14) gives you a
+``printf``-style debugging tool for request processing. The
+``LogMessage`` directive writes to the error log at ``info`` level.
 
-The _mod_log_debug_ module was created to make it easier to debug
-situations by inserting log file entries at strategic times.
+The directive takes up to three arguments:
 
+1. **Message** — the text to log, which can include ``ap_expr``
+   variables like ``%{REQUEST_URI}e``, ``%{reqenv:VARNAME}``, etc.
+2. **hook=name** — which processing phase to log at. The default is
+   ``log_transaction`` (after the request is complete). Other useful
+   hooks: ``fixups`` (just before the handler), ``translate_name``
+   (early), or ``all`` (every phase).
+3. **expr=condition** — only log when this expression is true.
 
-.. tip::
-
-   _mod_log_debug_ is only available in version 2.4.
-
-
-The module can use the expression engine to evaluate arbitrary
-conditions, and insert log entries based on their values. It can also
-be tied to a particular hook - that is, a particular phase of the
-request handling process.
-
-For example, to log the value of a particular variable at a specific
-moment in the request handling process, you can specify that hook in
-the argument to **LogMessage**:
-
+The ``hook=all`` option is particularly powerful for performance
+debugging. Combined with the error log's microsecond timestamps, you can
+see exactly how long each processing phase takes:
 
 .. code-block:: text
 
-   LogMessage "Username is %{REMOTE_USER}" hook=check_authn
+   [Fri May 09 14:23:01.001234 2026] [log_debug:info] [pid 12345] Hook translate_name: /api/users
+   [Fri May 09 14:23:01.001567 2026] [log_debug:info] [pid 12345] Hook check_access: /api/users
+   [Fri May 09 14:23:01.002890 2026] [log_debug:info] [pid 12345] Hook check_authn: /api/users
+   [Fri May 09 14:23:01.045678 2026] [log_debug:info] [pid 12345] Hook handler: /api/users
+   [Fri May 09 14:23:01.945678 2026] [log_debug:info] [pid 12345] Hook log_transaction: /api/users
+
+From this you can see that the handler phase took ~900ms — the backend
+is slow.
+
+This is far more targeted than setting ``LogLevel debug`` globally. You
+get exactly the information you need, only for the requests you care
+about, without the noise of every module's debug output.
+
+.. note::
+
+   :module:`mod_log_debug` has ``Experimental`` status in the official
+   documentation, but it has been available and stable since 2.3.14 (and
+   is present in all 2.4.x releases). Don't let the "experimental" label
+   scare you away from using it.
 
 
-If you wanted to track the value of a particular variable across all
-requests, to see how and when it had changed, you could specify
-``hook=all``, and one log entry would appear for each of the various
-hooks. This would also allow you to determine how much time (in
-microseconds) were being spent in each part of the request processing.
-
-
-.. _See_Also_log_debug:
+.. _See_Also_Debug_Logging:
 
 See Also
 ~~~~~~~~
 
-
-* http://httpd.apache.org/docs/mod/mod_log_debug.html
-
-* :ref:`Chapter_per_request`, **Programmable Configuration**
-
-
-.. _Recipe_Logging_POST:
-
-Logging POST Contents
----------------------
-
-.. index:: mod_dumpio
-
-.. index:: Modules,mod_dumpio
-
-.. index:: Logging,POST
-
-.. index:: POST,Logging
+* :ref:`Section_Error_Log` for ``LogLevel`` per-module
+  debugging
+* :ref:`Recipe_Forensic_Logging` for capturing raw request data
+* :module:`mod_log_debug` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_log_debug.html
 
 
-.. _Problem_Logging_POST:
+.. _Recipe_Piped_Logging:
+
+Piped logging
+--------------
+
+.. index:: Piped logging
+
+.. index:: Logging,piped
+
+.. index:: CustomLog pipe
+
+.. index:: Fluent Bit
+
+.. index:: logstash
+
+
+.. _Problem_Piped_Logging:
 
 Problem
 ~~~~~~~
 
+You want to send log output to an external program — for rotation,
+filtering, transformation, or direct ingestion into a logging pipeline —
+rather than writing to a static file.
 
-You want to record data submitted with the POST method, such as
-from a Web form.
 
-
-.. _Solution_Logging_POST:
+.. _Solution_Piped_Logging:
 
 Solution
 ~~~~~~~~
 
+Prefix the log destination with a pipe character (``|``) followed by the
+program path:
 
-Ensure that _mod_dumpio_ is loaded,
-and put the following in your configuration file:
-.. index:: directives,DumpIOLogLevel
+.. code-block:: apache
 
-.. index:: directives,DumpIOInput
+   # Pipe to rotatelogs
+   CustomLog "|/usr/sbin/rotatelogs /var/log/httpd/access_log.%Y-%m-%d 86400" combined
+
+   # Pipe to Fluent Bit's stdin input
+   CustomLog "|/opt/fluent-bit/bin/fluent-bit -i stdin -o es -p Host=opensearch.internal -p Port=9200 -p Index=httpd-access" json
+
+   # Pipe to a custom processing script
+   CustomLog "|/usr/local/bin/log-processor.sh" combined
+
+   # Pipe to cronolog (an alternative to rotatelogs)
+   CustomLog "|/usr/bin/cronolog /var/log/httpd/%Y/%m/access_log.%d" combined
+
+For reliable piping (program restarts if it dies):
+
+.. code-block:: apache
+
+   # The "||" prefix restarts the program if it exits
+   CustomLog "||/usr/local/bin/my-log-processor" combined
 
 
-.. code-block:: text
-
-   DumpIOLogLevel debug
-   DumpIOInput On
-
-
-.. _Discussion_Logging_POST:
+.. _Discussion_Piped_Logging:
 
 Discussion
 ~~~~~~~~~~
 
+Piped logging is one of httpd's most powerful features. The server
+spawns the target program at startup and writes log entries to its
+standard input. This gives you a live stream of log data that you can
+process however you want.
 
-_mod_dumpio_ is a debugging module which can log the contents of the
-request, including the POST values. When configured as above, it will
-log the entirety of the request body.
+**The ``|`` vs ``||`` distinction**: A single pipe (``|``) means httpd
+starts the program once at server startup. If the program dies, log
+entries are lost until the server is restarted. A double pipe (``||``)
+tells httpd to restart the program if it exits — this is more resilient
+but creates a brief gap during the restart.
 
-The **DumpIOLogLevel** directive specifies at which log level these
-messages will appear. For example, if you set it to **debug**, then
-you'll only see this information when **LogLevel** is set to **debug**.
-.. index:: directives,LogLevel
+**Security**: The piped program runs as the user that started httpd
+(typically root, before privilege dropping). Make sure the program is
+secure and ideally drops privileges itself.
 
+**Performance**: Each log entry is written immediately to the pipe.
+There's no batching or buffering at the httpd level (unless you enable
+``BufferedLogs``; see :ref:`Recipe_BufferedLogs`). For high-throughput
+logging into a complex pipeline, consider writing to a file and having
+the pipeline tail the file instead.
 
-Log entries for POST data will look like:
+**Common piped logging patterns**:
 
+1. **Rotation**: ``rotatelogs`` is the canonical example
+2. **Syslog**: ``logger -t httpd -p local6.info`` sends to syslog
+3. **Log shipping**: pipe directly to Fluent Bit, Logstash, or Vector
+4. **Filtering**: a script that drops or modifies entries
+5. **Splitting**: a script that writes to different files based on content
+
+A practical Fluent Bit integration using a file (more reliable than
+direct piping):
+
+.. code-block:: apache
+
+   # httpd writes JSON to a file
+   CustomLog "/var/log/httpd/access_log.json" json
+
+Then configure Fluent Bit to tail the file:
 
 .. code-block:: text
 
-   [Sun Feb 11 16:49:27 2007] [debug] mod_dumpio.c(51): mod_dumpio:dumpio_in (data-HEAP): 11 bytes
-   [Sun Feb 11 16:49:27 2007] [debug] mod_dumpio.c(67): mod_dumpio: dumpio_in (data-HEAP): fname=Larry
-   
+   [INPUT]
+       Name        tail
+       Path        /var/log/httpd/access_log.json
+       Parser      json
+       Tag         httpd.access
+       Refresh_Interval 5
+
+   [OUTPUT]
+       Name        opensearch
+       Match       httpd.access
+       Host        opensearch.internal
+       Port        9200
+       Index       httpd-access
+
+This "file + tail" pattern is generally more reliable than direct piping
+because:
+
+- If the shipper crashes, no log entries are lost (they're in the file)
+- httpd never blocks waiting for a slow downstream system
+- You can replay logs by re-reading the file
 
 
-In the log entry shown here, the form value
-**fname** was set to **Larry**.
 
-The output from _mod_dumpio_
-is very noisy. A typical request may generate somewhere between 30 and
-50 lines of log entries. The entry shown here is just a tiny part of
-what was logged with the **POST**.
+**Error handling in piped programs**: If your piped program can't keep up
+or blocks, httpd will eventually block too (the pipe buffer fills up).
+On Linux, the default pipe buffer is 64KB. A slow consumer can
+stall your entire server. For this reason:
 
-.. index:: Logging,Sensitive information
+- Keep piped programs fast and non-blocking
+- Don't do complex processing inline — write to a spool and process
+  asynchronously
+- Consider the "file + tail" pattern for anything complex
+
+**A useful pattern — tee to file and pipe**:
+
+.. code-block:: apache
+
+   # Write to file AND pipe to a processor simultaneously
+   CustomLog "|/usr/bin/tee -a /var/log/httpd/access_log | /usr/local/bin/log-alert" combined
+
+This gives you the safety of a file (nothing lost if the processor dies)
+plus real-time processing. The ``tee`` approach works but adds another
+process; for production, a proper log shipper is more robust.
+
+**Piped logging and graceful restarts**: When httpd does a graceful
+restart (``apachectl graceful``), piped logging programs are *not*
+restarted. The pipe stays open. This means your piped program must handle
+long-running operation without memory leaks or file descriptor exhaustion.
+On a full restart (``apachectl restart``), the piped program is terminated
+and a new instance is spawned.
 
 
-.. warning::
-
-   **Use with care and disable when done**
-
-   Logging POST data is potentially very dangerous in terms of data
-   security. Consider, for example, if you are collecting personal
-   information (social security numbers, phone numbers, home addresses)
-   or financial information (credit card numbers), and this information
-   ends up in a log file which is later stolen somehow. All of that
-   information will be stored, plain text, in that log file.
-
-
-Carefully consider what information you log, and how long you retain
-it, to ensure that you don't end up having sensitive information
-leaked when your site is compromised.
-
-See :ref:`Recipe_Securing_Logfiles` for further discussion of this point.
-
-
-.. _See_Also_Logging_POST:
+.. _See_Also_Piped_Logging:
 
 See Also
 ~~~~~~~~
 
-
-* http://httpd.apache.org/docs/mod/mod_dumpio.html
-
-* :ref:`Chapter_Security`, **Security**
-
-* :ref:`Recipe_Securing_Logfiles`
-
-* :ref:`Recipe_dumpio`
+* :ref:`Recipe_Rotating_Logs` for rotatelogs specifically
+* :ref:`Recipe_JSON_Logging` for the JSON format to pipe
+* :ref:`Recipe_Logging_Syslog` for the syslog piped approach
+* :ref:`Recipe_BufferedLogs` for buffering piped output
 
 
-.. _Recipe_dumpio:
+.. _Recipe_Measuring_Request_Timing:
 
-Logging the HTTP response
--------------------------
+Measuring request timing
+--------------------------
 
-.. index:: mod_dumpio
+.. index:: Request timing
 
-.. index:: Modules,mod_dumpio
+.. index:: %T format token
 
-.. index:: Logging,HTTP Response
+.. index:: %D format token
+
+.. index:: Logging,performance
+
+.. index:: Slow requests
 
 
-.. _Problem_dumpio:
+.. _Problem_Measuring_Request_Timing:
 
 Problem
 ~~~~~~~
 
+You want to identify slow requests by logging how long each request takes
+to process.
 
-You want to log everything that is sent back to the client (**i.e.**, the
-HTTP response).
 
-
-.. _Solution_dumpio:
+.. _Solution_Measuring_Request_Timing:
 
 Solution
 ~~~~~~~~
 
+Add timing tokens to your ``LogFormat``:
 
-Ensure that _mod_dumpio_ is loaded, and put the following in your
-configuration file:
-.. index:: directives,DumpIOLogLevel
+.. code-block:: apache
 
-.. index:: directives,DumpIOOutput
+   # Time in seconds (integer)
+   LogFormat "%h %t \"%r\" %>s %b %T" timed
+
+   # Time in microseconds (most precise)
+   LogFormat "%h %t \"%r\" %>s %b %D" timed_micro
+
+   # Time in milliseconds (best balance of precision and readability)
+   LogFormat "%h %t \"%r\" %>s %b %{ms}T" timed_ms
+
+A practical format for identifying slow requests:
+
+.. code-block:: apache
+
+   LogFormat "%a %t \"%r\" %>s %b %{ms}T \"%{Referer}i\" \"%{User-Agent}i\"" performance
+   CustomLog "/var/log/httpd/access_log" performance
+
+Combined with conditional logging to create a slow-request log:
+
+.. code-block:: apache
+
+   CustomLog "/var/log/httpd/slow_requests.log" performance "expr=%T >= 2"
 
 
-.. code-block:: text
-
-   DumpIOLogLevel debug
-   DumpIOOutput On
-
-
-.. _Discussion_dumpio:
+.. _Discussion_Measuring_Request_Timing:
 
 Discussion
 ~~~~~~~~~~
 
+httpd provides three timing tokens:
 
-Like the recipe immediately above, this recpie uses _mod_dumpio_ to
-log aspects of the HTTP transaction. In this case, it logs the
-entirety of the HTTP response, including headers, and the complete
-body of the document returned. So, for example, if the request was for
-an HTML document, the complete contents of that document will be
-logged.
++-------------+----------------+-------------------------------------------+
+| Token       | Unit           | Notes                                     |
++-------------+----------------+-------------------------------------------+
+| ``%T``      | Seconds        | Integer — rounds down. A 1.9s request     |
+|             |                | shows as ``1``.                           |
++-------------+----------------+-------------------------------------------+
+| ``%D``      | Microseconds   | Most precise, but large numbers are hard  |
+|             |                | to read at a glance.                      |
++-------------+----------------+-------------------------------------------+
+| ``%{ms}T``  | Milliseconds   | :version:`2.4.13`. Best for human         |
+|             |                | reading and log analysis.                 |
++-------------+----------------+-------------------------------------------+
+| ``%{us}T``  | Microseconds   | :version:`2.4.13`. Same as ``%D``.        |
++-------------+----------------+-------------------------------------------+
+| ``%{s}T``   | Seconds        | :version:`2.4.13`. Same as ``%T``.        |
++-------------+----------------+-------------------------------------------+
 
-While this is enormously useful for debugging, it does create very
-large log files, very quickly, so use sparingly, and don't leave this
-enabled in production.
+The timer starts when httpd reads the first byte of the request from the
+OS and stops when the last byte of the response is handed to the OS for
+sending. This means:
+
+- It does NOT include TCP/TLS handshake time
+- It does NOT include time for the response to traverse the network
+- It DOES include time spent waiting for backend applications (proxy,
+  CGI, PHP-FPM)
+- It DOES include time to read a slow client's request body (large
+  uploads)
+
+For performance monitoring, I recommend ``%{ms}T`` — milliseconds are
+the right granularity for web requests. A human can quickly see that
+``45`` is fine and ``3500`` is a problem.
+
+To find your slowest requests:
+
+.. code-block:: bash
+
+   # Top 20 slowest requests today
+   awk '{print $(NF-2), $0}' /var/log/httpd/access_log | sort -rn | head -20
+
+Or with the ``expr=`` conditional logging, maintain a dedicated slow
+request log that you can monitor with alerts.
 
 
-.. warning::
-
-   **Potential for logging sensitive information**
-
-   The security warning in the recipe above is also relevant here. Be very
-   cautious about logging potentially sensitive information, as it makes
-   this information available to anyone that compromises your system.
-
-
-See :ref:`Recipe_Securing_Logfiles` for further discussion of this topic.
-
-
-.. _See_Also_dumpio:
+.. _See_Also_Measuring_Request_Timing:
 
 See Also
 ~~~~~~~~
 
+* :ref:`Recipe_JSON_Logging` for including timing in structured logs
+* :ref:`Recipe_Debug_Logging` for per-phase timing with ``hook=all``
+* :ref:`Recipe_Tracking_Bytes` for bandwidth measurement
 
-* :ref:`Recipe_Securing_Logfiles`
 
-* :ref:`Recipe_Logging_POST`
+.. _Recipe_Tracking_Bytes:
+
+Tracking bytes with mod_logio
+------------------------------
+
+.. index:: mod_logio
+
+.. index:: %I format token
+
+.. index:: %O format token
+
+.. index:: Bandwidth accounting
+
+.. index:: Logging,bytes transferred
+
+
+.. _Problem_Tracking_Bytes:
+
+Problem
+~~~~~~~
+
+You want to log the actual number of bytes transferred over the network
+— including headers, SSL overhead, and chunked encoding — not just the
+response body size.
+
+
+.. _Solution_Tracking_Bytes:
+
+Solution
+~~~~~~~~
+
+Load :module:`mod_logio` and use the ``%I`` and ``%O`` format tokens:
+
+.. code-block:: apache
+
+   LoadModule logio_module modules/mod_logio.so
+
+   LogFormat "%a %l %u %t \"%r\" %>s %b %I %O \"%{Referer}i\" \"%{User-Agent}i\"" bandwidth
+   CustomLog "/var/log/httpd/access_log" bandwidth
+
+
+.. _Discussion_Tracking_Bytes:
+
+Discussion
+~~~~~~~~~~
+
+The standard ``%b`` and ``%B`` tokens measure only the response body
+size — the content you're sending, minus HTTP headers. For most logging
+purposes, that's fine. But for bandwidth accounting, capacity planning,
+or billing, you need the *actual* bytes on the wire.
+
+:module:`mod_logio` provides two additional tokens:
+
++--------+-----------------------------------------------------------+
+| Token  | Meaning                                                   |
++--------+-----------------------------------------------------------+
+| ``%I`` | Total bytes received from the client (request headers +   |
+|        | body). Includes SSL/TLS overhead.                         |
++--------+-----------------------------------------------------------+
+| ``%O`` | Total bytes sent to the client (response headers + body). |
+|        | Includes SSL/TLS overhead.                                |
++--------+-----------------------------------------------------------+
+
+The difference between ``%O`` and ``%b`` can be significant:
+
+- HTTP response headers typically add 200-500 bytes per response
+- TLS record framing adds overhead to every packet
+- Chunked transfer encoding adds framing bytes
+
+For a server handling millions of small requests (APIs, image
+thumbnails), the header overhead measured by ``%O`` but not ``%b`` can
+represent 10-20% of your actual bandwidth.
+
+:module:`mod_logio` also provides a combined token ``%S`` (since httpd
+2.4.7) which is the sum of ``%I`` and ``%O`` — total bytes in both
+directions for the request.
+
+A bandwidth-monitoring log format:
+
+.. code-block:: apache
+
+   LogFormat "%v %a %t \"%r\" %>s %I %O %S %{ms}T" bandwidth_full
+   CustomLog "/var/log/httpd/bandwidth.log" bandwidth_full
+
+This gives you per-vhost, per-request bandwidth data that you can
+aggregate for capacity planning.
+
+
+.. _See_Also_Tracking_Bytes:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_Measuring_Request_Timing` for performance measurement
+* :ref:`Recipe_JSON_Logging` for including ``%O`` in structured logs
+* :module:`mod_logio` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_logio.html
+
+
+.. _Recipe_BufferedLogs:
+
+BufferedLogs for performance
+-----------------------------
+
+.. index:: BufferedLogs directive
+
+.. index:: directives,BufferedLogs
+
+.. index:: Logging,performance
+
+.. index:: Logging,buffering
+
+
+.. _Problem_BufferedLogs:
+
+Problem
+~~~~~~~
+
+On a high-traffic server, you want to reduce the I/O overhead of
+writing to log files on every single request.
+
+
+.. _Solution_BufferedLogs:
+
+Solution
+~~~~~~~~
+
+Enable ``BufferedLogs`` in your server configuration (global scope only):
+
+.. code-block:: apache
+
+   BufferedLogs On
+
+
+.. _Discussion_BufferedLogs:
+
+Discussion
+~~~~~~~~~~
+
+Normally, httpd writes each log entry to disk immediately after the
+request completes. On a server handling thousands of requests per second,
+this means thousands of small writes per second. ``BufferedLogs`` causes
+:module:`mod_log_config` to batch multiple log entries in memory and
+write them together in larger blocks.
+
+The trade-offs:
+
+**Advantages**:
+
+- Fewer disk I/O operations (better for spinning disks)
+- Slightly reduced per-request overhead
+- May improve throughput under extreme load
+
+**Disadvantages**:
+
+- If the server crashes, buffered entries that haven't been flushed are
+  lost
+- Log entries appear with a slight delay
+- Cannot be set per virtual host — it's a global setting
+- Interleaving of entries from different requests/threads may change
+
+**When to use it**: Honestly, for most servers in 2026, you don't need
+this. Modern SSDs handle thousands of small writes effortlessly, and the
+OS filesystem layer provides its own write buffering. ``BufferedLogs``
+was more impactful in the era of spinning disks and slow I/O subsystems.
+
+Consider enabling it if:
+
+- You're writing to a network filesystem (NFS) where each write has
+  latency
+- You've profiled your server and confirmed that log I/O is a
+  bottleneck
+- You're processing tens of thousands of requests per second and every
+  microsecond matters
+
+For most servers, the crash-safety risk outweighs the performance gain.
+If log write performance is genuinely a problem, piped logging to a
+buffered receiver (Fluent Bit, rsyslog) is usually a better approach.
+
+
+.. _See_Also_BufferedLogs:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_Piped_Logging` for an alternative approach to log
+  performance
+* :ref:`Recipe_Rotating_Logs` for managing high-volume log files
+* :module:`mod_log_config` documentation:
+  https://httpd.apache.org/docs/2.4/mod/mod_log_config.html#bufferedlogs
 
 
 .. _Recipe_Log_Analysis:
 
-Log Analysis
-------------
+Log analysis in 2026
+---------------------
 
-.. index:: Logging,Analysis
+.. index:: Log analysis
 
-.. index:: Logging,Statistics
+.. index:: GoAccess
 
-.. index:: Log file analysis
+.. index:: AWStats
+
+.. index:: OpenSearch
+
+.. index:: ELK stack
+
+.. index:: CloudWatch Logs Insights
 
 
 .. _Problem_Log_Analysis:
@@ -3346,9 +2365,9 @@ Log Analysis
 Problem
 ~~~~~~~
 
-
-You want to generate some statistics from the log files that you're
-collecting.
+You've been collecting log data and now you want to analyze it — see
+traffic patterns, identify problems, generate reports, or set up
+dashboards. What tools should you use in 2026?
 
 
 .. _Solution_Log_Analysis:
@@ -3356,33 +2375,37 @@ collecting.
 Solution
 ~~~~~~~~
 
+The right tool depends on your scale and needs:
 
-There are a wide variety of third-party products for extracting useful
-statistics from the log files that you're collecting.
+**For quick, real-time terminal analysis**: GoAccess
 
-Some of the most popular Open Source options are listed here:
+.. code-block:: bash
 
+   # Real-time dashboard in your terminal
+   goaccess /var/log/httpd/access_log --log-format=COMBINED
 
-.. _Analytics_software:
+   # Generate a standalone HTML report
+   goaccess /var/log/httpd/access_log --log-format=COMBINED -o /var/www/stats/report.html
 
+   # Real-time HTML report (auto-refreshing)
+   goaccess /var/log/httpd/access_log --log-format=COMBINED -o /var/www/stats/report.html --real-time-html
 
-**Popular log file analytics software**
+**For serious infrastructure-scale analysis**: OpenSearch or Elasticsearch
 
+Feed JSON-formatted logs (see :ref:`Recipe_JSON_Logging`) via Fluent Bit,
+Filebeat, or Logstash into OpenSearch. Query with dashboards.
 
-+-----------+---------------------------+
-| Name      | URL                       |
-+-----------+---------------------------+
-| AWStats   | http://www.awstats.org/   |
-+-----------+---------------------------+
-| GoAccess  | http://goaccess.io/       |
-+-----------+---------------------------+
-| Webalizer | http://www.webalizer.org/ |
-+-----------+---------------------------+
+**For AWS environments**: CloudWatch Logs Insights
 
+Ship logs to CloudWatch, then query:
 
-There are, additionally, many proprietary options, such as Sawmill,
-and also options that provide live analysis, rather than processing your
-log files, such as Google Analytics and Mint.
+.. code-block:: text
+
+   fields @timestamp, client, method, uri, status, duration_us
+   | filter status >= 500
+   | stats count(*) as errors by uri
+   | sort errors desc
+   | limit 20
 
 
 .. _Discussion_Log_Analysis:
@@ -3390,20 +2413,47 @@ log files, such as Google Analytics and Mint.
 Discussion
 ~~~~~~~~~~
 
+The log analysis landscape has changed dramatically. Here's an honest
+assessment of the options:
 
-In the past, analyzing httpd log files was the most popular way to
-generate statistics about traffic to your website. However, it is now
-much more common to use JavaScript-based solutions, like Google
-Analytics, to provide real-time tracking of website access.
+**GoAccess** (https://goaccess.io/) — version 1.10 as of early 2026.
+This is the best tool for single-server, file-based log analysis.
+It's fast (processes millions of lines in seconds), runs in a terminal
+or generates beautiful HTML reports, respects privacy (no data leaves
+your server), and understands all common log formats out of the box.
+Use it when you want a quick answer to "what's happening on my server?"
+without setting up infrastructure.
 
-If you are more concerned about data security, you may opt to analyse
-your log files yourself, and that's where the server-side programs,
-like those listed in the table above, are useful.
+**OpenSearch / Elasticsearch + Kibana / Dashboards** — the standard for
+multi-server, searchable, dashboarded log analysis. This is significant
+infrastructure to run (or pay for as a managed service), but it gives
+you full-text search, field-based filtering, time-series visualization,
+and alerting. If you're running more than a handful of servers, this is
+the way.
 
-At the websites listed above, you can see examples of the graphs and
-tables that can be generated from your log files, giving you insight
-into the trends of your audience, as well as what you might do to
-improve your site, based on what parts are more visited than others.
+**CloudWatch Logs Insights** — if you're on AWS, this is the lowest-
+friction option. Ship logs to CloudWatch (via the CloudWatch agent or
+Fluent Bit), and you get a SQL-like query language without managing
+any additional infrastructure. The query syntax is limited compared to
+full Elasticsearch, but it's often enough.
+
+**Splunk** — the enterprise incumbent. Expensive but powerful.
+If your organization already has Splunk, feed your JSON logs into it.
+
+**AWStats** — still exists, still works, but hasn't had significant
+development in years. I'd use GoAccess instead for the same use case.
+
+**Webalizer** — dead. Don't use it.
+
+**Google Analytics / client-side tracking** — these solve a different
+problem (user behavior analytics, not server operations). They miss
+bot traffic, API calls, and errors. They're complementary to server
+logs, not a replacement.
+
+My recommendation for most people: start with GoAccess for immediate
+visibility. When you outgrow a single server, invest in OpenSearch or
+your cloud provider's managed log solution, and switch to JSON logging
+as the output format.
 
 
 .. _See_Also_Log_Analysis:
@@ -3411,13 +2461,179 @@ improve your site, based on what parts are more visited than others.
 See Also
 ~~~~~~~~
 
+* :ref:`Recipe_JSON_Logging` for producing analysis-ready logs
+* :ref:`Recipe_Measuring_Request_Timing` for the data to analyze
+* GoAccess: https://goaccess.io/
+* OpenSearch: https://opensearch.org/
 
-* https://en.wikipedia.org/wiki/List_of_web_analytics_software
+
+
+.. _Recipe_Format_Token_Reference:
+
+Quick reference: LogFormat tokens
+----------------------------------
+
+.. index:: LogFormat tokens,reference
+
+.. index:: Format tokens,complete list
+
+
+For convenience, here is a consolidated reference of the most commonly
+used ``LogFormat`` tokens. For the complete list, see the
+:module:`mod_log_config` documentation.
+
+**Request information**:
+
++---------------------+----------------------------------------------------+
+| Token               | Description                                        |
++---------------------+----------------------------------------------------+
+| ``%r``              | First line of request (method + URI + protocol)    |
++---------------------+----------------------------------------------------+
+| ``%m``              | Request method (GET, POST, etc.)                   |
++---------------------+----------------------------------------------------+
+| ``%U``              | URL path (without query string)                    |
++---------------------+----------------------------------------------------+
+| ``%q``              | Query string (with leading ``?``, or empty)        |
++---------------------+----------------------------------------------------+
+| ``%H``              | Request protocol (HTTP/1.1, HTTP/2, etc.)          |
++---------------------+----------------------------------------------------+
+| ``%{Header}i``      | Any request header value                           |
++---------------------+----------------------------------------------------+
+
+**Client information**:
+
++---------------------+----------------------------------------------------+
+| Token               | Description                                        |
++---------------------+----------------------------------------------------+
+| ``%h``              | Remote hostname/IP (affected by mod_remoteip)      |
++---------------------+----------------------------------------------------+
+| ``%a``              | Client IP (affected by mod_remoteip)               |
++---------------------+----------------------------------------------------+
+| ``%{c}a``           | Underlying connection peer IP (always the proxy)   |
++---------------------+----------------------------------------------------+
+| ``%l``              | Remote logname from identd (always ``-``)          |
++---------------------+----------------------------------------------------+
+| ``%u``              | Remote user (authenticated)                        |
++---------------------+----------------------------------------------------+
+
+**Response information**:
+
++---------------------+----------------------------------------------------+
+| Token               | Description                                        |
++---------------------+----------------------------------------------------+
+| ``%>s``             | Final HTTP status code                             |
++---------------------+----------------------------------------------------+
+| ``%s``              | Original status (before internal redirects)        |
++---------------------+----------------------------------------------------+
+| ``%b``              | Response body bytes (``-`` if zero) — CLF format   |
++---------------------+----------------------------------------------------+
+| ``%B``              | Response body bytes (``0`` if zero)                |
++---------------------+----------------------------------------------------+
+| ``%{Header}o``      | Any response header value                          |
++---------------------+----------------------------------------------------+
+| ``%I``              | Total bytes received (mod_logio required)          |
++---------------------+----------------------------------------------------+
+| ``%O``              | Total bytes sent (mod_logio required)              |
++---------------------+----------------------------------------------------+
+| ``%S``              | Total bytes transferred: %I + %O (mod_logio)      |
++---------------------+----------------------------------------------------+
+
+**Timing**:
+
++---------------------+----------------------------------------------------+
+| Token               | Description                                        |
++---------------------+----------------------------------------------------+
+| ``%T``              | Request time in seconds (integer)                  |
++---------------------+----------------------------------------------------+
+| ``%D``              | Request time in microseconds                       |
++---------------------+----------------------------------------------------+
+| ``%{ms}T``          | Request time in milliseconds (2.4.13+)             |
++---------------------+----------------------------------------------------+
+| ``%{us}T``          | Request time in microseconds (2.4.13+)             |
++---------------------+----------------------------------------------------+
+
+**Timestamps**:
+
++---------------------------+------------------------------------------------+
+| Token                     | Description                                    |
++---------------------------+------------------------------------------------+
+| ``%t``                    | Standard timestamp [DD/Mon/YYYY:HH:MM:SS +TZ]  |
++---------------------------+------------------------------------------------+
+| ``%{%Y-%m-%dT%H:%M:%S}t``| Custom strftime format                         |
++---------------------------+------------------------------------------------+
+| ``%{msec_frac}t``         | Millisecond fraction (.NNN)                    |
++---------------------------+------------------------------------------------+
+| ``%{usec_frac}t``         | Microsecond fraction (.NNNNNN)                 |
++---------------------------+------------------------------------------------+
+| ``%{begin:%s}t``          | Unix epoch at request start                    |
++---------------------------+------------------------------------------------+
+| ``%{end:%s}t``            | Unix epoch at request end                      |
++---------------------------+------------------------------------------------+
+
+**Server information**:
+
++---------------------+----------------------------------------------------+
+| Token               | Description                                        |
++---------------------+----------------------------------------------------+
+| ``%v``              | Canonical ServerName of the serving vhost          |
++---------------------+----------------------------------------------------+
+| ``%V``              | Server name per UseCanonicalName                   |
++---------------------+----------------------------------------------------+
+| ``%p``              | Canonical server port                              |
++---------------------+----------------------------------------------------+
+| ``%A``              | Local IP address                                   |
++---------------------+----------------------------------------------------+
+| ``%P``              | Process ID of the child                            |
++---------------------+----------------------------------------------------+
+| ``%{tid}P``         | Thread ID                                          |
++---------------------+----------------------------------------------------+
+
+**Metadata and correlation**:
+
++---------------------+----------------------------------------------------+
+| Token               | Description                                        |
++---------------------+----------------------------------------------------+
+| ``%L``              | Request log ID (for error log correlation)         |
++---------------------+----------------------------------------------------+
+| ``%{c}L``           | Connection log ID                                  |
++---------------------+----------------------------------------------------+
+| ``%{VARNAME}e``     | Environment variable                               |
++---------------------+----------------------------------------------------+
+| ``%{VARNAME}n``     | Module note                                        |
++---------------------+----------------------------------------------------+
+| ``%{VARNAME}C``     | Cookie value                                       |
++---------------------+----------------------------------------------------+
+| ``%k``              | Keepalive request count on this connection          |
++---------------------+----------------------------------------------------+
+| ``%X``              | Connection status (``X`` = aborted, ``+`` = keep-  |
+|                     | alive, ``-`` = closed)                             |
++---------------------+----------------------------------------------------+
+| ``%R``              | Handler that generated the response                |
++---------------------+----------------------------------------------------+
+
+**Modifiers**: Place between ``%`` and the format character:
+
+- ``>`` — use value from final request (after internal redirects)
+- ``<`` — use value from original request
+- ``400,404`` — only log for these status codes (else ``-``)
+- ``!200,304`` — only log for statuses NOT in this list
+
+
 
 Summary
 -------
 
+Logging is infrastructure. Like any infrastructure, it's invisible when
+it works and catastrophic when it doesn't. The recipes in this chapter
+give you the tools to build a logging setup that's useful for daily
+operations, powerful for debugging, and ready for whatever observability
+stack you're feeding.
 
-The Apache HTTP Server provides a large number of ways to collect logs of what
-happens on your server. In this chapter I've covered all of the
-standard logging modules, as well as a handful of third-party tools.
+Start with the Combined format and a rotation strategy. Add timing
+(``%{ms}T``) because you'll always want to find slow requests. Consider
+JSON output early — converting later is painful. And keep your error log
+verbosity production-appropriate, but remember that per-module
+``LogLevel`` lets you zoom in surgically when things go wrong.
+
+Your future self, at 2 AM debugging a production issue, will thank your
+past self for setting up good logging.

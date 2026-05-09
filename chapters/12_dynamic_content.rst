@@ -1740,6 +1740,12 @@ Web site (http://perl.apache.org) and from Geoffrey Young's
 MacEachern (O'Reilly) is an excellent introduction to ``mod_perl``
 and the httpd API.
 
+.. todo:: Both the *mod_perl Developer's Cookbook* (Sams, 2002) and the
+   "Eagle book" (*Writing httpd Modules with Perl and C*, O'Reilly, 1999)
+   are 20+ years old and cover mod_perl 1.x/2.0. Is mod_perl still
+   relevant enough to cite these, or should this section point to the
+   mod_perl documentation at https://perl.apache.org/ instead?
+
 The real question here, however, is how and where you should install
 the file that you've created. There are two answers to this question,
 and which one you choose will be largely personal preference.
@@ -2226,7 +2232,7 @@ See Also
 * The :module:`mod_cgi` documentation at
   https://httpd.apache.org/docs/current/mod/mod_cgi.html
 
-* The Apache CGI tutorial at
+* The httpd CGI tutorial at
   https://httpd.apache.org/docs/current/howto/cgi.html
 
 
@@ -2310,7 +2316,7 @@ which is far more efficient than CGI.
 
 **WSGIDaemonProcess** is the key directive. It creates a separate
 daemon process group to run your Python code, isolated from the
-Apache worker processes:
+httpd worker processes:
 
 - ``python-home`` points to the virtual environment where your
   dependencies are installed.
@@ -2352,7 +2358,7 @@ include your project root.
 
 **Embedded mode vs. daemon mode.** Always use daemon mode
 (``WSGIDaemonProcess``) in production. Embedded mode runs your Python
-code inside the Apache worker processes themselves, which causes
+code inside the httpd worker processes themselves, which causes
 problems with threading, memory, and Python's Global Interpreter
 Lock. Daemon mode avoids all of these issues.
 
@@ -2401,7 +2407,7 @@ CGI with Threaded MPMs: mod_cgid
 Problem
 ~~~~~~~
 
-You are running Apache with the event or worker MPM and your CGI
+You are running httpd with the event or worker MPM and your CGI
 scripts are failing, running slowly, or behaving unexpectedly.
 You need to understand how CGI execution differs under threaded
 MPMs and how to configure it properly.
@@ -2469,7 +2475,7 @@ sends the request details to the daemon, which then performs the
 From the administrator's perspective, the key differences are:
 
 **Automatic selection.**
-In Apache 2.4, the correct module is chosen at compile time
+In httpd 2.4, the correct module is chosen at compile time
 based on the MPM. If you build with (or use the distribution
 default of) **event** or **worker**, :module:`mod_cgid` is used
 automatically. You do not need to manually swap modules. In
@@ -2560,7 +2566,7 @@ See Also
 * The :module:`mod_cgi` documentation at
   https://httpd.apache.org/docs/current/mod/mod_cgi.html
 
-* The Apache MPM documentation at
+* The httpd MPM documentation at
   https://httpd.apache.org/docs/current/mpm.html
 
 

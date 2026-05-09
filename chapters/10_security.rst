@@ -700,6 +700,9 @@ See Also
 
 * http://modsecurity.org/projects/rules
 
+.. refcosplay
+
+
 
 .. _Recipe_Securing_Logfiles:
 
@@ -946,6 +949,10 @@ See Also
 * Learning the Unix Operating System,
             Fifth Edition, by Jerry Peek, Grace Todino-Gonquet, and John
             Strang (O'Reilly)
+
+.. todo:: *Learning the Unix Operating System* (5th ed., 2002) is over
+   20 years old. Replace with a current resource — perhaps an online
+   tutorial, or William Shotts' *The Linux Command Line* (free at linuxcommand.org).
 
 
           

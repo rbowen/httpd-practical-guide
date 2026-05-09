@@ -444,6 +444,9 @@ See Also
 
 * :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
 
+.. refcosplay
+
+
 
 .. _Recipe_Editing_config_files:
 
@@ -570,6 +573,9 @@ binary, or at least non-plain-text, formats.
 
 See Also
 ~~~~~~~~
+
+.. refcosplay
+
 
 
 .. _Recipe_Directive_goes_where:
@@ -725,6 +731,9 @@ See Also
 
 * http://httpd.apache.org/docs/sections.html
 
+.. refcosplay
+
+
 
 .. _Recipe_Which_config_file:
 
@@ -857,6 +866,9 @@ See Also
 
 
 http://wiki.apache.org/httpd/DistrosDefaultLayout
+
+.. refcosplay
+
 
 
 .. _Recipe_syntax:
@@ -1280,6 +1292,9 @@ website from that server.
 See Also
 ~~~~~~~~
 
+.. refcosplay
+
+
 
 .. _Recipe_hosting:
 
@@ -1619,6 +1634,9 @@ See Also
 * http://www.favicon-generator.org/
 
 * http://www.favicon.cc/
+
+.. refcosplay
+
 
 
 .. _Recipe_Design:

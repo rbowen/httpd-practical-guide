@@ -34,6 +34,8 @@ Apache httpd: A Practical Guide
    chapters/15_performance
    chapters/22_mod_info_status
    chapters/20_user_directories
+   chapters/23_automated_deployment
+   chapters/24_module_reference
    chapters/17_contributing
 
 .. toctree::

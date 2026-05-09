@@ -1270,7 +1270,7 @@ for the AJP port.
    The AJP port (8009 by default) should **never** be exposed to the
    public Internet. AJP does not encrypt traffic — it trusts that the
    front-end server has already handled TLS termination and access
-   control. Always firewall the AJP port so that only the Apache
+   control. Always firewall the AJP port so that only the httpd
    front-end can reach it.
 
 Note that ``ProxyPassReverse`` is usually not needed with AJP, because
@@ -1342,7 +1342,7 @@ For backends that speak cleartext HTTP/2:
 
 Note that the ``ProxyPassReverse`` directive still uses the standard
 ``https://`` or ``http://`` scheme — the ``h2://`` and ``h2c://`` schemes
-are used only in ``ProxyPass`` to tell Apache which protocol to speak
+are used only in ``ProxyPass`` to tell httpd which protocol to speak
 with the backend.
 
 
@@ -1352,10 +1352,10 @@ Discussion
 ~~~~~~~~~~
 
 
-:module:`mod_proxy_http2` allows Apache's reverse proxy to speak HTTP/2
+:module:`mod_proxy_http2` allows httpd's reverse proxy to speak HTTP/2
 to backend servers, which can improve performance through multiplexed
 streams and header compression. This is independent of the protocol used
-between the client and Apache — the front-end connection can be HTTP/1.1
+between the client and httpd — the front-end connection can be HTTP/1.1
 or HTTP/2.
 
 **Key characteristics:**
@@ -1390,7 +1390,7 @@ These are independent — you can use either or both.
 .. note::
 
    :module:`mod_proxy_http2` relies on the ``libnghttp2`` library for
-   its HTTP/2 engine. Ensure this library is installed and that Apache
+   its HTTP/2 engine. Ensure this library is installed and that httpd
    was built with HTTP/2 support.
 
 
@@ -1577,7 +1577,7 @@ Problem
 
 
 You want to run PHP (or another FastCGI application) as a separate
-process and have Apache forward requests to it, rather than embedding
+process and have httpd forward requests to it, rather than embedding
 the interpreter inside the web server process with ``mod_php``.
 
 
@@ -1588,7 +1588,7 @@ Solution
 
 
 Enable :module:`mod_proxy` and :module:`mod_proxy_fcgi`, then configure
-Apache to forward PHP requests to a PHP-FPM pool.
+httpd to forward PHP requests to a PHP-FPM pool.
 
 There are three common approaches. Choose the one that best fits your
 deployment.
@@ -1666,8 +1666,8 @@ Discussion
 
 
 The shift from ``mod_php`` (which embeds the PHP interpreter inside every
-Apache process) to PHP-FPM via :module:`mod_proxy_fcgi` has been the
-single largest change in how PHP is deployed with Apache. PHP-FPM runs
+httpd process) to PHP-FPM via :module:`mod_proxy_fcgi` has been the
+single largest change in how PHP is deployed with httpd. PHP-FPM runs
 as a separate process manager, which brings several advantages:
 
 * **MPM freedom.** ``mod_php`` requires the ``prefork`` MPM because
@@ -1675,8 +1675,8 @@ as a separate process manager, which brings several advantages:
   PHP-FPM, you can use the ``event`` or ``worker`` MPMs, which handle
   concurrent connections far more efficiently.
 
-* **Resource isolation.** PHP-FPM processes are separate from Apache
-  child processes. A runaway PHP script won't consume an Apache worker
+* **Resource isolation.** PHP-FPM processes are separate from httpd
+  child processes. A runaway PHP script won't consume an httpd worker
   indefinitely.
 
 * **Multiple PHP versions.** You can run different PHP-FPM pools (each
@@ -1691,13 +1691,13 @@ Understanding the Three URL Syntaxes
 trade-offs:
 
 ``fcgi://hostname:port/path``
-    The TCP form. Apache connects to PHP-FPM over a TCP socket.
+    The TCP form. httpd connects to PHP-FPM over a TCP socket.
     Works across network boundaries (e.g., PHP-FPM on a different host)
     but has slightly more overhead than a Unix socket.
 
 ``unix:/path/to/socket|fcgi://localhost/``
     The Unix Domain Socket (UDS) form, available since version 2.4.9.
-    Apache connects to PHP-FPM through a local socket file. This is
+    httpd connects to PHP-FPM through a local socket file. This is
     faster and more secure than TCP because the connection never
     leaves the machine, and file permissions control access to the
     socket. The hostname after ``fcgi://`` is ignored when using UDS
@@ -1724,7 +1724,7 @@ SetHandler vs. ProxyPassMatch
 The ``SetHandler`` approach (Approaches 2 and 3) is generally preferred
 over ``ProxyPassMatch`` for several reasons:
 
-* Apache resolves the filename on disk *before* forwarding the request,
+* httpd resolves the filename on disk *before* forwarding the request,
   so ``SCRIPT_FILENAME`` and ``PATH_INFO`` are set accurately. With
   ``ProxyPassMatch``, you must construct the filesystem path yourself
   in the substitution string, which can lead to subtle PATH_INFO errors.
@@ -1733,7 +1733,7 @@ over ``ProxyPassMatch`` for several reasons:
   :file:`.htaccess` contexts, giving you fine-grained per-directory
   control.
 
-* With a defined ``<Proxy>`` worker (Approach 3), Apache can pool and
+* With a defined ``<Proxy>`` worker (Approach 3), httpd can pool and
   reuse connections to PHP-FPM, improving performance under load.
 
 
@@ -1755,7 +1755,7 @@ you can enable connection reuse:
    <Proxy "fcgi://localhost/" enablereuse=on max=10>
    </Proxy>
 
-The ``max`` parameter limits the number of pooled connections per Apache
+The ``max`` parameter limits the number of pooled connections per httpd
 child process. Set this to a value that balances connection reuse
 against exhausting PHP-FPM's ``pm.max_children``.
 
@@ -1764,9 +1764,9 @@ Common Pitfalls
 ---------------
 
 **Timeout issues.** PHP-FPM has its own ``request_terminate_timeout``
-setting, but Apache also enforces a ``ProxyTimeout`` (which defaults to
+setting, but httpd also enforces a ``ProxyTimeout`` (which defaults to
 the value of the ``Timeout`` directive, usually 60 seconds). If a PHP
-script runs longer than the proxy timeout, Apache returns a
+script runs longer than the proxy timeout, httpd returns a
 ``504 Gateway Timeout`` even if PHP-FPM is still working. Align
 the two values:
 
@@ -1775,7 +1775,7 @@ the two values:
    # Allow long-running scripts (e.g., imports) up to 300 seconds
    ProxyTimeout 300
 
-**PATH_INFO handling.** When using ``ProxyPassMatch``, Apache does not
+**PATH_INFO handling.** When using ``ProxyPassMatch``, httpd does not
 automatically split the URL into ``SCRIPT_NAME`` and ``PATH_INFO``.
 Frameworks that rely on ``PATH_INFO`` (such as some REST routing
 schemes) may break. You can work around this by setting the
@@ -1795,11 +1795,11 @@ schemes) may break. You can work around this by setting the
    non-PHP FastCGI application that expects the ``proxy:fcgi://``
    prefix on ``SCRIPT_FILENAME``.
 
-**Socket permission errors.** When using Unix domain sockets, the Apache
+**Socket permission errors.** When using Unix domain sockets, the httpd
 user (typically ``www-data`` or ``apache``) must have read/write
 access to the socket file. In the PHP-FPM pool configuration, set
-``listen.owner`` and ``listen.group`` to match the Apache user, or use
-``listen.mode = 0660`` and add the Apache user to the PHP-FPM group.
+``listen.owner`` and ``listen.group`` to match the httpd user, or use
+``listen.mode = 0660`` and add the httpd user to the PHP-FPM group.
 
 **PHP files downloading instead of executing.** If ``.php`` files are
 served as downloads rather than being processed, the handler is not
@@ -1917,7 +1917,7 @@ dedicated path to a Node.js backend running on port 3000:
        ProxyPassReverse "/" "http://localhost:3000/"
    </VirtualHost>
 
-For a production deployment with TLS termination at Apache — where
+For a production deployment with TLS termination at httpd — where
 clients connect over ``wss://`` but the backend speaks plain
 ``ws://`` — wrap the above in an SSL virtual host:
 
@@ -1981,7 +1981,7 @@ the upgrade, HTTP is no longer spoken on that connection —
 it becomes a raw bidirectional tunnel.
 
 ``mod_proxy_wstunnel`` understands this upgrade mechanism. When
-Apache receives a request with a ``ws://`` or ``wss://`` scheme in
+httpd receives a request with a ``ws://`` or ``wss://`` scheme in
 the ``ProxyPass`` target, it knows to expect the WebSocket handshake
 and to maintain the persistent tunnel once the upgrade succeeds.
 
@@ -2003,10 +2003,10 @@ third configuration example above. The ``[P]`` flag tells
 ``mod_proxy_wstunnel`` handles the tunneling from there.
 
 **TLS termination.** A very common pattern — and one that appeared
-repeatedly on the Apache users mailing list from 2017 through 2024
-— is to terminate TLS at Apache and proxy unencrypted WebSocket
+repeatedly on the httpd users mailing list from 2017 through 2024
+— is to terminate TLS at httpd and proxy unencrypted WebSocket
 traffic to the backend. From the client's perspective the connection
-is ``wss://`` (WebSocket Secure), but Apache handles the SSL/TLS
+is ``wss://`` (WebSocket Secure), but httpd handles the SSL/TLS
 layer and forwards to the backend over plain ``ws://``. This is
 exactly what the second example above does. The backend application
 does not need to be configured with certificates at all.
@@ -2124,7 +2124,7 @@ WebSocket server. First, the Node.js backend, saved to
        console.log('Listening on http://localhost:3000');
    });
 
-And the Apache configuration in
+And the httpd configuration in
 :file:`/etc/httpd/conf.d/app.conf`:
 
 .. code-block:: apache

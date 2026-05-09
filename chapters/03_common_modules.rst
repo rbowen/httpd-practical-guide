@@ -63,6 +63,9 @@ I also recommend the online developer resource,
 http://httpd.apache.org/dev/ , and the API guide,
 http://ci.apache.org/projects/httpd/trunk/doxygen/
 
+.. refcosplay
+
+
 
 .. _Recipe_Finding_Modules:
 
@@ -73,7 +76,7 @@ Finding Modules
 
 .. index:: Finding modules
 
-.. index:: modules.apache.org
+.. index:: Finding modules on GitHub
 
 
 .. _Problem_Finding_Modules:
@@ -91,8 +94,16 @@ Solution
 ~~~~~~~~
 
 
-While there's no comprehensive list, a large number of third-party
-modules are available on http://modules.apache.org/
+There is no single comprehensive registry of third-party httpd modules.
+The best approach is to search GitHub:
+
+* https://github.com/search?q=apache+httpd+module&type=repositories
+* Look for repositories tagged with the ``apache-httpd-module`` or
+  ``httpd-module`` topics.
+
+Your operating system's package manager is also a good starting point.
+On Debian/Ubuntu, try ``apt search libapache2-mod-``. On
+Fedora/RHEL/AlmaLinux, try ``dnf search mod_``.
 
 
 .. _Discussion_Finding_Modules:
@@ -101,25 +112,26 @@ Discussion
 ~~~~~~~~~~
 
 
-modules.apache.org is a site hosted by the Apache httpd project, which
-encourages third-party module developers to list their modules, along
-with some basic meta data, so that you, the web server admin, can find
-these modules.
+The Apache httpd project once maintained a module registry at
+modules.apache.org, where third-party authors could list their modules
+and users could post reviews. That site has been retired, and there is
+no direct replacement.
 
-There are, of course, may other modules out there that haven't (yet?)
-been listed on this site, because the author doesn't know about it, or
-doesn't want to list their module for whatever reason. But it's the
-best available list.
+In practice, GitHub has become the de facto home for third-party httpd
+modules. Most active module projects are hosted there, and GitHub's
+search and topic system makes them reasonably easy to find. When
+searching, try terms like "apache httpd module" followed by the
+functionality you're looking for — for example, "apache httpd module
+rate limiting" or "apache httpd module markdown".
 
-On this site, you can search by keyword or topic, and then go to
-the module's site to download it. modules.apache.org does not host the
-module downloads.
+For Perl-based modules (especially those related to mod_perl), CPAN
+(https://metacpan.org/) remains a useful source.
 
-You can also post comments about a module, which may be a good way to
-see what others might have thought of the module.
-
-And, if you're a module author yourself, you can add your own module
-ot the site.
+Your Linux distribution's package manager is often the easiest path,
+since packaged modules will be compiled against the right version of
+httpd and can be installed with a single command. The downside is that
+distribution repositories tend to carry only the most popular modules,
+and the versions may lag behind upstream.
 
 
 .. _See_Also_Finding_Modules:
@@ -128,7 +140,10 @@ See Also
 ~~~~~~~~
 
 
-http://modules.apache.org/
+* https://github.com/search?q=apache+httpd+module&type=repositories
+
+* https://httpd.apache.org/docs/current/mod/ — the list of modules
+  bundled with httpd itself
 
 
 .. _Recipe_apxs:
@@ -283,13 +298,16 @@ See Also
 
 * :ref:`Recipe_php-fpm`
 
+.. refcosplay
+
+
 
 .. _Recipe_modules_apache_org:
 
-modules.apache.org
-------------------
+Finding Third-Party Modules on GitHub
+-------------------------------------
 
-.. index:: modules.apache.org
+.. index:: Third-party modules on GitHub
 
 .. index:: Modules,third party
 
@@ -303,7 +321,8 @@ Problem
 
 
 You're looking for a listing of Apache httpd modules for various
-purposes.
+purposes, and you want to know where to find them now that the
+old modules.apache.org registry has been retired.
 
 
 .. _Solution_modules_apache_org:
@@ -312,8 +331,12 @@ Solution
 ~~~~~~~~
 
 
-Use http://modules.apache.org/ to find a wide variety of httpd modules
-for many purposes.
+Search GitHub for the functionality you need:
+
+* https://github.com/search?q=apache+httpd+module&type=repositories
+
+Or browse by topic: https://github.com/topics/apache-httpd-module
+
 
 
 .. _Discussion_modules_apache_org:
@@ -322,20 +345,24 @@ Discussion
 ~~~~~~~~~~
 
 
-http://modules.apache.org/ is a site that allows authors of httpd
-httpd modules to list their modules, and users to post reviews and
-comments about these modules.
+For many years, the Apache httpd project maintained a module registry
+at modules.apache.org, where third-party authors could list their
+modules and users could browse by category or post reviews. That site
+has been retired and is no longer available.
 
-The modules listed on this site are not endorsed by the official
-Apache httpd project, but the service is provided by the project in
-order to encourage third-party module developers, and make it easier
-for end-users to find modules to serve their needs.
+Today, most third-party httpd modules are hosted on GitHub. If you're
+looking for a module that does something specific, a GitHub search for
+"apache httpd module" plus your use case (e.g., "apache httpd module
+geoip") is usually the fastest way to find it.
 
-Modules can be listed by popularity and freshness, and you can also
-search for modules based on what functionality you're looking for.
+Some things to look for when evaluating a third-party module on
+GitHub:
 
-And if you're a module author, you can list your own module, and
-increase its exposure to the audience of Apache httpd users.
+* **Recent commits** — is the module actively maintained?
+* **Compatibility** — does it mention support for httpd 2.4?
+* **License** — is it Apache-2.0 or compatible?
+* **Issues and pull requests** — is anyone using it and reporting
+  problems?
 
 
 .. _See_Also_modules_apache_org:
@@ -368,7 +395,7 @@ Problem
 ~~~~~~~
 
 
-You've found mod_pony on modules.apache.org and you want to install it
+You've found mod_pony on GitHub and you want to install it
 and try it out.
 
 
@@ -591,6 +618,9 @@ See Also
 * The mod_security reference manual, at
   https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual
 
+.. refcosplay
+
+
 
 .. _Recipe_mod_security_rules:
 
@@ -640,6 +670,9 @@ See Also
 
 
 * :ref:`Chapter_Security`, **Security**
+
+.. refcosplay
+
 
 
 .. _Recipe_module_broken:
@@ -705,7 +738,7 @@ See Also
 ~~~~~~~~
 
 
-* The httpd Modules Registry at http://modules.apache.org
+* :ref:`Recipe_Finding_Modules`
 
 
 .. _Recipe_Enabling_modules_debian:

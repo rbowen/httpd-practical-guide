@@ -68,6 +68,9 @@ it's installed. Finally, there are several recipes dealing with some
 basic configuration, and other things you'll need to know to get
 started running a server.
 
+.. refcosplay
+
+
 
 .. _Recipe_Which_Version:
 
@@ -146,6 +149,9 @@ See Also
           
 * The Apache HTTP Server download page at
   https://httpd.apache.org/download.cgi
+
+.. refcosplay
+
 
 
 .. _Recipe_Package_or_source:
@@ -236,6 +242,9 @@ See Also
 * :ref:`Recipe_Build_from_source`
 
 * :ref:`Recipe_Source_from_svn`
+
+.. refcosplay
+
 
 
 .. _Recipe_Which_MPM:
@@ -747,28 +756,31 @@ Solution
 ~~~~~~~~
 
 
-Since the Apache httpd project does not provide installation packages 
-for Microsoft Windows, you will need to use one of the third party
-distributions, which are listed at 
+The Apache httpd project releases source code, not compiled binaries.
+On Windows, you will need to use a third-party distribution. The
+official list of recommended distributions is at
 https://httpd.apache.org/docs/platform/windows.html#down
 
-Once you select one of these, the installation processes are very
-similar. You download the installation package, and double-click on it
-to launch it, and then make various decisions about how it will be
-installed.
+The recommended approach is to use **Apache Lounge**
+(https://www.apachelounge.com/), which provides up-to-date Windows
+binaries compiled with the latest Visual Studio. Download the zip
+archive, extract it to a location such as ``C:\Apache24``, and then
+open a command prompt as Administrator to install the service::
 
-For example, if you select a WAMP distribution, you'll be
-led through a series of steps to install httpd, and various other
-supporting packages, and configure it.
+   cd C:\Apache24\bin
+   httpd.exe -k install
 
+You can then start the service with::
 
-.. _First_screen_of_WAMP_install:
+   httpd.exe -k start
 
+or manage it from the Windows Services panel.
 
-.. figure:: ../images/install_windows_bitnami_01.png
-   :alt: First screen of a WAMP install
-
-   First screen of a WAMP install
+If you also need PHP and MySQL, consider **XAMPP**
+(https://www.apachefriends.org/), which bundles Apache httpd, MariaDB,
+PHP, and Perl into a single installer. XAMPP is convenient for
+development, but Apache Lounge is preferred for production or when you
+want a standalone httpd installation without the extras.
 
 
 .. _Discussion_Install_Windows:
@@ -777,27 +789,30 @@ Discussion
 ~~~~~~~~~~
 
 
-As with many Open Source projects, the Apache httpd project releases
-source code, rather than compiled executables. That's why there are
-third-party packages to install on various platforms.
+Apache Lounge has been the de facto source of Windows httpd binaries
+for many years. The builds closely track the official release schedule
+and are compiled against current versions of OpenSSL and other
+dependencies. The zip archive approach gives you full control over the
+installation layout and configuration.
 
-On Microsoft Windows, as with Linux, there are several third-party
-distributions of httpd, and these are listed on the
-download page at 
-https://httpd.apache.org/docs/platform/windows.html#down
+WAMP distributions like XAMPP bundle httpd with a database and scripting
+language — convenient for getting a development environment running
+quickly, but they add components you may not need and can complicate
+upgrades.
 
-Since the httpd project does not officially endorse one particular
-distribution over another, there are several vendors listed on that
-page, in alphabetical order.
+.. index:: Apache Lounge
 
-For the purpose of this recipe, I've picked one of these
-distributions, but the installation process will be very
-similar for the other packages listed.
+.. index:: XAMPP
 
-Some of these are 'WAMP' (Windows, Apache, MySQL, PHP)
-distributions: integrated packages containing Apache httpd, MySQL, and PHP, for the
-Windows platform. Others contain only the Apache httpd
-binaries.
+.. index:: WAMP
+
+.. note::
+
+   Other Windows distributions exist and are listed on the official
+   download page. However, some that were popular in the past have been
+   discontinued or moved behind commercial paywalls. Apache Lounge
+   remains the most reliable source of standalone Windows httpd
+   binaries.
 
 
 .. _See_Also_Install_Windows:
@@ -2422,6 +2437,215 @@ See Also
           
 * :ref:`Recipe_Install_Windows`
 
+.. _Recipe_Starting_at_boot_windows:
+
+Starting httpd at boot on Windows
+---------------------------------
+
+.. index:: Windows,Starting at boot
+
+.. index:: Windows service
+
+.. index:: Installing as a Windows service
+
+.. index:: Microsoft Windows,Starting at boot
+
+.. index:: httpd.exe -k install
+
+.. index:: Apache Lounge
+
+
+.. _Problem_Starting_at_boot_windows:
+
+Problem
+~~~~~~~
+
+
+You want httpd to start automatically when your Windows system boots,
+without requiring anyone to log in and launch it manually.
+
+
+.. _Solution_Starting_at_boot_windows:
+
+Solution
+~~~~~~~~
+
+
+Install httpd as a Windows service from an elevated command prompt.
+The ``httpd.exe`` binary has built-in support for the Windows Service
+Control Manager, so no third-party tools are needed.
+
+First, open a command prompt **as Administrator**. On Windows 10 or 11,
+right-click the Start button and select "Terminal (Admin)," or search
+for "cmd" and choose "Run as administrator." Then run:
+
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k install
+
+You should see:
+
+.. code-block:: text
+
+   Installing the 'Apache2.4' service
+   The 'Apache2.4' service is successfully installed.
+
+This registers a Windows service named "Apache2.4" with an Automatic
+startup type. The service will start each time Windows boots.
+
+To start the service immediately without rebooting:
+
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k start
+
+Or equivalently:
+
+.. code-block:: text
+
+   C:\> net start Apache2.4
+
+
+.. _Discussion_Starting_at_boot_windows:
+
+Discussion
+~~~~~~~~~~
+
+
+Before you can install the service, you need a working httpd
+installation on Windows. If you have not already done so, see
+:ref:`Recipe_Install_Windows` for instructions on downloading and
+extracting the Apache Lounge distribution. In particular, make sure
+you have:
+
+- Downloaded the ZIP archive from `Apache Lounge
+  <https://www.apachelounge.com/download/>`_ and extracted it to a
+  directory without spaces in the path (the conventional location is
+  :file:`C:\\Apache24`).
+
+- Installed the **Visual C++ Redistributable** that matches your httpd
+  build. Apache Lounge lists the required version on their download
+  page.
+
+- Set the correct ``ServerRoot`` in :file:`conf\\httpd.conf` if you
+  placed the files anywhere other than :file:`C:\\Apache24`. Look for
+  the ``Define SRVROOT`` line near the top of the file.
+
+- Verified the configuration parses correctly:
+
+  .. code-block:: text
+
+     C:\Apache24\bin> httpd.exe -t
+     Syntax OK
+
+**Why an elevated prompt is required.** On modern Windows, User Account
+Control (UAC) prevents processes from modifying system services unless
+they are explicitly elevated. Even if your user account belongs to the
+Administrators group, you must right-click and choose "Run as
+administrator." If you forget, the command will either fail silently or
+produce an "Access Denied" error.
+
+**Verifying the service.** You can confirm the service is registered and
+running with any of the following:
+
+.. code-block:: text
+
+   C:\> sc query Apache2.4
+
+Or from PowerShell:
+
+.. code-block:: text
+
+   PS C:\> Get-Service -Name "Apache2.4"
+
+Or open :file:`services.msc` from the Start menu and look for
+"Apache2.4" in the list.
+
+**Custom service names.** If you run multiple httpd instances on the
+same machine, specify a custom service name:
+
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k install -n "MyWebServer"
+
+You can also point a service at a different configuration file:
+
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k install -n "MyWebServer" -f "C:\sites\my-httpd.conf"
+
+**Stopping and removing the service.** To stop a running service:
+
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k stop
+
+To remove the service registration entirely:
+
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k uninstall
+
+**Delayed start.** The ``-k install`` command registers the service
+with "Automatic" startup type, meaning it starts early in the boot
+sequence. If you prefer "Automatic (Delayed Start)" — which waits for
+critical system services to finish loading — configure it after
+installation:
+
+.. code-block:: text
+
+   C:\> sc.exe config Apache2.4 start= delayed-auto
+
+**The Apache Service Monitor.** Apache httpd ships with a small
+system-tray utility called :file:`ApacheMonitor.exe` (in the
+:file:`bin` directory). It provides a graphical interface to start,
+stop, and restart all installed httpd services. You can place a
+shortcut to it in your Startup folder (press Win+R, type
+``shell:startup``) so that it loads automatically at login.
+
+**Port 80 conflicts.** If the service fails to start with the error
+"make_sock: could not bind to address 0.0.0.0:80," another program is
+already listening on port 80. Common culprits are IIS (Internet
+Information Services), Skype, or Windows HTTP.sys system services. Run
+the following to identify the process:
+
+.. code-block:: text
+
+   C:\> netstat -ano | findstr :80
+
+Either stop the conflicting service or change the ``Listen`` directive
+in :file:`httpd.conf` to another port (for example, ``Listen 8080``).
+
+**Missing DLL errors.** If ``httpd.exe`` will not launch and reports a
+missing DLL, you need to install the Visual C++ Redistributable. Apache
+Lounge's download page links directly to the correct version from
+Microsoft.
+
+.. note::
+
+   XAMPP, WampServer, and similar bundled stacks include their own
+   control panels for managing the httpd service. If you are using one
+   of those distributions, use its built-in tools rather than the
+   manual procedure described here. However, those stacks are designed
+   for local development and explicitly state they are not intended for
+   production use.
+
+
+.. _See_Also_Starting_at_boot_windows:
+
+See Also
+~~~~~~~~
+
+
+* :ref:`Recipe_Install_Windows`
+
+* :ref:`Recipe_Starting_stopping`
+
+* :ref:`Recipe_Starting_at_boot`
+
+* https://httpd.apache.org/docs/current/platform/windows.html
+
+
 .. _Recipe_config.nice:
 
 Upgrading Using config.nice
@@ -2508,6 +2732,9 @@ See Also
 
 
 * :ref:`Recipe_Build_from_source`
+
+.. refcosplay
+
 
 
 .. _Recipe_Where_are_my_files:
@@ -2836,8 +3063,8 @@ See Also
 
 .. _Recipe_systemd_integration:
 
-Integrating Apache with systemd
---------------------------------
+Integrating httpd with systemd
+-------------------------------
 
 .. index:: mod_systemd
 
@@ -2935,11 +3162,26 @@ Discussion
 ~~~~~~~~~~
 
 
-On the vast majority of current Linux distributions -- Fedora, RHEL,
-CentOS Stream, Debian, Ubuntu, SUSE, Arch, and many others -- systemd
-is the init system and service manager. The :module:`mod_systemd`
-module provides the integration layer between httpd and systemd,
-using the ``sd_notify`` protocol to communicate process state.
+The :module:`mod_systemd` module was contributed by Red Hat and
+provides the integration layer between httpd and systemd, using the
+``sd_notify`` protocol to communicate process state. On Fedora, RHEL,
+CentOS Stream, AlmaLinux, and Rocky Linux, mod_systemd is loaded by
+default -- the httpd RPM package ships with
+:file:`/etc/httpd/conf.modules.d/00-systemd.conf`, and the
+``httpd.service`` unit file is configured with ``Type=notify`` to take
+advantage of it. If you install httpd from packages on any of these
+distributions, this integration is already in place and working.
+
+Debian and Ubuntu, by contrast, do **not** use mod_systemd. Their
+``apache2.service`` unit file uses ``Type=forking`` instead, and
+manages the lifecycle differently. The recipes in this section apply
+primarily to RPM-based distributions; if you are on Debian/Ubuntu,
+the ``systemctl`` commands still work, but the underlying mechanism
+is different.
+
+On any distribution that uses systemd as its init system -- which is
+nearly all of them at this point -- you can enable mod_systemd
+yourself if it is not already loaded.
 
 **How sd_notify works**
 
@@ -3093,6 +3335,13 @@ See Also
 * https://httpd.apache.org/docs/2.4/mod/mod_systemd.html
 
 * https://httpd.apache.org/docs/2.4/stopping.html
+
+* ``httpd.service(8)`` man page (Fedora/RHEL):
+  https://www.mankier.com/8/httpd.service — comprehensive reference
+  for systemd integration, socket activation, SELinux, and more.
+
+* Fedora Quick Docs — Getting started with Apache HTTP Server:
+  https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-apache-http-server/
 
 * ``man systemctl``
 

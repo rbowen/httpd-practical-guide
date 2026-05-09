@@ -33,6 +33,9 @@ around can be a little confusing. In this chapter, I'll try to give
 you the lay of the land, and show you all of the places where you can
 join in the fun.
 
+.. refcosplay
+
+
 
 .. _Recipe_Foundation:
 
@@ -145,6 +148,9 @@ See Also
 * The Apache Attic - http://attic.apache.org/
 
 * OSI - http://opensource.org/
+
+.. refcosplay
+
 
 
 .. _Recipe_Mailing_lists:
@@ -288,6 +294,9 @@ See Also
 * Apache httpd mailing lists - http://httpd.apache.org/lists.html
 
 * Apache mailing list archives - http://lists.apache.org/
+
+.. refcosplay
+
 
 
 .. _Recipe_IRC:
@@ -932,6 +941,9 @@ See Also
 * The Apache Modules Book:
   https://www.amazon.com/Apache-Modules-Book-Application-Development/dp/0132409674
 
+.. refcosplay
+
+
 
 .. _Recipe_What_to_work_on:
 
@@ -1303,6 +1315,9 @@ See Also
 * http://httpd.apache.org/docs-project/translations.html
 
 * http://home.apache.org/~takashi/translation-status/test.html#trunk
+
+.. refcosplay
+
 
 
 .. _Recipe_apachecon:
