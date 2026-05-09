@@ -68,13 +68,17 @@ it's installed. Finally, there are several recipes dealing with some
 basic configuration, and other things you'll need to know to get
 started running a server.
 
-.. refcosplay
+If you're managing httpd across many machines, or deploying in
+containers, you'll also want to look at
+:ref:`Chapter_Automated_Deployment`, which covers Ansible, Puppet,
+Docker, Kubernetes, and Terraform.
+
 
 
 
 .. _Recipe_Which_Version:
 
-Which Version of Apache HTTP Server to Use
+Which version of Apache HTTP Server to use
 ------------------------------------------
 
 .. index:: Version
@@ -116,28 +120,36 @@ Discussion
 ~~~~~~~~~~
 
 
-This question is not always quite as simple as one would like it
-to be. I want to give the One Right Answer, but there are sometimes
-very good reasons for sticking with an older version of the software.
-However, these reasons are less frequently valid than they were a few
-years ago.
+In 2026, there's very little good reason to run an old version. If
+you're staying behind because of a custom module that hasn't been ported,
+that's understandable — but it should be a conscious, temporary decision,
+not inertia.
 
-There are certainly times when you are running a custom module
-which is only available for an older version. In these cases, of course you
-have to stick with what works. But make sure you have a good reason.
-
-Finally, if you have a large install base running an older version of
+If you have a large install base running an older version of
 the server, it can indeed be a large undertaking to move those
 servers to the latest version, with the subtle changes to the
 configuration syntax that would need to be made to your
 configuration files. You will find, however, that it is worth the
 effort.
 
-If, however, you are doing a new Web server installation, there
+If, however, you are doing a new web server installation, there
 is absolutely no good reason not to do with the latest version of the
 product. You'll benefit from all of the bug fixes, security
 patches, and new features that come with the latest release.
 
+Whatever version you're running, subscribe to the
+``announce@httpd.apache.org`` mailing list. This is a very low-volume
+list — a handful of messages per year — that notifies you when a new
+release is available. Pay particular attention when a release
+announcement mentions CVEs (security vulnerabilities). When a release
+fixes a CVE, you should upgrade promptly — not next quarter, not when
+you get around to it. Attackers read those announcements too, and
+in an AI era, exploits for disclosed vulnerabilities can appear within
+minutes. Subscribe at https://httpd.apache.org/lists.html.
+
+.. index:: announce@httpd.apache.org
+.. index:: CVE
+.. index:: security updates
 
 .. _See_Also_Which_Version:
 
@@ -149,6 +161,9 @@ See Also
           
 * The Apache HTTP Server download page at
   https://httpd.apache.org/download.cgi
+
+* The announce mailing list (subscribe for release and security notices):
+  https://lists.apache.org/list.html?announce@httpd.apache.org
 
 .. refcosplay
 
@@ -200,7 +215,7 @@ order to ensure that you knew what you were running, and where it came
 from, this is no longer either practical or responsible in today's
 world.
 
-+Building from source has certain advantages - you can make your own
+Building from source has certain advantages — you can make your own
 mind up about things like directory layout and file placement, what
 modules you want to build statically vs. dynamically, and so on. But
 this very advantage can become a disadvantage very quickly if more
@@ -219,7 +234,7 @@ installed and configured.
 
 You can also be assured that the version in the package has been
 tested on exactly the version of OS that you're running, and any
-**per**-platform idiosyncracies have been accounted for.
+per-platform idiosyncracies have been accounted for.
 
 Finally, using a package from a distribution means that there will be
 a community that can help you when things go wrong. If you roll your
@@ -228,7 +243,7 @@ supported, packaged version.
 
 There is one specific certain scenario in which I recommend that you
 build from source. This is if you're actively involved in code or documentation  development
-of httpd. In that case, you're likely building from the latest development branch out of svn
+of httpd. In that case, you're likely building from the latest development branch out of svn.
 You'll want to build and test changes as you work on them. If that's your situation, you
 probably don't need this chapter.
 
@@ -242,6 +257,8 @@ See Also
 * :ref:`Recipe_Build_from_source`
 
 * :ref:`Recipe_Source_from_svn`
+
+* :ref:`Chapter_Automated_Deployment` for managing httpd across many servers
 
 .. refcosplay
 
@@ -276,14 +293,10 @@ Solution
 ~~~~~~~~
 
 
-While there is no right answer for this, it's usually best to accept
-the default MPM for your particular platform.
+Use the default. On any modern Unix system (Linux, FreeBSD, macOS),
+that's **event**. On Windows, it's **mpm_winnt** — you don't get a
+choice.
 
-These defaults are:
-
-* Unix - event, worker, or prefork, depending on platform
-  capabilities. In most cases, the default is event.
-* Windows - mpm_winnt
 
 
 .. _Discussion_Which_MPM:
@@ -298,6 +311,35 @@ time. Some of these handle multiprocessing with threads, while others
 run multiple processes, each of which handles requests. And some MPMs
 use a mixture of both approaches.
 
+The following table summarizes the available MPMs:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - MPM
+     - Description
+   * - **event**
+     - Hybrid multi-process/multi-threaded. Uses a dedicated listener
+       thread to handle keep-alive connections, freeing worker threads
+       for active requests. The default and best choice for most
+       deployments in 2026.
+   * - **worker**
+     - Hybrid multi-process/multi-threaded. Similar to event but
+       without the dedicated listener thread — keep-alive connections
+       tie up a worker thread. Largely superseded by event.
+   * - **prefork**
+     - Multi-process, no threads. Each child process handles one
+       request at a time. Only use this if you're running a module
+       that isn't thread-safe (increasingly rare in 2026).
+   * - **mpm_winnt**
+     - Windows-only. Single parent process with a pool of worker
+       threads. The only option on Windows — you don't get to choose.
+   * - **motorz**
+     - Experimental event-driven MPM (trunk only). Not for production.
+   * - **mpm_os2**
+     - OS/2-only. You're unlikely to encounter this.
+
 It is not critical, for the purpose of this recipe, to explain in
 great detail how each MPM works, particularly if you're unfamiliar
 with the concepts of multi-threading. However, if you do wish to read
@@ -307,31 +349,18 @@ linked from there.
 
 On non-Unix platforms, you don't have a choice of MPM, and so this
 question isn't relevant. On Unix plaforms, you have several choices,
-based on platform capabilities, and on your particular preferences or
-needs.
+but in 2026 the answer is straightforward: **use event**. Every modern
+operating system that runs httpd — Linux, FreeBSD, macOS, Solaris, even
+a Raspberry Pi — supports threads and thread-safe polling (epoll or
+kqueue), which is all event needs. The historical fallback logic
+(worker if no epoll/kqueue, prefork if no threads at all) exists in the
+build system for portability, but you're unlikely to encounter a system
+where it matters.
 
-Here, 'Unix' is used to mean Unix-like operating systems, such as
-Linux, BSD, Solaris, macOS, etc.
-
-In the case of Unix, the decision as to which MPM is installed is
-based on two questions:
-
-1. Does the system support threads?
-
-2. Does the system support thread-safe polling (Specifically, the
-   kqueue and epoll functions)?
-
-If the answer to both questions is 'yes', the default MPM is event.
-
-If The answer to #1 is 'yes', but the answer to #2 is 'no', the
-default will be worker.
-
-If the answer to both questions is 'no', then the default MPM will
-be prefork.
-
-In practical terms, this means that the default will almost always
-be event, as all modern operating systems support these two
-features.
+The only practical reason to choose prefork in 2026 is if you're running
+a module that isn't thread-safe — and the only common example of that
+was the embedded PHP SAPI (``mod_php``), which you shouldn't be using
+anyway. Use PHP-FPM instead. See :ref:`Recipe_php-fpm`.
 
 .. index:: PHP
 
@@ -345,12 +374,6 @@ features.
 
 .. index:: Event
 
-There is a commonly held belief that if you're running PHP code on
-your server, you should run the prefork MPM, due to threading issues.
-This is old information, and no longer true. You should instead, in
-most cases, be running the event MPM, and running PHP under PHP-FPM,
-the PHP FastCGI Process Manager. This is discussed in greater detail
-in :ref:`Recipe_php-fpm`.
 
 
 .. _See_Also_Which_MPM:
@@ -391,7 +414,7 @@ Problem
 
 
 You want to install or upgrade httpd on a Linux
-distribution which is RPM-based, such as Fedora, AlmaLinux, Rocky Linux, or
+distribution which is RPM-based, such as Fedora, CentOS Stream, AlmaLinux, Rocky Linux, or
 Red Hat Enterprise Linux (RHEL).
 
 
@@ -435,7 +458,7 @@ Discussion
 
 
 The **dnf** utility manages package installation on Linux distributions in
-the Red Hat family - that is, primarily, Fedora, AlmaLinux, Rocky Linux, and Red Hat
+the Red Hat family — that is, primarily, Fedora, CentOS Stream, AlmaLinux, Rocky Linux, and Red Hat
 Enterprise Linux (RHEL). It knows where to fetch the latest versions of
 packages, and it keeps track of what you've got installed, as well as
 dependencies between different packages.
@@ -468,7 +491,15 @@ Decisions about where to place files on your system are made by the
 packagers for the various platforms, and may vary from examples in this
 book. For a full description of where Fedora and RHEL
 packages place files and directories, you should consult
-https://wiki.apache.org/httpd/DistrosDefaultLayout.
+https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout.
+
+Note that installing the package does not automatically enable or start
+the service. After installing, you'll need to:
+
+.. code-block:: bash
+
+   $ sudo systemctl enable httpd
+   $ sudo systemctl start httpd
 
 
 .. _See_Also_Install_redhat:
@@ -477,11 +508,13 @@ See Also
 ~~~~~~~~
 
 
-* https://wiki.apache.org/httpd/DistrosDefaultLayout
+* https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout
 
-* **``man dnf``**
+* ``man dnf``
 
 * :ref:`Recipe_Uninstall_redhat`
+
+* :ref:`Recipe_Opening_firewall`
 
 
 .. _Recipe_Uninstall_redhat:
@@ -509,7 +542,7 @@ Problem
 
 
 You want to uninstall httpd from a system running an
-RPM-based distribution, such as Fedora, AlmaLinux, Rocky Linux, or Red Hat Enterprise
+RPM-based distribution, such as Fedora, CentOS Stream, AlmaLinux, Rocky Linux, or Red Hat Enterprise
 Linux (RHEL).
 
 
@@ -553,14 +586,14 @@ See Also
 ~~~~~~~~
 
 
-* **man dnf**
+* ``man dnf``
 
 * :ref:`Recipe_Install_redhat`
 
 
 .. _Recipe_Install_debian:
 
-Installing from Debian Packages
+Installing from Debian packages
 -------------------------------
 
 .. index:: Install,Debian
@@ -629,8 +662,13 @@ cause that module to be loaded. For example:
    % sudo a2enmod rewrite
 
 
-For a full description of where Debian places its files and
-        directories, you should consult https://wiki.apache.org/httpd/DistrosDefaultLayout.
+For a full description of where Debian places its files and directories,
+you should consult https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout.
+
+Unlike the RPM-based distributions, ``apt install apache2`` on
+Debian/Ubuntu automatically enables and starts the service. You don't
+need a separate ``systemctl enable`` step. However, if ufw is enabled,
+you'll still need to open the firewall — see :ref:`Recipe_Opening_firewall`.
 
 
 .. _See_Also_Install_debian:
@@ -639,13 +677,13 @@ See Also
 ~~~~~~~~
 
 
-* https://wiki.apache.org/httpd/DistrosDefaultLayout
+* https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout
           
-* **man a2enmod**
+* ``man a2enmod``
 
-* **man a2ensite**
+* ``man a2ensite``
 
-* **man apt-get**   
+* ``man apt-get``   
 
 
 .. _Recipe_Uninstall_debian:
@@ -670,8 +708,8 @@ Problem
 ~~~~~~~
 
 
-You've installed Apache httpd on your Debian or Ubuntu system and now
-  want to uninstall it
+You've installed Apache httpd on your Debian or Ubuntu system and now you
+want to uninstall it.
 
 
 .. _Solution_Uninstall_debian:
@@ -844,7 +882,7 @@ Problem
 
 
 You installed Apache httpd on Microsoft Windows, and now you wish to
-  uninstall it.
+uninstall it.
 
 
 .. _Solution_Uninstall_windows:
@@ -853,25 +891,16 @@ Solution
 ~~~~~~~~
 
 
-On Windows, httpd can typically be removed like any other
-MSI-installed software. Go to the 'Add/Remove Programs'
-portion of your Control Panel, select the entry for the version of
-the Apache HTTP Server which you have installed,
-and press the 'Remove' button.
+If you installed httpd from Apache Lounge (a ZIP extraction), uninstalling
+is the reverse of installing: remove the service, then delete the files.
 
+From an elevated command prompt:
 
-.. _Uninstalling_Apache_httpd_on_Windows:
+.. code-block:: text
 
+   C:\Apache24\bin> httpd.exe -k uninstall
 
-.. figure:: ../images/uninstall_windows.png
-   :alt: Uninstalling httpd
-
-   Uninstalling httpd
-
-
-The screenshot above shows uninstallation of a WAMP Stack
-distribution of httpd, but the process will be the
-same for other packages.
+Then delete the ``C:\Apache24`` directory (or wherever you extracted it).
 
 
 .. _Discussion_Uninstall_windows:
@@ -880,23 +909,20 @@ Discussion
 ~~~~~~~~~~
 
 
-There are, as mentioned before, several third-party vendors who
-provide httpd packages for Microsoft Windows. Each one of these will
-make their own specific decisions about how they put that package
-together, and will, therefore, have small differences in the
-installation and uninstallation procedures.
+Since Apache Lounge distributes httpd as a plain ZIP file (no MSI
+installer), there's nothing in "Add/Remove Programs" to uninstall.
+The ``httpd.exe -k uninstall`` command removes the Windows service
+registration; after that, you just delete the directory.
 
-However, for the most part, it will work pretty much the same way.
-You'll find the application in the 'Add/Remove Programs' dialog,
-right click on the name, and select 'Uninstall/Change' from the
-options that appear. You'll then follow the prompts to remove the
-software from your system.
+If you installed a named service (e.g., ``httpd.exe -k install -n
+"MyApache"``), uninstall it with the same name:
 
-As with any modern package management system, any components that you
-have modified from their original state - such as configuration files
-or web site content - will not be removed in the uninstallation
-process, and you'll be responsible for removing those resources
-yourself.
+.. code-block:: text
+
+   C:\Apache24\bin> httpd.exe -k uninstall -n "MyApache"
+
+Any configuration files or site content you created won't be
+automatically removed — you're responsible for cleaning those up.
 
 
 .. _See_Also_Uninstall_windows:
@@ -937,7 +963,7 @@ Solution
 ~~~~~~~~
 
 
-Apache httpd is installed by default on macOS. To start it up, open
+Apple still ships Apache httpd with macOS (as of 2026). To start it, open
 the Terminal app, and type:
 
 
@@ -952,11 +978,13 @@ Discussion
 ~~~~~~~~~~
 
 
-Apache httpd has been installed by default on macOS, and is kept up to date by the system update that runs regularly, so
-you don't actually have to install it yourself.
+Apple ships Apache httpd with macOS and updates it periodically via
+system updates. As of early 2026, macOS ships httpd 2.4.66. You
+don't have to install it yourself — it's already at
+``/usr/sbin/httpd``.
 
 However, if you want to install a different version of httpd, or
-update more frequently than updates are available **via** the standard
+update more frequently than updates are available via the standard
 mechanism, there are a few options available to you.
 
 One is to download and build the source code yourself (See
@@ -965,29 +993,14 @@ One is to download and build the source code yourself (See
 Another option is to use one of the third-party package managers which
 is available for macOS.
 
-One of these is Homebrew, which may be
-found at http://brew.sh/. Once you've installed Homebrew
-using the instructions on that site, install Apache httpd with:
+I recommend Homebrew (https://brew.sh/). Once you've installed it,
+install Apache httpd with:
 
 
 .. code-block:: text
 
-   brew install httpd24
+   brew install httpd
 
-
-An alternative to Homebrew is MacPorts, which can be found at
-https://www.macports.org/, and provides a command line
-package manager that might be more familiar to BSD users. If you're a
-MacPorts user, install Apache httpd with:
-
-
-.. code-block:: text
-
-   sudo port install apache2
-
-
-Further discussion of installing Apache httpd with MacPorts may be
-found at https://trac.macports.org/wiki/howto/Apache2
 
 
 .. _See_Also_Install_OSX:
@@ -999,8 +1012,6 @@ See Also
 * :ref:`Recipe_Downloading`
 
 * :ref:`Recipe_Build_from_source`
-
-* https://trac.macports.org/wiki/howto/Apache2
 
 
 .. _Recipe_Uninstall_OSX:
@@ -1032,12 +1043,12 @@ Solution
 
 
 To disable the Apache httpd installation on your macOS
-installation, type the following in a Terminal window:
+system, type the following in a Terminal window:
 
 
 .. code-block:: text
 
-   sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+   sudo launchctl bootout system/org.apache.httpd
 
 
 .. _Discussion_Uninstall_OSX:
@@ -1046,16 +1057,18 @@ Discussion
 ~~~~~~~~~~
 
 
-httpd is installed by default on macOS, as
-mentioned in :ref:`Recipe_Install_OSX`. If you've configured it to run by
-default, and wish to uninstall it, you need to tell **launchctl**, the
-service manager, not to start it any more at boot. This is
-accomplished by the command listed in the solution above.
+httpd is installed by default on macOS, as mentioned in
+:ref:`Recipe_Install_OSX`. If it's running and you want to stop it
+from starting at boot, use the ``launchctl bootout`` command shown
+above. (Older documentation and tutorials may reference
+``launchctl unload -w`` — that syntax is deprecated on modern macOS
+and may produce errors.)
 
-If you've installed httpd using one of the third-party package
-managers, such as HomeBrew or MacPorts, you'll need to consult the
-documentation for those products for information on removing installed
-packages.
+To stop it immediately without waiting for a reboot:
+``sudo apachectl stop``.
+
+If you installed httpd via Homebrew, uninstall it with
+``brew uninstall httpd``.
 
 
 .. _See_Also_Uninstall_OSX:
@@ -1085,9 +1098,8 @@ Problem
 ~~~~~~~
 
 
-You have httpd installed on your system, and you
-      want to remove it, but it wasn't installed **via** one of the
-      standard methods.
+You have httpd installed on your system, and you want to remove it, but
+it wasn't installed via one of the standard methods.
 
 
 .. _Solution_Uninstalling_Apache:
@@ -1096,8 +1108,8 @@ Solution
 ~~~~~~~~
 
 
-If you installed **via** an installation package, there are recipes
-  elsewhere in this chapter that show how to uninstall those.
+If you installed via an installation package, there are recipes
+elsewhere in this chapter that show how to uninstall those.
 
 * For RPM-based packages, see :ref:`Recipe_Uninstall_redhat`
 * For deb-based packages, see :ref:`Recipe_Uninstall_debian`
@@ -1128,17 +1140,15 @@ uninstall on Windows, see :ref:`Recipe_Uninstall_windows`.
 However, if the software was installed by building from the sources (see
 :ref:`Recipe_Build_from_source`), the burden of
 knowing where files were put rests with the person who did the build
-and install. The same applies if the software was installed from
-source on a Windows system; it's only the MSI or InstallShield
-packages that make the appropriate connections to allow the use of the
-Add/Remove Software control panel.
+and install. On Windows with Apache Lounge, everything lives in the
+directory where you extracted the ZIP (typically ``C:\Apache24``) — there's
+no system registry integration or Add/Remove Programs entry.
 
 For a Unixish system, if you have access to the directory in
 which the server was built, look for the **--prefix**
 option in the **config.nice** file.
-That will give you a starting point, at least. Here is a list of the
-directories an Apache httpd installation usually puts somewhere on 
-your disks:
+That will give you a starting point, at least. Here are the directories
+a typical httpd installation creates on your filesystem:
 
 * **bin** 
 
@@ -1167,7 +1177,7 @@ your disks:
 * **modules**
 
 The location of some of these files can often be determined by typing
-  the command:
+the command:
 
 
 .. code-block:: text
@@ -1176,7 +1186,7 @@ The location of some of these files can often be determined by typing
 
 
 The output of this will tell you, among other things, the following
-  pieces of information:
+pieces of information:
 
 
 .. code-block:: text
@@ -1190,24 +1200,24 @@ The output of this will tell you, among other things, the following
    -D SERVER_CONFIG_FILE="conf/httpd.conf"
 
 
-In the example shown here, _HTTPD_ROOT_ is set to **/etc/httpd**, which
-  indicates that other directories are likely to be in subdirectories
-  of that location. the ``DEFAULT_ERRORLOG`` is in ``logs/error_log``, and
-  the lack of a leading slash on that means that it is relative to the
-  _HTTPD_ROOT_ directory - that is, that the error log is located at
-  ``/etc/httpd/logs/error_log``, and the other log files are likely to
-  be in that same directory.
+In the example shown here, ``HTTPD_ROOT`` is set to **/etc/httpd**, which
+indicates that other directories are likely to be in subdirectories
+of that location. the ``DEFAULT_ERRORLOG`` is in ``logs/error_log``, and
+the lack of a leading slash on that means that it is relative to the
+``HTTPD_ROOT`` directory - that is, that the error log is located at
+``/etc/httpd/logs/error_log``, and the other log files are likely to
+be in that same directory.
 
 Likewise, the configuration files are located in **/etc/httpd/conf**,
-  which you can determine by combining the _HTTPD_ROOT_ and
-  _SERVER_CONFIG_FILE_ values.
+which you can determine by combining the ``HTTPD_ROOT`` and
+``SERVER_CONFIG_FILE`` values.
 
 If you installed from source using all of the defaults, everything is
-  likely to be in the same place, and that is usually going to be
-  the directory **/usr/local/apache2**.
+likely to be in the same place, and that is usually going to be
+the directory **/usr/local/apache2**.
 
 To uninstall, you'll need to locate and remove each of these component
-  directories.
+directories.
 
 
 .. _See_Also_Uninstalling_Apache:
@@ -1225,7 +1235,7 @@ See Also
 
 .. _Recipe_Downloading:
 
-Downloading the httpd Sources
+Downloading the httpd sources
 -----------------------------
 
 .. index:: Downloading
@@ -1257,18 +1267,18 @@ using the **tar** utility.
 
 .. code-block:: text
 
-   % tar vzxf httpd-2.4.62.tar.gz
+   % tar vzxf httpd-2.4.67.tar.gz
 
 
 .. tip::
 
-   The version number in examples throughout this chapter (2.4.62) was
+   The version number in examples throughout this chapter (2.4.67) was
    current at the time of writing. Check
    https://httpd.apache.org/download.cgi for the latest release version,
    and substitute that version number in the commands below.
 
-Alternatively, you can obtain the source directly from version
-control (Git).
+Alternatively, you can obtain the source directly from version control
+(SVN). See :ref:`Recipe_Source_from_svn`.
 
 
 .. _Discussion_Downloading:
@@ -1278,73 +1288,69 @@ Discussion
 
 
 There are, in fact, a number of different ways to obtain the source
-  code for httpd. These include the method shown
-  above, obtaining a source package for your particular OS, and getting
-  it straight from revision control. The most common of these is to
-  get it from the httpd download site.
+code for httpd. These include the method shown
+above, obtaining a source package for your particular OS, and getting
+it straight from revision control. The most common of these is to
+get it from the httpd download site.
 
 The page at https://httpd.apache.org/download.cgi lists the
-  latest releases of httpd, and provides links to the
-  mirror site that is geographically closest to you. httpd downloads
-  are backed by a large network of mirror sites, located around the
-  world to spread the load and make downloads faster. So, when you
-  click on one of the file download links, you'll notice that the file
-  is coming from somewhere other than **apache.org**.
+latest releases of httpd. Downloads are served directly from the ASF's
+CDN — the old mirror network was retired in 2021. You should still
+verify the integrity of what you download using PGP signatures or SHA
+checksums. See :ref:`Recipe_Verify_download` for details.
 
-Because these files come from a mirror site, and not from
-  **apache.org**, you are encouraged to take additional steps to verify
-  that the file hasn't been tampered with in transit from **apache.org**
-  to the mirror network. See :ref:`Recipe_Verify_download` for details on
-  how you do that.
+.. figure:: ../images/download_page_2026.png
+   :alt: The httpd download page showing source links with PGP and SHA links
+
+   The httpd download page. Note the [PGP], [SHA256], and [SHA512] links
+   next to each source archive — these are separate downloads.
+
+Each source archive (the ``.tar.gz`` or ``.tar.bz2`` file) is accompanied
+by separate verification files. You need to download both the source
+archive *and* its corresponding signature or checksum file — they're
+separate links on the download page. Download the ``.tar.gz``, then also
+grab the ``[PGP]`` or ``[SHA256]`` link next to it. These small files are
+what you'll use to verify the download hasn't been tampered with.
 
 Once you've downloaded the file and verified that it's valid, you can
-  unpack the archive (the "tarball") using the **tar**
-  utility.
+unpack the archive (the "tarball") using the **tar**
+utility.
 
 .. code-block:: text
 
-   % tar vzxf httpd-2.4.62.tar.gz
+   % tar vzxf httpd-2.4.67.tar.gz
 
 
 The ``vzxf`` argument supplied to **tar** is in fact four arguments. 
 
 The ``v`` argument says to be verbose - that is, tell us everything that
-  it is doing. This will cause it to list all of the files that it is
-  unpacking as it unpacks them. 
+it is doing. This will cause it to list all of the files that it is
+unpacking as it unpacks them. 
   
 The ``z`` argument says to undo the zip compression that has been
-  applied to the archive.
+applied to the archive.
 
 ``x`` indicates that you wish to extract the archive.
 
 Finally, ``f`` indicates that the next argument is the name of a file -
-in this case, **httpd-2.4.62.tar.gz**.
+in this case, **httpd-2.4.67.tar.gz**.
 
 The archive contents will now be unpacked into a subdirectory named
-  after the version that you've downloaded - in this case, the
-  directory will be named **httpd-2.4.62**.
-
-If your version of **tar**
-  doesn't support the ``z`` option for processing zipped
-  archives, use this command instead:
-
-.. code-block:: text
-
-   % gunzip -c <  httpd-2.4.62.tar.gz  | tar xvf -
-
+after the version that you've downloaded - in this case, the
+directory will be named **httpd-2.4.67**.
 
 For the next steps, go to the recipe :ref:`Recipe_Build_from_source`.
 
 Another option is to obtain the source directly from version control.
-  All of the Apache httpd source code is developed in public, in a
-  Git repository hosted on GitHub. To obtain the
-  source directly from version control, see
-  :ref:`Recipe_Source_from_svn`.
+All of the Apache httpd source code is developed in public, in a
+Subversion repository at svn.apache.org. To obtain the
+source directly from version control, see
+:ref:`Recipe_Source_from_svn`.
 
 No matter how you obtained the source, the directory tree will be
-  ready for configuration and building. Once the source is in place, you
-  should be able to move directly to building the package. (See
-  :ref:`Recipe_Build_from_source`.)
+ready for configuration and building. Once the source is in place, you
+should be able to move directly to building the package. (See
+:ref:`Recipe_Build_from_source`.)
 
 
 .. _See_Also_Downloading:
@@ -1357,9 +1363,6 @@ See Also
 
 * :ref:`Recipe_Install_Windows`
 
-* httpd mirror sites: https://www.apache.org/mirrors/
-
-* How to become a mirror site: https://www.apache.org/info/how-to-mirror.html
 
 * :ref:`Recipe_Source_from_svn`
 
@@ -1377,9 +1380,9 @@ Verifying the validity of a downloaded file
 
 .. index:: PGP
 
-.. index:: SHA1
+.. index:: SHA256
 
-.. index:: MD5
+.. index:: SHA512
 
 .. index:: Verifying the validity of a downloaded file
 
@@ -1400,17 +1403,19 @@ Solution
 ~~~~~~~~
 
 
-Use the gpg signature, the md5 hash, and the sha1 hash, available next
+Use the PGP signature or the SHA256/SHA512 checksum, available next
 to the download link, to verify that the file is what it should be:
 
 
-.. code-block:: text
+.. code-block:: bash
 
-   $ gpg --verify httpd-2.4.62.tar.gz.asc
-   $ md5sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.md5
-   $ sha1sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.sha1
-   $ sha256sum httpd-2.4.62.tar.gz && cat sha256sum httpd-2.4.62.tar.gz.sha256
+   $ gpg --verify httpd-2.4.67.tar.gz.asc httpd-2.4.67.tar.gz
+   $ sha256sum httpd-2.4.67.tar.gz
+   $ cat httpd-2.4.67.tar.gz.sha256
 
+
+On macOS, the command is ``shasum -a 256`` rather than ``sha256sum``
+(unless you've installed GNU coreutils via Homebrew).
 
 .. _Discussion_Verify_download:
 
@@ -1429,15 +1434,11 @@ Discussion
 
 Next to each download link, there are three additional links, which
 assist in ensuring that the file that you are downloading is in fact
-the one that you intend to be downloading. While the httpd mirror
-sites are presumed to be trusted sources for downloads, sometimes
-files on mirror sites get changed in some way, malicious or
-otherwise, and it's best to be safe.
+the one that you intend to be downloading. While downloads come from the ASF's CDN, it's still good practice
+to verify that nothing went wrong in transit.
 
-While the source file (a **.gz** or **.bz2** compressed archive) comes
-from a mirror site, in order to spread the bandwidth cost around
-among generous resource donors, these three files, labeled **PGP**,
-**MD5**, and **SHA1**, come directly from the **www.apache.org/dist**
+The verification files, labeled **PGP**,
+**SHA256**, and **SHA512**, come directly from the **www.apache.org/dist**
 site, as you can verify by hovering the mouse pointer over the link
 and looking at the URL in the status bar. In that way, even though
 the source file comes from a mirror site that you may never have
@@ -1453,7 +1454,7 @@ the **asc** file:
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.62.tar.gz.asc
+   $ gpg --verify httpd-2.4.67.tar.gz.asc
 
 
 Most likely, the first time you do this, you'lll receive the following
@@ -1462,8 +1463,9 @@ output:
 
 .. code-block:: text
 
-   gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
-   gpg: Can't check signature: public key not found
+   gpg: Signature made Tue Apr 28 14:15:15 2026 EDT
+   gpg:                using RSA key 65B2D44FE74BD5E3DE3AC3F082781DE46D5954FA
+   gpg: Can't check signature: No public key
 
 
 This requires a little bit of explanation.
@@ -1481,160 +1483,122 @@ ensure that it came from them. It's more secure than that, though,
 as it is validated by a pass code, and by sophisticated encryption.
 
 In order to verify a signature, you need to have the public key that
-goes with the key ID referenced in the signature above - in this
-case, key ID 791485A8. You can obtain this from a key server, of
-wihch there are several. Use the **--recv-keys** command to retrieve
-that key:
+goes with the key ID referenced in the signature above. The easiest way
+to get all httpd release signing keys at once is to import the project's
+KEYS file:
 
 
-.. code-block:: text
+.. code-block:: bash
 
-   $ gpg --recv-keys 791485A8
+   $ curl https://dist.apache.org/repos/dist/release/httpd/KEYS | gpg --import
 
-
-This results in the key being retrieved from your configured gpg key
-server:
-
+You'll see a lot of output — the KEYS file contains every release manager's
+key going back to the 1990s:
 
 .. code-block:: text
 
-   gpg: requesting key 791485A8 from hkp server pgp.mit.edu
-   gpg: key 791485A8: public key "Jim Jagielski (Release Signing Key) <jim@apache.org>" imported
-   gpg: 3 marginal(s) needed, 1 complete(s) needed, classic trust model
-   gpg: depth: 0  valid:   1  signed: 136  trust: 0-, 0q, 0n, 0m, 0f, 1u
-   gpg: depth: 1  valid: 136  signed: 101  trust: 122-, 0q, 0n, 3m, 11f, 0u
-   gpg: depth: 2  valid:  20  signed:  51  trust: 20-, 0q, 0n, 0m, 0f, 0u
-   gpg: next trustdb check due at 2016-02-17
-   gpg: Total number processed: 1
-   gpg:               imported: 1  (RSA: 1)
+   gpg: key 508EAEC5302DA568: "Ken Coar/Rodent of Unusual Size (Generic key) <Ken@Coar.Org>" not changed
+   gpg: key 82781DE46D5954FA: public key "Eric Covener <covener@apache.org>" imported
+   gpg: key 5A4B10AE43B56A27: public key "Joe Orton (Release Signing Key) <jorton@apache.org>" imported
+   ...
+   gpg: Total number processed: 74
+   gpg:               imported: 20
+   gpg:              unchanged: 22
 
+Ignore the warnings about "bad signatures" and "SHA1 algorithm rejected" —
+those are old cross-signatures between keys and don't affect your ability to
+verify releases. What matters is that the release manager's key was imported
+successfully.
 
-This particular key belongs to Jim Jagielski, who is the individual
-  who made this particular release of httpd.
+You only need to do this once (or again when a new release manager starts
+signing releases).
+
+Alternatively, if you just want the specific key for a single release,
+use the key fingerprint from the ``gpg --verify`` output:
+
+.. code-block:: bash
+
+   $ gpg --keyserver keyserver.ubuntu.com --recv-keys 65B2D44FE74BD5E3DE3AC3F082781DE46D5954FA
 
 Now that you have the key, you'll try again to verify the signature:
 
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.62.tar.gz.asc
-   gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
-   gpg: Good signature from "Jim Jagielski (Release Signing Key) <jim@apache.org>"
-   gpg:                 aka "Jim Jagielski <jim@jimjag.com>"
-   gpg:                 aka "Jim Jagielski <jim@jaguNET.com>"
-   gpg:                 aka "Jim Jagielski <jimjag@gmail.com>"
+   $ gpg --verify httpd-2.4.67.tar.gz.asc
+   gpg: assuming signed data in 'httpd-2.4.67.tar.gz'
+   gpg: Signature made Tue Apr 28 14:15:15 2026 EDT
+   gpg:                using RSA key 65B2D44FE74BD5E3DE3AC3F082781DE46D5954FA
+   gpg: Good signature from "Eric Covener <covener@apache.org>" [unknown]
+   gpg:                 aka "Eric Covener <ecovener@us.ibm.com>" [unknown]
    gpg: WARNING: This key is not certified with a trusted signature!
    gpg:          There is no indication that the signature belongs to the owner.
-   Primary key fingerprint: A93D 62EC C3C8 EA12 DB22  0EC9 34EA 76E6 7914 85A8
+   Primary key fingerprint: 65B2 D44F E74B D5E3 DE3A  C3F0 8278 1DE4 6D59 54FA
 
 
 Well, that looks almost right. It says that the signature is good,
-  which is what you cared about. That means that the file that you
-  downloaded matches the signature file that you downloaded, and
-  you've verified that you have a good (trustworthy) file.
+which is what you cared about. That means that the file that you
+downloaded matches the signature file that you downloaded, and
+you've verified that you have a good (trustworthy) file.
 
 If, on the other hand, you see something like:
 
 
 .. code-block:: text
 
-   $ gpg --verify httpd-2.4.62.tar.gz.asc
-   gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
-   gpg: BAD signature from "Jim Jagielski (Release Signing Key) <jim@apache.org>"
+   $ gpg --verify httpd-2.4.67.tar.gz.asc
+   gpg: assuming signed data in 'httpd-2.4.67.tar.gz'
+   gpg: Signature made Tue Apr 28 14:15:15 2026 EDT
+   gpg:                using RSA key 65B2D44FE74BD5E3DE3AC3F082781DE46D5954FA
+   gpg: BAD signature from "Eric Covener <covener@apache.org>"
 
 
-That would indicate that the file was tampered with between the time that Jim signed it
-    and when you downloaded it, and you should try to get it from a different mirror server
-    and verify it again.
+That would indicate that the file was tampered with between the time it was signed
+and when you downloaded it, and you should try to get it from a different mirror server
+and verify it again.
 
-Finally, if you ever happen to meet Jim at ApacheCon, you should ask
-  him if you can sign his PGP key. This means that he shows you his
-  key ID, and verifies, in person, that it is, in fact, his key. You
-  will perform a cryptographic action on that key, indicating that
-  you have verified that fact. Afterwards, when you attempt to verify
-  a signature on a downloaded file you'll get slightly different
-  output:
+The "not certified with a trusted signature" warning means you haven't
+personally verified that this key belongs to Eric (or whoever signed
+the release). If you ever meet a release manager at a conference and
+verify their key in person, you can sign it — after that, the warning
+goes away. For day-to-day use, "Good signature" is what matters.
 
 
-.. code-block:: text
 
-   $ gpg --verify httpd-2.4.62.tar.gz.asc
-   gpg: Signature made Tue 15 Jul 2014 01:15:22 PM EDT using RSA key ID 791485A8
-   gpg: checking the trustdb
-   gpg: 3 marginal(s) needed, 1 complete(s) needed, classic trust model
-   gpg: depth: 0  valid:   1  signed: 137  trust: 0-, 0q, 0n, 0m, 0f, 1u
-   gpg: depth: 1  valid: 137  signed: 100  trust: 123-, 0q, 0n, 3m, 11f, 0u
-   gpg: depth: 2  valid:  20  signed:  50  trust: 20-, 0q, 0n, 0m, 0f, 0u
-   gpg: next trustdb check due at 2016-02-17
-   gpg: Good signature from "Jim Jagielski (Release Signing Key) <jim@apache.org>"
-   gpg:                 aka "Jim Jagielski <jim@jimjag.com>"
-   gpg:                 aka "Jim Jagielski <jim@jaguNET.com>"
-   gpg:                 aka "Jim Jagielski <jimjag@gmail.com>"
-
-
-This indicates not only that the signature matches, but also that you
-  have verified that the key in question does in fact belong to Jim,
-  who made the release.
 
 The other two files are rather simpler methods of verification, and
-  are called hashes. Stated very simply, a hashing algorithm is a
-  mathematical means of taking a sum of a file. Imagine if you added
-  up all of the characters in a file into a single number, and that
-  number represented the file. MD5 and SHA1 are not exacly that, but
-  they are a means of calcunating a single number that represents the
-  contents of a file.
+are called hashes. Stated very simply, a hashing algorithm is a
+mathematical means of taking a sum of a file. Imagine if you added
+up all of the characters in a file into a single number, and that
+number represented the file. SHA256 and SHA512 are more sophisticated
+versions of that idea — they produce a fixed-length fingerprint that
+represents the contents of a file.
 
 Although it is possible to have several different files that have the
-  same hash, it's unlikely, and it's difficult to do intentionally.
-  Thus, if the hash on a file matches the expected hash, it's almost
-  certain that the file hasn't been tampered with.
+same hash, it's unlikely, and it's difficult to do intentionally.
+Thus, if the hash on a file matches the expected hash, it's almost
+certain that the file hasn't been tampered with.
 
 To check the hashes on the file, use the utilities mentioned in the
-  recipe above:
+recipe above:
+
+
+To verify with SHA256:
 
 
 .. code-block:: text
 
-   $ md5sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.md5
-   <check https://httpd.apache.org/download.cgi for current checksums>
-   <check https://httpd.apache.org/download.cgi for current checksums>
-
-
-The two values should match identically. If they do not, the file has
-  been tampered with, or damaged in some way.
-
-Likewise, with the SHA1 hash:
-
-
-.. code-block:: text
-
-   $ sha1sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.sha1
-   <check https://httpd.apache.org/download.cgi for current checksums>
-   <check https://httpd.apache.org/download.cgi for current checksums>
-
-
-and the sha256 hash:
-
-
-.. code-block:: text
-
-   $ sha256sum httpd-2.4.62.tar.gz && cat httpd-2.4.62.tar.gz.sha256
+   $ sha256sum httpd-2.4.67.tar.gz && cat httpd-2.4.67.tar.gz.sha256
    <check https://httpd.apache.org/download.cgi for current checksums>
    <check https://httpd.apache.org/download.cgi for current checksums>
 
 
 .. note::
 
-   Finally, note that despite the fact that sha1 and md5 are now
-   considered cyptographically insecure, they are not used here to
-   authenticate httpd's source, but only to verify the integrity of the
-   file that you downloaded. It's the PGP signature that should be used
-   to verify and authenticated. We get this qustion a lot on the
-   developer mailing list, and on IRC, and it's the reason that we added
-   the sha256 hash.
-
-   By verifying all three hashes, and the PGP signature, you should be
-   able to satisfy even the most paranoid of us.
+   The PGP signature is the strongest form of verification — it proves
+   both integrity and authenticity (that the file was released by a
+   trusted httpd committer). The SHA checksums verify integrity only.
+   Either way, if they match, you're good.
 
 
 .. _See_Also_Verify_download:
@@ -1651,9 +1615,11 @@ See Also
 Obtaining the source from version control
 -----------------------------------------
 
-.. index:: Git
+.. index:: Subversion
 
-.. index:: GitHub
+.. index:: SVN
+
+.. index:: GitHub mirror
 
 .. index:: Version control
 
@@ -1701,15 +1667,19 @@ Discussion
 ~~~~~~~~~~
 
 
-The Apache httpd source code is developed in a Git repository
-hosted on GitHub. Git is a distributed version control system
-which allows for tracking of all changes -
-who changed what, and why - so that it can be easily determined what
-changed between one version of the software and another, and changes
-can be rolled back if necessary.
+The Apache httpd source code is developed in Subversion (SVN), hosted at
+``svn.apache.org``. This is the canonical repository — all commits,
+branches, and tags live here. There is a read-only Git mirror on GitHub
+(https://github.com/apache/httpd), but patches submitted via GitHub PRs
+tend to get overlooked. If you want to contribute, work with SVN and send
+patches to ``dev@httpd.apache.org``. See :ref:`Chapter_Contributing_to_apache`
+for more on this.
 
-You can read a lot more about Git at
-https://git-scm.com/
+You can read more about Subversion at https://subversion.apache.org/. If
+you're more comfortable with Git, the GitHub mirror at
+https://github.com/apache/httpd works fine for reading
+the source and tracking changes — just be aware it's not where development
+happens.
 
 If you're interested in following the latest development of the
 server, you want to follow the ``trunk`` branch, which is where active
@@ -1730,23 +1700,23 @@ it is never changed again, as it marks a particular point in the
 history of development.
 
 You can find the names of the release branches and tags at
-  https://svn.apache.org/repos/asf/httpd/httpd/
-  or with the commands:
+https://svn.apache.org/repos/asf/httpd/httpd/
+or with the commands:
 
 
 .. code-block:: text
 
-   git branch -r
    svn ls https://svn.apache.org/repos/asf/httpd/httpd/tags/
+   svn ls https://svn.apache.org/repos/asf/httpd/httpd/branches/
 
 
 If you wanted to check out the source code for a particular release
-tag, for example, the 2.4.62 release, you would do the following:
+tag, for example, the 2.4.67 release, you would do the following:
 
 
 .. code-block:: text
 
-   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/tags/2.4.62 httpd-2.4.62
+   svn checkout https://svn.apache.org/repos/asf/httpd/httpd/tags/2.4.67 httpd-2.4.67
 
 
 .. _apacheckbk-CHP-1-NOTE-71:
@@ -1754,26 +1724,22 @@ tag, for example, the 2.4.62 release, you would do the following:
 
 .. tip::
 
-   All sorts of tags are used by the developers for various
-   purposes. The tags used to label versions of files used for a
-   release are always of the form
-   **``n``**.**``m``**.**``e``**,
-   so use these to work with a particular release version.
+   Release tags follow the pattern ``X.Y.Z`` (e.g., ``2.4.67``).
+   Other tags exist for internal development purposes — stick to
+   the numeric release tags when checking out a specific version.
 
 
-If you choose to obtain the sources using Git,
-    you can keep your sources up-to-date by executing the following
-    command from the top level of the source directory:
+To keep your checked-out source up-to-date, run the following
+command from the top level of the source directory:
 
 
 .. code-block:: text
 
-   git pull
+   svn update
 
 
-This will update or fetch any files that have been changed or
-added by the developers since the last time you downloaded or
-updated.
+This will fetch any files that have been changed or added since your
+last checkout or update.
 
 If you update to the latest version of the sources, you're
 getting whatever the developers are currently working on, which may be
@@ -1797,10 +1763,12 @@ See Also
 
 * :ref:`Recipe_Build_from_source`
 
+* :ref:`Chapter_Contributing_to_apache` for basic SVN workflow and patch submission
+
 
 .. _Recipe_Build_from_source:
 
-Building httpd from the Sources
+Building httpd from the sources
 -------------------------------
 
 .. index:: Source,build
@@ -1817,7 +1785,7 @@ Problem
 
 
 You want to build your httpd from the sources
-      directly rather than installing it from a prepackaged kit.
+directly rather than installing it from a prepackaged kit.
 
 
 .. _Solution_Build_from_source:
@@ -1882,40 +1850,74 @@ don't want or omit some you do. (See
 :ref:`Chapter_Common_modules`, **Adding Common Modules**, for some examples.)
 
 The **buildconf** command creates the **configure** script, and
-is only strictly necessary if you obtained the source from Git (see
+is only strictly necessary if you obtained the source from version control (see
 :ref:`Recipe_Source_from_svn`). If you downloaded the source in a release
 tarball, on the other hand, the **configure** script is already part of
 the package.
 
 **buildconf** itself has a number of dependencies. In particular, you'll
-need to have **libtool** and **autoconf** installed, and you'll probably
-need to have a checkout of APR, which you can obtain by typing the
-following at the root directory of your httpd source tree:
+need to have a C compiler, **autoconf**, **libtool**, and several
+development libraries installed. On a fresh Linux system, you may need to
+install all of these before building. On RPM-based distributions
+(AlmaLinux, Fedora, CentOS Stream, RHEL, etc.):
 
 
 .. code-block:: text
 
-   git clone https://github.com/apache/apr.git srclib/apr
+   sudo dnf install gcc make autoconf libtool \
+       expat-devel pcre2-devel openssl-devel \
+       libxml2-devel svn
+
+
+On Debian-based distributions (Debian, Ubuntu, Mint, etc.):
+
+
+.. code-block:: text
+
+   sudo apt install build-essential autoconf libtool \
+       libexpat1-dev libpcre2-dev libssl-dev \
+       libxml2-dev subversion
+
+
+.. index:: autoconf
+.. index:: libtool
+.. index:: expat-devel
+.. index:: pcre2-devel
+.. index:: openssl-devel
+.. index:: build-essential
+.. index:: Build prerequisites
+
+You'll also probably need to have a checkout of APR, which you can
+obtain by typing the following at the root directory of your httpd
+source tree:
+
+
+.. code-block:: text
+
+   svn co http://svn.apache.org/repos/asf/apr/apr/trunk srclib/apr
 
 
 .. note::
 
-   The above command clones the APR source repository. You can check
-   https://apr.apache.org/ for the latest release version and check out
-   a specific tag if needed.
+   This is the command that ``buildconf`` itself will suggest if APR is
+   missing. You can also check https://apr.apache.org/ for the latest
+   release version and check out a specific tag instead of trunk if you
+   prefer a stable release.
 
 
 When you run **configure**, it will check the system for various
-prerequisites, and write the Makefile that will orchestrate the build.
+prerequisites — eleventy billion of them, or so it seems from the
+scrolling output — and write the Makefile that will orchestrate the
+build.
 Prerequisites include APR and PCRE, two libraries that you'll need to
 obtain and install. Further information on these prerequisites may be
 found at https://apr.apache.org/ and
-https://pcre.org/ respectively, or you can install them **via**
+https://pcre.org/ respectively, or you can install them via
 your package manager.
 
 If you checked out a copy of APR, as shown above, you can instruct
 **configure** to use it with the ``--with-included-apr`` option. You may
-also discovert that, on your particular development machine, other
+also discover that, on your particular development machine, other
 libraries need to be installed, such as **libxml2**. Just follow the
 error messages and obtain the libraries that they complain about.
 
@@ -1973,12 +1975,12 @@ Solution
 
 
 Here are some of the most important and useful options that you
-        you might want to use:
+you might want to use:
 
-``--prefix``:: 
+``--prefix``
       Specifies the top level of the directory tree into which
       files will be put. The default is usually
-      --prefix=**/usr/local/apache2**, but different
+      ``--prefix=/usr/local/apache2``, but different
       layouts can change this (see the
       --enable-layout option in this section).
 
@@ -1986,89 +1988,90 @@ Here are some of the most important and useful options that you
 
 .. index:: File layout
 
-``--enable-layout``:: 
+``--enable-layout``
       This allows you to select one of the predefined filesystem
       structures; that is, where **make install** should put all the
       files. To see where files will be put for a particular layout,
-      examine the **config.layout** file in the top level of the source
+      examine the :file:`config.layout` file in the top level of the source
       tree.
 
 Currently the predefined layouts include:
 
-* httpd 
+* AIX
 
-* beos 
+* Apache
 
 * BSDI 
 
 * Darwin 
 
-* Debian 
+* Debian
+
+* Fedora
 
 * FreeBSD 
 
 * GNU 
 
-* macOS 
-
 * OpenBSD 
+
+* OpenWrt
 
 * opt 
 
 * RedHat 
 
+* RPM
+
+* Slackware-FHS
+
 * Solaris 
 
 * SuSE
 
-To use one of the layout names that contains spaces, you must enclose
-it in quotation marks:
-
-
-.. code-block:: text
-
-   % ./configure --enable-layout="Mac OS Server"
-
-
-See :ref:`Recipe_Where_are_my_files` further discussion of the various
-layouts.
-
-``--enable-mods-shared``:: 
+See :ref:`Recipe_Where_are_my_files` for further discussion of the
+various layouts.
+``--enable-mods-shared``
               This option controls which modules will be built as DSOs
               rather than being linked statically into the server. An
-              excellent shortcut value is **most**.
+              excellent shortcut value is **most**. See
+              :ref:`Chapter_Common_modules` for more on working with modules.
 
-``--enable-ssl``:: 
+``--enable-ssl``
               If you're going to be running a secure server, you will
               need to include this option, as the SSL module is
-              **not** activated by default.
+              **not** activated by default. See
+              :ref:`Chapter_SSL_and_TLS` for SSL/TLS configuration recipes.
 
-``--enable-md``::
+``--enable-md``
     Enables _mod_md_, which provides automatic provisioning and
-    configuration of letsencrypt SSL/TLS certificates.
+    configuration of Let's Encrypt SSL/TLS certificates. See
+    :ref:`Recipe_acme_mod_md` for configuration details.
 
-``--enable-http2``::
+``--enable-http2``
     Enables HTTP/2 protocol handling, which is not enabled by default.
+    See :ref:`Recipe_enabling-http2` for setup details.
 
-``--enable-suexec``:: 
+``--enable-suexec``
         Use this option if you want the **suexec** utility to be
         built. Because of the degree to which it depends on the
         rest of the server build, you should specify this when
         configuring the main server build, and not try to build
-        **suexec** later.
+        **suexec** later. See
+        :ref:`Running_CGI_Scripts_as_a_Different_User_with_suexec_id144040`.
 
-``--with-apr``, ``--with-apr-util``:: 
+``--with-apr``, ``--with-apr-util``
               If you have multiple versions of the Apache Portable
               Runtime library and utilities installed—as you might if
               you build httpd on a system with other APR-dependent software
               installed—you can use these options to ensure that the
               httpd is built with a compatible APR version.
 
-``--with-included-apr``:: 
+``--with-included-apr``
         This option is a nice shorthand way of specifying the
         compatible bundled version of APR should be used. 
         
-``--with-mpm``:: 
+``--with-mpm``
         The Multi-Processing Model, or MPM, defines how the server
         handles requests by setting the relationship between threads and
         child processes. Usually the **configure** script will choose one
@@ -2076,15 +2079,16 @@ layouts.
         sometimes you may want to override this. For example, if you're
         going to be using the PHP scripting module, you need to use the
         **prefork** MPM in order to
-        avoid problems.
+        avoid problems. See :ref:`Recipe_Which_MPM` for guidance on
+        choosing an MPM.
 
-``--with-port``:: 
-This option is useful if you are building the server under a
-non-**root** username but intend to run it as a system daemon. The
-**configure** script chooses a different default for the port number
-depending upon whether it's being run by **root** or not. With this
-option you can override this behaviour. The most common use of this
-option is:
+``--with-port``
+        This option is useful if you are building the server under a
+        non-**root** username but intend to run it as a system daemon. The
+        **configure** script chooses a different default for the port number
+        depending upon whether it's being run by **root** or not. With this
+        option you can override this behaviour. The most common use of this
+        option is:
 
 
 .. code-block:: text
@@ -2130,9 +2134,85 @@ See Also
 * :ref:`Recipe_Where_are_my_files`
 
 
+.. _Recipe_Opening_firewall:
+
+Opening the firewall
+--------------------
+
+.. index:: firewall
+.. index:: firewalld
+.. index:: ufw
+.. index:: iptables
+
+
+.. _Problem_Opening_firewall:
+
+Problem
+~~~~~~~
+
+You've installed and started httpd, but you can't reach it from another
+machine.
+
+
+.. _Solution_Opening_firewall:
+
+Solution
+~~~~~~~~
+
+Your operating system's firewall is likely blocking incoming connections
+on ports 80 and 443. The fix depends on which firewall manager you're
+running.
+
+**Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux** (firewalld):
+
+.. code-block:: bash
+
+   $ sudo firewall-cmd --permanent --add-service=http
+   $ sudo firewall-cmd --permanent --add-service=https
+   $ sudo firewall-cmd --reload
+
+**Ubuntu, Debian** (ufw):
+
+.. code-block:: bash
+
+   $ sudo ufw allow 'Apache Full'
+
+Or, if the Apache profile isn't registered:
+
+.. code-block:: bash
+
+   $ sudo ufw allow 80/tcp
+   $ sudo ufw allow 443/tcp
+
+**SUSE** (firewalld): same commands as Fedora/RHEL above.
+
+
+.. _Discussion_Opening_firewall:
+
+Discussion
+~~~~~~~~~~
+
+Most Linux distributions do not automatically open firewall ports when you
+install a service — and that's the right default from a security
+perspective. But it means that after installing httpd, your first test from
+another machine will fail silently until you allow the traffic through.
+
+If you're testing locally (``curl http://localhost/``), the firewall won't
+be an issue because loopback traffic bypasses it. The problem only appears
+when you try to reach the server from a different host.
+
+On cloud instances (EC2, GCE, Azure VMs), you'll also need to open ports
+80/443 in the cloud provider's security group or network ACL — the OS
+firewall and the cloud firewall are independent layers.
+
+On macOS, the built-in firewall is off by default. If you've enabled it
+(System Settings → Network → Firewall), you'll be prompted to allow
+incoming connections when httpd starts for the first time.
+
+
 .. _Recipe_Starting_stopping:
 
-Starting, Stopping, and Restarting httpd
+Starting, stopping, and restarting httpd
 ----------------------------------------
 
 .. index:: Starting
@@ -2157,7 +2237,7 @@ Problem
 
 
 You want to be able to start and stop the server at need, using
-        the appropriate tools.
+the appropriate tools.
 
 
 .. _Solution_Starting_stopping:
@@ -2192,20 +2272,33 @@ Ubuntu, it is named **apache2ctl**. It can only perform one action
 at a time, and the action is specified by the argument on the command
 line. The options of interest are:
 
-**``apachectl start``**:: 
+``apachectl start``
         This will start the server if it isn't already running. If
         it **is** running, this option has no effect
         and may produce a warning message.
 
+.. note::
 
-**``apachectl graceful``**:: 
+   On first start, you may see the warning::
+
+      AH00558: httpd: Could not reliably determine the server's fully
+      qualified domain name
+
+   This is harmless — httpd has started successfully despite the warning.
+   To silence it, add ``ServerName localhost`` (or your actual hostname)
+   to your configuration file.
+   For detailed information about this and every other ``AH#####`` error
+   code, see https://httpd.rcbowen.com/errors/.
+
+
+``apachectl graceful``
         This option causes the server to reload its configuration
         files and gracefully restart its operation. Any current
         connections in progress are allowed to complete. The server will
         be started if it isn't running.
 
 
-**``apachectl restart``**:: 
+``apachectl restart``
         Like the graceful option, this one makes
         the server reload its configuration files. However, existing
         connections are terminated immediately. If the server isn't
@@ -2213,12 +2306,12 @@ line. The options of interest are:
         try to start it.
 
 
-**``apachectl stop``**:: 
+``apachectl stop``
         This shuts the server down immediately. Any existing
         connections are terminated at once.
 
-**``apachectl graceful-stop``**::
-        This option causes the server to shut down, but anny current
+``apachectl graceful-stop``
+        This option causes the server to shut down, but any current
         connections in progress are allowed to complete. This is
         useful in gracefully removing a server from a balanced pool of
         servers without any clients being aware of it.
@@ -2226,76 +2319,45 @@ line. The options of interest are:
 Finally, note that **apachectl** is just a script that passes arguments
 to **httpd**, the main httpd binary. You may directly
 invoke **httpd** with any of the above options using the ``-k`` flag
-(**e.g.**, **``httpd -k restart``**), and other options are also available.
+(**e.g.**, ``httpd -k restart``), and other options are also available.
 
-For Microsoft Windows, as mentioned in earlier recipes, there are a
-number of third-party packages which you may choose from to install
-Apache httpd. The specific means of controlling the server will
-vary from one to another.
+.. note::
 
-Typically, however, the control tools will be available in the Windows
-program menu, and will include all of the options listed above which
-are available in the command line tools.
+   If you built httpd from source, ``apachectl`` won't be in your
+   ``$PATH`` by default — you'll need the full path (e.g.,
+   ``/usr/local/apache2/bin/apachectl``). You can add the bin directory
+   to your ``$PATH``, or simply use the full path each time.
 
+   If you installed httpd from a **package** on a systemd-based Linux
+   distribution, the preferred way to manage the service is with
+   ``systemctl`` — for example, ``systemctl start httpd`` (or
+   ``systemctl start apache2`` on Debian/Ubuntu). The ``apachectl``
+   script may still be available, but on some distributions it simply
+   calls ``systemctl`` under the hood.
 
-.. _Using_the_Start_menu_to_control_Apache:
-
-
-.. figure:: ../images/windows_menu.png
-   :alt: Using the Start menu to control httpd
-
-   Using the Start menu to control httpd
-
-
-Some WAMP Stack packages include a
-general-purpose control panel app which can be used to control your
-httpd, as well as MySQL, the database component that is
-bundled with it as part of the WAMP (Windows, Apache, MySQL, PHP)
-stack.
-
-
-.. _WAMP_control_panel:
-
-
-.. figure:: ../images/windows_control_panel.png
-   :alt: Using the WAMP control panel
-
-   Using the WAMP control panel
-
-
-From this screen, you can access the service control panel, which has a
-simple interface to start and stop httpd and the
-MySQL server.
-
-
-.. _Service_control_panel:
-
-
-.. figure:: ../images/windows_service_manager.png
-   :alt: Using the WAMP service control panel
-
-   Using the WAMP service control panel
-
-
-Finally, the standard command-line options are also available on
-Windows, and can be run from the command prompt as described above.
-
-
-.. _Running_httpd_from_CMD:
-
-
-.. figure:: ../images/httpd_cmd.png
-   :alt: Running httpd from the command line in Windows
-
-   Running httpd from the command line in Windows
-
-
-Both of the solutions shown (for Unixish and Windows systems)
-illustrate the basic server control operations: start, stop, and
-restart. The purpose of the start and stop functions should be
-self-evident. Any time you modify the server-wide configuration files
-(such as **httpd.conf**), you must
+Any time you modify the server-wide configuration files
+(such as ``httpd.conf``), you must
 restart the server for the changes to take effect.
+
+
+**Verifying that it worked**: Once you've started the server, you can
+verify that it's running by requesting a page from it. From the server
+itself:
+
+.. code-block:: text
+
+   curl http://localhost/
+
+If ``curl`` is not installed on your system, you can use
+``wget -qO- http://localhost/`` instead, or simply open
+``http://localhost/`` in a web browser on the same machine.
+
+If all is well, you should see a short HTML page containing the text
+"It works!" — this is the default placeholder page installed with httpd.
+You can also open ``http://your-server-ip/`` in a browser from another
+machine. If you can't connect remotely, check that your firewall
+allows traffic on port 80 (see :ref:`Recipe_Opening_firewall`) and that no
+other service is already bound to that port.
 
 
 .. _See_Also_Starting_stopping:
@@ -2309,7 +2371,7 @@ See Also
 
 .. _Recipe_Starting_at_boot:
 
-Starting httpd at Boot
+Starting httpd at boot
 ----------------------
 
 .. index:: Starting,at boot
@@ -2333,39 +2395,10 @@ Solution
 
 Modern operating systems have facilities to start services on startup.
 The exact mechanism for this will vary from one platform
-to another, and may also vary depending on the exact way you installed
+to another, and may vary depending on the exact way you installed
 httpd.
 
-.. index:: Windows,Starting at boot
-
-.. index:: Windows services
-
-.. index:: Installing as a Windows service
-
-.. index:: Microsoft Windows,Starting at boot
-
-On most Windows packages of Apache httpd, there will be the option to
-install httpd as a Windows Service, which is then managed at startup
-and shutdown by the operating system itself.
-
-For example, in the WAMP Stack install used in
-some of the recipes in this chapter, you'll see an 'Install as
-service' option in the program menu.
-
-
-.. _Install_WAMP_Stack_as_service:
-
-
-.. figure:: ../images/service.png
-   :alt: Install WAMP Stack as a service
-
-   Install WAMP Stack as a service
-
-
-Once you've done that, it will automatically start on boot, and can
-also be started or stopped from the Windows service manager.
-
-On Unix systems, this will vary by platform.
+On Linux and macOS:
 
 .. index:: RHEL,Starting at boot
 
@@ -2379,7 +2412,7 @@ On Unix systems, this will vary by platform.
 
 .. index:: Commands,systemctl
 
-For RPM-based installations (Fedora, AlmaLinux, Rocky Linux, and RHEL), use the
+For RPM-based installations (Fedora, CentOS Stream, AlmaLinux, Rocky Linux, and RHEL), use the
 **systemctl** utility to enable the service to start at boot:
 
 
@@ -2401,14 +2434,25 @@ use ``systemctl``:
    % sudo systemctl enable apache2
 
 
-On macOS, if you want to have the default installed Apache httpd
-start on system startup, you need to tell ``launchctl``, the service
-manager, that it should be loaded by default:
+On macOS, Apple's bundled httpd starts at boot automatically — no
+action is needed. If you've previously disabled it and want to
+re-enable it:
 
 
 .. code-block:: text
 
-   % sudo launchctl load -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+   sudo launchctl bootstrap system /System/Library/LaunchDaemons/org.apache.httpd.plist
+
+To disable it from starting at boot:
+
+.. code-block:: text
+
+   sudo launchctl bootout system/org.apache.httpd
+
+.. note::
+
+   Older documentation uses ``launchctl load -w`` — that syntax is
+   deprecated on modern macOS and will produce errors.
 
 
 .. _Discussion_Starting_at_boot:
@@ -2435,220 +2479,10 @@ See Also
           
 * :ref:`Recipe_Starting_stopping`
           
-* :ref:`Recipe_Install_Windows`
-
-.. _Recipe_Starting_at_boot_windows:
-
-Starting httpd at boot on Windows
----------------------------------
-
-.. index:: Windows,Starting at boot
-
-.. index:: Windows service
-
-.. index:: Installing as a Windows service
-
-.. index:: Microsoft Windows,Starting at boot
-
-.. index:: httpd.exe -k install
-
-.. index:: Apache Lounge
-
-
-.. _Problem_Starting_at_boot_windows:
-
-Problem
-~~~~~~~
-
-
-You want httpd to start automatically when your Windows system boots,
-without requiring anyone to log in and launch it manually.
-
-
-.. _Solution_Starting_at_boot_windows:
-
-Solution
-~~~~~~~~
-
-
-Install httpd as a Windows service from an elevated command prompt.
-The ``httpd.exe`` binary has built-in support for the Windows Service
-Control Manager, so no third-party tools are needed.
-
-First, open a command prompt **as Administrator**. On Windows 10 or 11,
-right-click the Start button and select "Terminal (Admin)," or search
-for "cmd" and choose "Run as administrator." Then run:
-
-.. code-block:: text
-
-   C:\Apache24\bin> httpd.exe -k install
-
-You should see:
-
-.. code-block:: text
-
-   Installing the 'Apache2.4' service
-   The 'Apache2.4' service is successfully installed.
-
-This registers a Windows service named "Apache2.4" with an Automatic
-startup type. The service will start each time Windows boots.
-
-To start the service immediately without rebooting:
-
-.. code-block:: text
-
-   C:\Apache24\bin> httpd.exe -k start
-
-Or equivalently:
-
-.. code-block:: text
-
-   C:\> net start Apache2.4
-
-
-.. _Discussion_Starting_at_boot_windows:
-
-Discussion
-~~~~~~~~~~
-
-
-Before you can install the service, you need a working httpd
-installation on Windows. If you have not already done so, see
-:ref:`Recipe_Install_Windows` for instructions on downloading and
-extracting the Apache Lounge distribution. In particular, make sure
-you have:
-
-- Downloaded the ZIP archive from `Apache Lounge
-  <https://www.apachelounge.com/download/>`_ and extracted it to a
-  directory without spaces in the path (the conventional location is
-  :file:`C:\\Apache24`).
-
-- Installed the **Visual C++ Redistributable** that matches your httpd
-  build. Apache Lounge lists the required version on their download
-  page.
-
-- Set the correct ``ServerRoot`` in :file:`conf\\httpd.conf` if you
-  placed the files anywhere other than :file:`C:\\Apache24`. Look for
-  the ``Define SRVROOT`` line near the top of the file.
-
-- Verified the configuration parses correctly:
-
-  .. code-block:: text
-
-     C:\Apache24\bin> httpd.exe -t
-     Syntax OK
-
-**Why an elevated prompt is required.** On modern Windows, User Account
-Control (UAC) prevents processes from modifying system services unless
-they are explicitly elevated. Even if your user account belongs to the
-Administrators group, you must right-click and choose "Run as
-administrator." If you forget, the command will either fail silently or
-produce an "Access Denied" error.
-
-**Verifying the service.** You can confirm the service is registered and
-running with any of the following:
-
-.. code-block:: text
-
-   C:\> sc query Apache2.4
-
-Or from PowerShell:
-
-.. code-block:: text
-
-   PS C:\> Get-Service -Name "Apache2.4"
-
-Or open :file:`services.msc` from the Start menu and look for
-"Apache2.4" in the list.
-
-**Custom service names.** If you run multiple httpd instances on the
-same machine, specify a custom service name:
-
-.. code-block:: text
-
-   C:\Apache24\bin> httpd.exe -k install -n "MyWebServer"
-
-You can also point a service at a different configuration file:
-
-.. code-block:: text
-
-   C:\Apache24\bin> httpd.exe -k install -n "MyWebServer" -f "C:\sites\my-httpd.conf"
-
-**Stopping and removing the service.** To stop a running service:
-
-.. code-block:: text
-
-   C:\Apache24\bin> httpd.exe -k stop
-
-To remove the service registration entirely:
-
-.. code-block:: text
-
-   C:\Apache24\bin> httpd.exe -k uninstall
-
-**Delayed start.** The ``-k install`` command registers the service
-with "Automatic" startup type, meaning it starts early in the boot
-sequence. If you prefer "Automatic (Delayed Start)" — which waits for
-critical system services to finish loading — configure it after
-installation:
-
-.. code-block:: text
-
-   C:\> sc.exe config Apache2.4 start= delayed-auto
-
-**The Apache Service Monitor.** Apache httpd ships with a small
-system-tray utility called :file:`ApacheMonitor.exe` (in the
-:file:`bin` directory). It provides a graphical interface to start,
-stop, and restart all installed httpd services. You can place a
-shortcut to it in your Startup folder (press Win+R, type
-``shell:startup``) so that it loads automatically at login.
-
-**Port 80 conflicts.** If the service fails to start with the error
-"make_sock: could not bind to address 0.0.0.0:80," another program is
-already listening on port 80. Common culprits are IIS (Internet
-Information Services), Skype, or Windows HTTP.sys system services. Run
-the following to identify the process:
-
-.. code-block:: text
-
-   C:\> netstat -ano | findstr :80
-
-Either stop the conflicting service or change the ``Listen`` directive
-in :file:`httpd.conf` to another port (for example, ``Listen 8080``).
-
-**Missing DLL errors.** If ``httpd.exe`` will not launch and reports a
-missing DLL, you need to install the Visual C++ Redistributable. Apache
-Lounge's download page links directly to the correct version from
-Microsoft.
-
-.. note::
-
-   XAMPP, WampServer, and similar bundled stacks include their own
-   control panels for managing the httpd service. If you are using one
-   of those distributions, use its built-in tools rather than the
-   manual procedure described here. However, those stacks are designed
-   for local development and explicitly state they are not intended for
-   production use.
-
-
-.. _See_Also_Starting_at_boot_windows:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_Install_Windows`
-
-* :ref:`Recipe_Starting_stopping`
-
-* :ref:`Recipe_Starting_at_boot`
-
-* https://httpd.apache.org/docs/current/platform/windows.html
-
 
 .. _Recipe_config.nice:
 
-Upgrading Using config.nice
+Upgrading using config.nice
 ---------------------------
 
 .. index:: config.nice
@@ -2681,19 +2515,19 @@ created by your build of the earlier version.
 .. warning::
 
    This technique is primarily intended for use when upgrading
-   within the same major version series, such as from 2.4.58 to 2.4.62.
+   within the same major version series, such as from 2.4.58 to 2.4.67.
 
 
 For example, suppose you built and installed version 2.4.58 long
-ago, and you now want to upgrade your system to 2.4.62. Assume
+ago, and you now want to upgrade your system to 2.4.67. Assume
 you've just downloaded the source tar file, and saved it in
 ``/tmp``.
 
 
 .. code-block:: text
 
-   % tar vzxf /tmp/httpd-2.4.62.tar.gz
-   % cd httpd-2.4.62
+   % tar vzxf /tmp/httpd-2.4.67.tar.gz
+   % cd httpd-2.4.67
    % sudo /path/to/httpd-2.4.58/config.nice
    % sudo make
 
@@ -2758,8 +2592,8 @@ Problem
 
 
 You've installed httpd, whether from source or
-  an installation kit, but you're not sure where all the files have been
-  put.
+an installation kit, but you're not sure where all the files have been
+put.
 
 
 .. _Solution_Where_are_my_files:
@@ -2774,16 +2608,21 @@ by the **--enable-layout** argument that you provided to the
 the **Apache** (default) layout - usually **/usr/local/apache2** -
 will have been used.
 
+Note that a source-built installation does **not** place binaries in
+your system ``$PATH``. You'll find ``httpd``, ``apachectl``, and other
+tools under the ``bin/`` directory of your prefix — e.g.,
+``/usr/local/apache2/bin/httpd``.
+
 These layouts are defined in the file **config.layout**, which is in the
-top level of the source directory. Look for a **&lt;Layout&gt;**
+top level of the source directory. Look for a ``<Layout>``
 stanza that matches the layout specified. This will define where
 your files have been placed.
 
-On the other hand, if you installed **via** a package, the location of the
-files will have been determined by whoever build that package. You
+On the other hand, if you installed via a package, the location of the
+files will have been determined by whoever built that package. You
 can generally find the typical directory layout defined in the
 Apache httpd wiki at 
-https://wiki.apache.org/httpd/DistrosDefaultLayout
+https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout
 
 
 .. _Discussion_Where_are_my_files:
@@ -2793,13 +2632,13 @@ Discussion
 
 
 One of the significant difference between one OS or distribution and
-  another is where they choose to put files. Thus, the location of the
-  Apache httpd files will vary from one OS to another, and from one
-  installation method to another.
+another is where they choose to put files. Thus, the location of the
+Apache httpd files will vary from one OS to another, and from one
+installation method to another.
 
 If you installed httpd from source, you specified where the files
-  would be put, as part of the configuration options. There are two
-  main ways to do this.
+would be put, as part of the configuration options. There are two
+main ways to do this.
 
 You might have specified a **--with-prefix** argument, in which case all
 of the various directories will have been created under that prefix
@@ -2857,8 +2696,13 @@ installed:
 
 .. code-block:: text
 
-   % rpm -ql httpd
+   dnf repoquery -l httpd
 
+or equivalently, using ``rpm`` directly:
+
+.. code-block:: text
+
+   rpm -ql httpd
 
 If you installed the server using **apt-get** (**i.e.**, on Debian or
 Ubuntu), you can get a list of file location using:
@@ -2881,29 +2725,29 @@ as other details of how it was built) using the **-V** argument to
 
 .. code-block:: text
 
-   % httpd -V
-   Server version: Apache/2.4.62 (Fedora)
-   Server built:   Dec 22 2016 15:21:24
-   Server's Module Magic Number: 20120211:67
-   Server loaded:  APR 1.5.2, APR-UTIL 1.5.4
-   Compiled using: APR 1.5.2, APR-UTIL 1.5.4
+   $ /usr/local/apache2/bin/httpd -V
+   Server version: Apache/2.4.67 (Unix)
+   Server built:   May  9 2026 18:00:25
+   Server's Module Magic Number: 20120211:142
+   Server loaded:  APR 2.0.0-dev, PCRE 10.44 2024-06-07
+   Compiled using: APR 2.0.0-dev, PCRE 10.44 2024-06-07
    Architecture:   64-bit
-   Server MPM:     prefork
-     threaded:     no
+   Server MPM:     event
+     threaded:     yes (fixed thread count)
        forked:     yes (variable process count)
    Server compiled with....
     -D APR_HAS_SENDFILE
     -D APR_HAS_MMAP
     -D APR_HAVE_IPV6 (IPv4-mapped addresses enabled)
-    -D APR_USE_SYSVSEM_SERIALIZE
+    -D APR_USE_PROC_PTHREAD_SERIALIZE
     -D APR_USE_PTHREAD_SERIALIZE
     -D SINGLE_LISTEN_UNSERIALIZED_ACCEPT
     -D APR_HAS_OTHER_CHILD
     -D AP_HAVE_RELIABLE_PIPED_LOGS
     -D DYNAMIC_MODULE_LIMIT=256
-    -D HTTPD_ROOT="/etc/httpd"
-    -D SUEXEC_BIN="/usr/sbin/suexec"
-    -D DEFAULT_PIDLOG="/run/httpd/httpd.pid"
+    -D HTTPD_ROOT="/usr/local/apache2"
+    -D SUEXEC_BIN="/usr/local/apache2/bin/suexec"
+    -D DEFAULT_PIDLOG="logs/httpd.pid"
     -D DEFAULT_SCOREBOARD="logs/apache_runtime_status"
     -D DEFAULT_ERRORLOG="logs/error_log"
     -D AP_TYPES_CONFIG_FILE="conf/mime.types"
@@ -2916,11 +2760,11 @@ as other details of how it was built) using the **-V** argument to
    as **apache**, or **apache2**, on different installations.
 
 
-In the above output, note that the server root (_HTTPD_ROOT_) is
-**/etc/httpd**, and other file paths (**e.g.**, _SERVER_CONFIG_FILE_) are
+In the above output, note that the server root (``HTTPD_ROOT``) is
+``/usr/local/apache2``, and other file paths (e.g., ``SERVER_CONFIG_FILE``) are
 expressed as file paths relative to that location. Thus, the main
 server configuration file, on this particular system, is at
-**/etc/httpd/conf/httpd.conf**.
+``/usr/local/apache2/conf/httpd.conf``.
 
 One of the advantages—and disadvantages—of open software is that
 everyone can build an installation kit. And everyone pretty much
@@ -2959,10 +2803,13 @@ Solution
 ~~~~~~~~
 
 
-.. admonition:: DRAFT — Review needed
+.. note::
 
-   The following content needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
+   This recipe assumes Docker is already installed. If ``docker`` is not
+   available on your system, see https://docs.docker.com/engine/install/.
+   On RHEL-based systems (AlmaLinux, Fedora, CentOS Stream), Podman is
+   available as a drop-in replacement:
+   ``sudo dnf install podman-docker``.
 
 Use the official ``httpd`` Docker image from Docker Hub. The simplest
 approach is to run the image directly, mounting your local content
@@ -2996,11 +2843,6 @@ Build and run it:
 Discussion
 ~~~~~~~~~~
 
-
-.. admonition:: DRAFT — Review needed
-
-   The following content needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
 
 The official ``httpd`` image on Docker Hub
 (https://hub.docker.com/_/httpd) is maintained by the Docker
@@ -3055,11 +2897,6 @@ See Also
 * https://hub.docker.com/_/httpd
 
 
-
-.. admonition:: DRAFT — Review needed
-
-   The following recipe was auto-generated and needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
 
 .. _Recipe_systemd_integration:
 
@@ -3199,30 +3036,30 @@ about the running server.
 Several settings in the unit file deserve attention:
 
 ``Type=notify``
-   Tells systemd to wait for an ``sd_notify`` readiness signal from
-   the service before marking it as active. This is what
-   :module:`mod_systemd` provides.
+Tells systemd to wait for an ``sd_notify`` readiness signal from
+the service before marking it as active. This is what
+:module:`mod_systemd` provides.
 
 ``ExecStart=/usr/local/apache2/bin/httpd -D FOREGROUND -k start``
-   Runs httpd in the foreground so that systemd can directly track the
-   main process. Adjust the path to match your installation -- on
-   RPM-based distributions, this is typically
-   :file:`/usr/sbin/httpd`; on Debian/Ubuntu, it is
-   :file:`/usr/sbin/apache2`.
+Runs httpd in the foreground so that systemd can directly track the
+main process. Adjust the path to match your installation -- on
+RPM-based distributions, this is typically
+:file:`/usr/sbin/httpd`; on Debian/Ubuntu, it is
+:file:`/usr/sbin/apache2`.
 
 ``ExecReload=/usr/local/apache2/bin/httpd -k graceful``
-   Maps ``systemctl reload`` to a graceful restart. This causes
-   httpd to re-read its configuration files while allowing in-flight
-   requests to complete before child processes are replaced. Again,
-   adjust the path to match your installation.
+Maps ``systemctl reload`` to a graceful restart. This causes
+httpd to re-read its configuration files while allowing in-flight
+requests to complete before child processes are replaced. Again,
+adjust the path to match your installation.
 
 ``KillMode=mixed``
-   When stopping the service, systemd sends ``SIGTERM`` to the main
-   (parent) process only. If child processes are still running after
-   the configured ``TimeoutStopSec`` elapses, systemd sends
-   ``SIGKILL`` to the entire process group. This allows httpd's parent
-   process to coordinate an orderly shutdown of its children, falling
-   back to a forceful kill only if something is stuck.
+When stopping the service, systemd sends ``SIGTERM`` to the main
+(parent) process only. If child processes are still running after
+the configured ``TimeoutStopSec`` elapses, systemd sends
+``SIGKILL`` to the entire process group. This allows httpd's parent
+process to coordinate an orderly shutdown of its children, falling
+back to a forceful kill only if something is stuck.
 
 **systemctl commands and how they map to httpd signals**
 

@@ -27,8 +27,8 @@ copyright = '2004–2026, Rich Bowen. Licensed under the Apache License, Version
 author = 'Rich Bowen'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2'
-version = '0.2'
+release = '0.4'
+version = '0.4'
 
 # -- General configuration ---------------------------------------------------
 
@@ -86,6 +86,8 @@ latex_elements = {
     'preamble': r'''
 \usepackage{makeidx}
 \makeindex
+% Prevent figures from floating past section boundaries
+\usepackage{placeins}
 % KDP 6x9 trade paperback geometry
 \geometry{paperwidth=6in, paperheight=9in, inner=0.75in, outer=0.5in, top=0.75in, bottom=0.75in}
 % Fix fancyhdr headheight warning

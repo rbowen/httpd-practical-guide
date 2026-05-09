@@ -5,7 +5,7 @@
 .. _Chapter_Common_modules:
 
 =====================
-Adding Common Modules
+Adding common modules
 =====================
 
 .. epigraph::
@@ -52,7 +52,7 @@ independent projects.
 
 In this chapter, I show how to install and configure several
 third-party modules, ranging from the trivial (mod_pony) to the more
-useful. I'll show how to install them **via** packages, and from source.
+useful. I'll show how to install them via packages, and from source.
 
 This chapter does not cover writing your own modules. I feel that
 this is beyond the scope of this book. Instead I recommend Nick Kew's
@@ -69,7 +69,7 @@ http://ci.apache.org/projects/httpd/trunk/doxygen/
 
 .. _Recipe_Finding_Modules:
 
-Finding Modules
+Finding modules
 ---------------
 
 .. index:: Modules,finding
@@ -196,7 +196,7 @@ fairly easy.
 ``apxs`` is a tool that comes with the web server which facilitates
 building, installing and enabling a module.
 
-If you installed httpd **via** a package, you will likely have to install
+If you installed httpd via a package, you will likely have to install
 a second package to get the developer tools, such as ``apxs``.
 
 On Debian (or Ubuntu, and related distributions), install the
@@ -244,7 +244,7 @@ See Also
 
 .. _Recipe_Installing_PHP:
 
-Running PHP Programs
+Running PHP programs
 --------------------
 
 .. index:: PHP
@@ -304,7 +304,7 @@ See Also
 
 .. _Recipe_modules_apache_org:
 
-Finding Third-Party Modules on GitHub
+Finding third-party modules on GitHub
 -------------------------------------
 
 .. index:: Third-party modules on GitHub
@@ -496,10 +496,10 @@ Solution
 
 
 Obtain and install mod_security from http://modsecurity.org/
-and install it using apxs, or install it **via** your operating system's
+and install it using apxs, or install it via your operating system's
 package manager.
 
-To install **via** packages on Ubuntu or Debian:
+To install via packages on Ubuntu or Debian:
 
 
 .. code-block:: text
@@ -509,7 +509,7 @@ To install **via** packages on Ubuntu or Debian:
    $ sudo /etc/init.d/apache2 force-reload
 
 
-To install **via** packages on Fedora or RHEL:
+To install via packages on Fedora or RHEL:
 
 
 .. code-block:: text
@@ -677,7 +677,7 @@ See Also
 
 .. _Recipe_module_broken:
 
-Why Won't This Module Work?
+Why won't this module work?
 ---------------------------
 
 .. index:: Why won't this module work
@@ -718,7 +718,7 @@ efforts are made to keep this sort of thing to a minimum, sometimes it
 is unavoidable.
 
 To keep an incompatible module from being loaded and crashing
-the Web server when used, both modules and the server have a built-in
+the web server when used, both modules and the server have a built-in
 'magic' number that is recorded when they're built, and that relates
 to the version of the API. When the server tries to load a module DSO,
 it compares the module's magic number with the server's own, and if

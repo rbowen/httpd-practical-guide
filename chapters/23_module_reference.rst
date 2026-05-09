@@ -1,5 +1,3 @@
-.. _Chapter_Module_Reference:
-
 .. index::
    single: modules; reference catalog
    single: module reference
@@ -10,6 +8,8 @@
    gathering dust in the back drawer."
 
    -- Workshop proverb
+
+.. _Chapter_Module_Reference:
 
 ========================
 Module reference
@@ -50,7 +50,7 @@ The following modules have full recipe or section-level treatment in other
 chapters. If you need to configure them, head to the referenced chapter for
 detailed walkthroughs.
 
-**Authentication and sessions** (see :ref:`Chapter_Authentication`):
+**Authentication and sessions** (see :ref:`Chapter_AAA`):
 
 - :module:`core`, :module:`mod_access_compat`, :module:`mod_allowmethods`
 - :module:`mod_auth_basic`, :module:`mod_auth_bearer`, :module:`mod_auth_digest`, :module:`mod_auth_form`
@@ -82,11 +82,11 @@ detailed walkthroughs.
 
 - :module:`core` (also here), :module:`mod_reqtimeout`
 
-**SSL/TLS** (see :ref:`Chapter_SSL_TLS`):
+**SSL/TLS** (see :ref:`Chapter_SSL_and_TLS`):
 
 - :module:`mod_ssl`, :module:`mod_http2`, :module:`mod_md`
 
-**Dynamic content** (see :ref:`Chapter_Dynamic_Content`):
+**Dynamic content** (see :ref:`Chapter_Dynamic_content`):
 
 - :module:`mod_cgi`, :module:`mod_cgid`, :module:`mod_env`, :module:`mod_setenvif`
 
@@ -95,30 +95,30 @@ detailed walkthroughs.
 - :module:`mod_proxy`, :module:`mod_proxy_http`, :module:`mod_proxy_ftp`, :module:`mod_proxy_wstunnel`
 - :module:`mod_proxy_ajp`, :module:`mod_proxy_balancer`, :module:`mod_proxy_fcgi`, :module:`mod_proxy_hcheck`, :module:`mod_proxy_http2`
 
-**Performance** (see :ref:`Chapter_Performance`):
+**Performance** (see :ref:`Chapter_Performance_and_testing`):
 
 - :module:`mod_cache`, :module:`mod_cache_disk`, :module:`mod_expires`, :module:`mod_file_cache`
 - :module:`mod_brotli`, :module:`mod_ratelimit`, :module:`mod_dialup`
 
-**Directory listings** (see :ref:`Chapter_Directory_Listings`):
+**Directory listings** (see :ref:`Chapter_Directory_listing`):
 
 - :module:`mod_autoindex`
 
-**Filters and handlers** (see :ref:`Chapter_Filters_Handlers`):
+**Filters and handlers** (see :ref:`Chapter_Filters_And_Handlers`):
 
 - :module:`mod_filter`, :module:`mod_mime`, :module:`mod_negotiation`, :module:`mod_reflector`
 - :module:`mod_deflate`, :module:`mod_ext_filter`, :module:`mod_sed`, :module:`mod_substitute`
 - :module:`mod_asis`, :module:`mod_data`, :module:`mod_imagemap`
 
-**Virtual hosts** (see :ref:`Chapter_Virtual_Hosts`):
+**Virtual hosts** (see :ref:`Chapter_Virtual_hosts`):
 
 - :module:`mod_vhost_alias`
 
-**Programmable configuration** (see :ref:`Chapter_Programmable_Config`):
+**Programmable configuration** (see :ref:`Chapter_per_request`):
 
 - :module:`mod_macro`, :module:`mod_version`
 
-**mod_info and mod_status** (see :ref:`Chapter_Info_Status`):
+**mod_info and mod_status** (see :ref:`Chapter_info_and_status`):
 
 - :module:`mod_info`, :module:`mod_status`
 
@@ -168,7 +168,7 @@ names (``index.html``, ``index.php``, etc.) in priority order. The
 front-controller frameworks that want every request funneled through a single
 script.
 
-See :ref:`Chapter_URL_Mapping` and :ref:`Chapter_Directory_Listings` for
+See :ref:`Chapter_URL_Mapping` and :ref:`Chapter_Directory_listing` for
 recipes.
 
 .. _Module_ref_mod_actions:
@@ -201,7 +201,7 @@ headers, footers, conditional content based on environment variables. Enable it
 with ``Options +Includes`` and make sure your files are identified (typically
 via ``AddOutputFilter INCLUDES .shtml``).
 
-See :ref:`Chapter_Dynamic_Content` for context on SSI versus modern
+See :ref:`Chapter_Dynamic_content` for context on SSI versus modern
 alternatives.
 
 .. _Module_ref_mod_mime_magic:
@@ -241,7 +241,7 @@ because you might encounter it in very old configurations.
 Authentication and authorization
 ----------------------------------
 
-Most auth modules get full coverage in :ref:`Chapter_Authentication`. These two
+Most auth modules get full coverage in :ref:`Chapter_AAA`. These two
 have only partial treatment there.
 
 .. _Module_ref_mod_authz_host:
@@ -259,7 +259,7 @@ admin pages. It's the authorization half of what ``Allow``/``Deny`` used to do
 in 2.2. Works within ``<RequireAll>``, ``<RequireAny>``, and ``<RequireNone>``
 containers for complex logic.
 
-See :ref:`Chapter_Authentication` for integration with other ``Require``
+See :ref:`Chapter_AAA` for integration with other ``Require``
 providers.
 
 .. _Module_ref_mod_authz_dbm:
@@ -276,7 +276,7 @@ large membership lists. Create the DBM file with ``dbmmanage`` or ``htdbm``.
 The key directive is ``AuthDBMGroupFile``. Pairs naturally with
 :module:`mod_authn_dbm` if you're already storing passwords in DBM format.
 
-See :ref:`Chapter_Authentication` for the full DBM authentication story.
+See :ref:`Chapter_AAA` for the full DBM authentication story.
 
 
 .. index::
@@ -312,7 +312,7 @@ Best suited for caching small, frequently-requested responses behind a reverse
 proxy. For large objects or persistence across restarts, stick with
 :module:`mod_cache_disk`.
 
-See :ref:`Chapter_Performance` for the broader caching picture.
+See :ref:`Chapter_Performance_and_testing` for the broader caching picture.
 
 .. _Module_ref_mod_socache_redis:
 
@@ -600,7 +600,7 @@ headers (``Strict-Transport-Security``, ``X-Content-Type-Options``), CORS
 headers, cache control overrides, and passing information to backends. One of
 the most frequently used modules in any production configuration.
 
-See :ref:`Chapter_Security` and :ref:`Chapter_Performance` for security and
+See :ref:`Chapter_Security` and :ref:`Chapter_Performance_and_testing` for security and
 caching header recipes.
 
 .. _Module_ref_mod_buffer:
@@ -754,7 +754,7 @@ seen it deployed in the wild.
 WebDAV
 -------
 
-WebDAV (Web Distributed Authoring and Versioning) extends HTTP with methods
+WebDAV (web Distributed Authoring and Versioning) extends HTTP with methods
 for remote file management—creating, moving, copying, and locking resources.
 It's the protocol behind many file-sharing solutions, CalDAV, and CardDAV.
 
@@ -863,7 +863,7 @@ etc.). Essential for shared hosting where each customer's scripts should run
 under their own account. Not needed in container-based deployments where each
 tenant gets their own httpd instance.
 
-See :ref:`Chapter_Dynamic_Content` for CGI execution models.
+See :ref:`Chapter_Dynamic_content` for CGI execution models.
 
 .. _Module_ref_mod_ident:
 
@@ -953,7 +953,7 @@ all Multi-Processing Modules (MPMs). Directives like ``MaxRequestWorkers``,
 tuning performance and process/thread counts, you're working with mpm_common
 directives regardless of whether you're running event, worker, or prefork.
 
-See :ref:`Chapter_Performance` for tuning guidance.
+See :ref:`Chapter_Performance_and_testing` for tuning guidance.
 
 .. _Module_ref_mod_example_hooks:
 
@@ -1190,7 +1190,7 @@ Lua. Configure with ``LuaHookAccessChecker``, ``LuaHookAuthChecker``,
 ``LuaMapHandler``, and similar directives. Lua scripts run within the httpd
 process (no fork overhead). It's a lightweight alternative to writing C modules
 when you need server-level logic but don't want the complexity of a full
-application framework. See :ref:`Chapter_Info_Status` for some Lua-based
+application framework. See :ref:`Chapter_info_and_status` for some Lua-based
 status page examples.
 
 .. _Module_ref_mod_include_deeper:
@@ -1209,7 +1209,7 @@ and ``SSILastModified`` (whether to update ``Last-Modified`` based on included
 files). Enable with ``Options +Includes`` and either ``AddOutputFilter
 INCLUDES .shtml`` or ``SetOutputFilter INCLUDES``.
 
-See :ref:`Chapter_Dynamic_Content` for SSI examples.
+See :ref:`Chapter_Dynamic_content` for SSI examples.
 
 
 .. index::

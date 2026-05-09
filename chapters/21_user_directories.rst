@@ -2,7 +2,7 @@
 .. _Chapter_userdir:
 
 ================
-User Directories
+User directories
 ================
 
 .. epigraph::
@@ -22,8 +22,8 @@ User Directories
 Since the initial release of Apache httpd, a userdir functionality has
 been provided. A non-privileged user (**i.e.**, not ``root``) can put web
 content in their home directory, or other specified location, and have
-that served **via** a specially formatted URL. For example, a user with a
-username of ``dpitts`` would be able to have this content served **via** the
+that served via a specially formatted URL. For example, a user with a
+username of ``dpitts`` would be able to have this content served via the
 URL http://example.com/~dpitts without having to have write
 access to the main website content directory.
 
@@ -95,9 +95,9 @@ Discussion
 The first solution is the simplest and most widely used of the
 possible recipes I present here. With this directive in place, all
 users on your system are able to create a directory called _public_html_ in their home directories and
-put web content there. Their web space is accessible **via** a URL
+put web content there. Their web space is accessible via a URL
 starting with a tilde (``~``), followed by their username. So, a user 
-named ``maria`` accesses her personal Web space **via** the URL:
+named ``maria`` accesses her personal web space via the URL:
 
 
 .. code-block:: text
@@ -421,7 +421,7 @@ See Also
 
 .. _Recipe_per-userdir-scriptalias:
 
-Creating a CGI Directory for Each User
+Creating a CGI directory for each user
 --------------------------------------
 
 .. index:: CGI
@@ -477,7 +477,7 @@ and the **ScriptAliasMatch** directive are functionally
 equivalent. [#ch18_fn1]_
 
 This recipe lets each user put CGI scripts in her own personal
-Web space. Files accessed **via** URLs starting with:
+web space. Files accessed via URLs starting with:
 
 
 .. code-block:: text
@@ -490,7 +490,7 @@ are treated as CGI scripts.
 If you have **suexec** enabled, you'll gain the added benefit that
 CGI programs run from this target directory will be run with the user
 ID of the user specified in the URL. For example, a CGI program
-accessed **via** the URL http://www.example.com/~rbowen/cgi-bin/example.cgi
+accessed via the URL http://www.example.com/~rbowen/cgi-bin/example.cgi
 would be run as the user ``rbowen``.
 
 
@@ -572,7 +572,7 @@ of that variable is set in the ``RewriteRule`` appearing on the following
 line.
 
 This scenario might also be a good time to use ``mod_macro``. See the
-recipe provided in :ref:`Recipe_Logging_userdir` for inspiration on how
+recipe provided in :ref:`Recipe_per_userdir_logging` for inspiration on how
 you might accomplish that.
 
 
@@ -582,7 +582,7 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Recipe_Logging_userdir`
+* :ref:`Recipe_per_userdir_logging`
 
 
 .. _Recipe_per_userdir_logging:
@@ -606,7 +606,7 @@ Solution
 ~~~~~~~~
 
 
-See :ref:`Recipe_Logging_userdir` for the solution to this problem.
+See :ref:`Recipe_per_userdir_logging` for the solution to this problem.
 
 Summary
 -------

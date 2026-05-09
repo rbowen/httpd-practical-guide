@@ -51,8 +51,8 @@ Sphinx/RST book format.
 
 ## Version Numbers in Examples
 
-- Use a recent version (currently **2.4.62**) for all example filenames and
-  commands: `httpd-2.4.62.tar.gz`, `cd httpd-2.4.62`, etc.
+- Use a recent version (currently **2.4.67**) for all example filenames and
+  commands: `httpd-2.4.67.tar.gz`, `cd httpd-2.4.67`, etc.
 - **Do NOT change** "Available since 2.4.x" references — those are facts.
 - Always point readers to `https://httpd.apache.org/download.cgi` for the
   current release rather than stating "the latest version is X."

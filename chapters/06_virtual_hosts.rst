@@ -2,7 +2,7 @@
 .. _Chapter_Virtual_hosts:
 
 =============
-Virtual Hosts
+Virtual hosts
 =============
 
 .. epigraph::
@@ -17,14 +17,14 @@ Virtual Hosts
 .. index:: Vhosts
 
 
-As a person can be known by many names, so can a Web server
-support multiple Web sites. In the httpd configuration file, each
+As a person can be known by many names, so can a web server
+support multiple web sites. In the httpd configuration file, each
 alternate identity, and probably the "main" one as well, is known as a
-virtual host (sometimes written as vhost) identified with a **&lt;VirtualHost&gt;** container directive.
-Depending on the name used to access the Web server, Apache httpd responds
+virtual host (sometimes written as vhost) identified with a ``<VirtualHost>`` container directive.
+Depending on the name used to access the web server, Apache httpd responds
 appropriately, just as someone might answer differently depending on whether she is addressed as
 "Miss Jones" or "Hey, Debbie!" If you want to have a single system support
-multiple Web sites, you must configure httpd appropriately—and you'll need to know a
+multiple web sites, you must configure httpd appropriately—and you'll need to know a
 little bit about your system (such as the IP addresses assigned to it) in
 order to do it correctly.
 
@@ -34,7 +34,7 @@ network address used to reach the system, rather like telephone numbers.
 Bruce Wayne never answered the parlour telephone with "Batman here!" nor
 did he answer the phone in the Batcave by saying, "Bruce Wayne speaking."
 However, it's the same person answering the phone, just as it's the same
-Web server receiving the request. Even if the caller had a wrong number
+web server receiving the request. Even if the caller had a wrong number
 and said, "Hi, Steve!," the phone was still answered the same way; nothing
 would convince Batman to admit on the Batphone that it was Bruce Wayne
 answering.
@@ -44,19 +44,19 @@ server's response depends on the
 name by which it was called. To continue the telephone analogy, consider
 an apartment shared by multiple roommates; you call the same number
 whether you want to speak to Dave, Joyce, Amaterasu, or Georg. Just as
-multiple people may share a single telephone number, multiple Web sites
+multiple people may share a single telephone number, multiple web sites
 can share the same IP address. However, all IP addresses shared by
 multiple httpd virtual hosts share the same IP address.
 
 In the most simple of httpd configurations, there are no virtual
 hosts. Instead, all of the directives in the configuration file apply
 universally to the operation of the server. The environment defined by the
-directives outside any **&lt;VirtualHost&gt;** containers is sometimes
+directives outside any ``<VirtualHost>`` containers is sometimes
 called the "default server," "main server," or perhaps the "global
 server." There is no official name for it, but it can become a factor when
 adding virtual hosts to your configuration.
 
-But what happens if you add a **&lt;VirtualHost&gt;**
+But what happens if you add a ``<VirtualHost>``
 container to such a configuration? How are those directives outside the
 container interpreted, and what is their effect on the virtual
 host?
@@ -93,8 +93,8 @@ virtual hosts.
 .. index:: httpd -S
 .. index:: apachectl -S
 
-How Virtual Host Matching Works
---------------------------------
+How virtual host matching works
+-------------------------------
 
 Before diving into the recipes, it's worth understanding the algorithm
 httpd uses to decide which ``<VirtualHost>`` handles a given request.
@@ -158,13 +158,13 @@ with very old software.
 The matching vhosts are searched **in configuration file order**:
 
 1. The ``ServerName`` and all ``ServerAlias`` entries of each vhost
-   are compared against the hostname from the request.
+are compared against the hostname from the request.
 
 2. The first match wins.
 
 3. If no ``ServerName`` or ``ServerAlias`` matches, the **first vhost
-   listed at that priority level** is used. This is the *default
-   vhost* for that address:port combination.
+listed at that priority level** is used. This is the *default
+vhost* for that address:port combination.
 
 That last point is critical: the **first** ``<VirtualHost>`` block in
 your configuration for a given address:port pair acts as the catch-all
@@ -212,8 +212,8 @@ ten, the answer is visible in that output.
 
 .. _Recipe_name_vhosts:
 
-Setting Up Name-Based Virtual Hosts
-------------------------------------
+Setting up name-based virtual hosts
+-----------------------------------
 .. index:: Virtual hosts,Name-based
 
 .. index:: Name-based virtual hosts
@@ -228,7 +228,7 @@ Problem
 
 
 You have only one IP address, but you want to support more than
-one Web site on your system.
+one web site on your system.
 
 
 .. _Solution_name_vhosts:
@@ -260,7 +260,7 @@ Discussion
 
 
 With IP addresses increasingly hard to come by, name-based
-virtual hosting is the most common way to run multiple Web sites on
+virtual hosting is the most common way to run multiple web sites on
 the same httpd. The previous recipe works for most users in
 most virtual hosting situations.
 
@@ -269,7 +269,7 @@ rules means that the specified hosts run on all addresses. For a
 machine with only a single address, this means that it runs on that
 address but will also run on the **loopback**, or
 **localhost** address. Thus if you are sitting at the
-physical server system, you can view the Web site.
+physical server system, you can view the web site.
 
 The argument to the ``<VirtualHost>`` container directive
 should be an IP address (or wildcard) and port, not a hostname. Putting a
@@ -379,7 +379,7 @@ Solution
 ~~~~~~~~
 
 
-Add the following **&lt;VirtualHost&gt;** section, and list it
+Add the following ``<VirtualHost>`` section, and list it
 before all of your other ones:
 
 
@@ -448,7 +448,7 @@ Problem
 
 
 You have multiple IP addresses assigned to your system, and you
-want to support one Web site on each.
+want to support one web site on each.
 
 
 .. _Solution_Address-based-vhosts:
@@ -555,7 +555,7 @@ Discussion
 
 The **default** keyword
 creates a virtual host that catches all requests for any
-**``address``**:**``port``**
+``address``:``port``
 combinations for which there is no virtual host configured.
 
 The **default** directive
@@ -578,7 +578,7 @@ along with the necessary directives to enable SSL.
 **default** typically does not
 work as people expect in the case of name-based virtual hosts. It does
 not match names for which there are no virtual host sections, only
-**``address``**:**``port``**
+``address``:``port``
 combinations for which there are no virtual hosts configured. If you
 wish to create a default name-based host, see :ref:`Recipe_Default_name_based_vhost`.
 
@@ -594,7 +594,7 @@ See Also
 
 .. _Recipe_mixing_address_and_name_based_vhosts:
 
-Mixing Address-Based and Name-Based Virtual Hosts
+Mixing address-based and name-based virtual hosts
 -------------------------------------------------
 
 .. index:: Mixing address-based and name-based virtual hosts
@@ -609,7 +609,7 @@ Problem
 
 
 You have multiple IP addresses assigned to your system, and you
-want to support more than one Web site on each address.
+want to support more than one web site on each address.
 
 
 .. _Solution_mixing_address_and_name_based_vhosts:
@@ -655,7 +655,7 @@ Discussion
 Using the address of the server, rather than the wildcard
 ``*`` argument, makes the virtual hosts
 listen only to that IP address. However, you should notice that the
-argument to **&lt;VirtualHost&gt;**
+argument to ``<VirtualHost>``
 The argument to ``<VirtualHost>`` should be an IP:Port combination, rather
 than a hostname.
 
@@ -674,7 +674,7 @@ See Also
 
 .. _Recipe_mod_vhost_alias:
 
-Mass Virtual Hosting with mod_vhost_alias
+Mass virtual hosting with mod_vhost_alias
 -----------------------------------------
 .. index:: Mass virtual hosting
 
@@ -733,7 +733,7 @@ represents one part of the hostname, so that each hostname is mapped
 to a different directory.
 
 In this particular example, requests for content from
-**``www.example.com``** are served from the
+``www.example.com`` are served from the
 directory **/www/vhosts/com/e/example/htdocs**, or from
 **/www/vhosts/com/e/example/cgi-bin**
 (for CGI requests). The full range of available variables is shown in
@@ -785,12 +785,12 @@ Meanings of variable values
 
 
 When the value is placed in the first part of the argument—in
-the **``M``** part of
-**``%M.N``**—it refers to parts of the hostname
+the ``M`` part of
+``%M.N``—it refers to parts of the hostname
 itself. When used in the second part—the
-**``N``**—it refers to a particular letter from
+``N``—it refers to a particular letter from
 that part of the hostname. For example, in hostname
-**``www.example.com``**, the meanings of the
+``www.example.com``, the meanings of the
 variables are as shown in :ref:`Example_values_for_the_hostname_wwwexamplecom_id122542`.
 
 
@@ -846,7 +846,7 @@ See Also
 
 .. _Recipe_mass_vhost_rewrite:
 
-Mass Virtual Hosting Using Rewrite Rules
+Mass virtual hosting using rewrite rules
 ----------------------------------------
 
 .. index:: Virtual hosts,Mass virtual hosting
@@ -910,8 +910,8 @@ rewrite rules and others using conventional virtual host configuration
 techniques.
 
 The directives in the Solution map requests for
-**``www.something.com``** (or without the
-**``www``**) to the directory **/home/something**.
+``www.something.com`` (or without the
+``www``) to the directory **/home/something**.
 
 
 .. _See_Also_mass_vhost_rewrite:
@@ -931,7 +931,7 @@ See Also
 
 .. _Recipe_log_per_vhost:
 
-Logging for Each Virtual Host
+Logging for each virtual host
 -----------------------------
 .. index:: Logging,Per virtual host
 
@@ -975,7 +975,7 @@ Discussion
 
 
 The various logging directives can be placed either in the main
-body of your configuration file or within a **&lt;VirtualHost&gt;** 
+body of your configuration file or within a ``<VirtualHost>`` 
 section. When they are
 placed within a virtual host, log entries for that virtual host go in
 the specified logfiles, rather than into the logfile(s) defined in the
@@ -1021,12 +1021,12 @@ See Also
 
 * :ref:`Chapter_Security`, **Security**
 
-* :ref:`Recipe_Per_Vhost_Log`
+* :ref:`Recipe_Per_Vhost_Logging`
 
 
 .. _Recipe_split_logfile:
 
-Splitting Up a Logfile
+Splitting up a logfile
 ----------------------
 
 .. index:: Logging,Splitting a log file
@@ -1057,12 +1057,12 @@ Solution
 
 
 This scenario is covered in :ref:`Chapter_Logging`, **Logging**, in the recipe
-:ref:`Recipe_Per_Vhost_Log`.
+:ref:`Recipe_Per_Vhost_Logging`.
 
 
 .. _Recipe_port_vhost:
 
-Port-Based Virtual Hosts
+Port-based virtual hosts
 ------------------------
 
 .. index:: Virtual hosts,Port-based
@@ -1086,7 +1086,7 @@ Solution
 ~~~~~~~~
 
 
-Explicitly list the port number in the **&lt;VirtualHost&gt;** declaration:
+Explicitly list the port number in the ``<VirtualHost>`` declaration:
 
 
 .. code-block:: text
@@ -1122,10 +1122,10 @@ separate httpd instances on different ports for different developers
 or different setups.
 
 Finally, you could have different web services running on different
-ports, but expose them to the public **via** a proxy server, proxying
+ports, but expose them to the public via a proxy server, proxying
 different hostnames or URLs to the different services.
 
-Visitors to your Web site must list the port number in the URL that
+Visitors to your web site must list the port number in the URL that
 they use. For example, to load content from the second virtual host
 previously listed, the following URL might be used:
 
@@ -1147,7 +1147,7 @@ See Also
 
 .. _Recipe_vhost_several_addresses:
 
-Displaying the Same Content on Several Addresses
+Displaying the same content on several addresses
 ------------------------------------------------
 
 .. index:: Virtual hosts,Multiple addresses
@@ -1169,7 +1169,7 @@ Solution
 ~~~~~~~~
 
 
-Specify both addresses in the **&lt;VirtualHost&gt;** directive:
+Specify both addresses in the ``<VirtualHost>`` directive:
 
 
 .. code-block:: text

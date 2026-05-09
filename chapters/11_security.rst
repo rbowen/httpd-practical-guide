@@ -32,7 +32,7 @@ This is **not** a comprehensive coverage of server security. For that,
 I strongly recommend that you obtain one of the excellent books that
 are available covering the topic of web server security. Several that
 I recommend include Ivan Ristic's 'ModSecurity Handbook', Dafydd
-Stuttard's 'The Web Application Hacker's Handbook', and Chris
+Stuttard's 'The web Application Hacker's Handbook', and Chris
 Shifflett's 'Essential PHP Security'. This last one, although the
 title indicates that it's specifically about PHP, covers the general
 classes of web application exploits in some detail, so while the
@@ -64,7 +64,7 @@ security vulnerabilities.
 
 .. _Restricting_Access_to_Files_Outside_Your_Web_Root_id137175:
 
-Restricting Access to Files Outside Your Web Root
+Restricting access to files outside your web root
 -------------------------------------------------
 
 .. index:: Restrict access outside of web root
@@ -84,7 +84,7 @@ Problem
 ~~~~~~~
 
 
-You want to make sure that files outside of your Web directory
+You want to make sure that files outside of your web directory
 are not accessible.
 
 
@@ -170,7 +170,7 @@ See Also
 
 .. _Limiting_Methods_by_User_id137414:
 
-Limiting Methods by User
+Limiting methods by user
 ------------------------
 
 .. index:: Limit
@@ -228,14 +228,14 @@ Discussion
 
 
 It is often desirable to give general access to one or more HTTP
-        methods, while restricting
-        others. For example, although you may wish any user to be able to
-        ``GET`` certain documents, you may wish
-        for only site administrators to ``POST`` data back to those documents.
+methods, while restricting
+others. For example, although you may wish any user to be able to
+``GET`` certain documents, you may wish
+for only site administrators to ``POST`` data back to those documents.
 
 It is important to use the **LimitExcept** directive, rather than
-        attempting to enumerate all possible methods, as you're likely to miss
-        one.
+attempting to enumerate all possible methods, as you're likely to miss
+one.
 
 
 .. _See_Also_id137594:
@@ -272,7 +272,7 @@ See Also
 
 .. _Running_a_Minimal_Module_Set_id136520:
 
-Running a Minimal Module Set
+Running a minimal module set
 ----------------------------
 
 
@@ -283,8 +283,8 @@ Problem
 
 
 You want to eliminate all modules that you don't need in order
-        to reduce the potential exposure to security holes. What modules do
-        you really need?
+to reduce the potential exposure to security holes. What modules do
+you really need?
 
 
 .. _Solution_id136573:
@@ -317,19 +317,19 @@ Discussion
 
 
 A frequent security recommendation is that you eliminate
-        everything that you don't need; if you don't need something and don't
-        use it, then you are likely to overlook security announcements about
-        it or forget to configure it securely. The question that is less
-        frequently answered is exactly what you do and don't need.
+everything that you don't need; if you don't need something and don't
+use it, then you are likely to overlook security announcements about
+it or forget to configure it securely. The question that is less
+frequently answered is exactly what you do and don't need.
 
 A number of httpd package distributions come with everything
-        enabled, and people end up running modules that they don't really
-        need—or perhaps are not even aware that they are running.
+enabled, and people end up running modules that they don't really
+need—or perhaps are not even aware that they are running.
 
 This recipe is an attempt to get to the very smallest httpd
-        possible, reducing it to the minimum set of modules that httpd
-        will run. That is, if you take any of these out, httpd will not even
-        start up, let alone serve a functional Web site.
+possible, reducing it to the minimum set of modules that httpd
+will run. That is, if you take any of these out, httpd will not even
+start up, let alone serve a functional web site.
 
 
 The three modules that are most recommended for a functional server are:
@@ -342,11 +342,11 @@ will get a 404 error rather than a default document.
 
 ``mod_mime`` enables httpd to determine the MIME type of a particular file
 and send the appropriate header, enabling the browser to render the file
-correctly. Without ``mod_mime``, your Web server will treat **all** files
+correctly. Without ``mod_mime``, your web server will treat **all** files
 as having the MIME type set by the **DefaultType** directive.
 
 ``mod_log_config``, while not technically required, is highly recommended.
-Running your Web server without any activity logfiles will leave you
+Running your web server without any activity logfiles will leave you
 without any idea of how your site is being used. Note that it is not
 possible to disable the **ErrorLog** functionality, so you will always
 have error log information.
@@ -393,7 +393,7 @@ mod_security_recipes
 
 .. index:: mod_security
 .. index:: ModSecurity
-.. index:: Web application firewall
+.. index:: web application firewall
 .. index:: WAF
 .. index:: OWASP Core Rule Set
 
@@ -477,15 +477,15 @@ rules that cover the OWASP Top 10 vulnerability categories.
 The ``SecRuleEngine`` directive has three modes:
 
 ``DetectionOnly``
-    Logs rule matches but doesn't block requests. Use this when first
-    deploying ModSecurity so you can tune rules before enforcing them.
+Logs rule matches but doesn't block requests. Use this when first
+deploying ModSecurity so you can tune rules before enforcing them.
 
 ``On``
-    Actively blocks requests that trigger rules. Deploy this after
-    you've reviewed your audit log and resolved false positives.
+Actively blocks requests that trigger rules. Deploy this after
+you've reviewed your audit log and resolved false positives.
 
 ``Off``
-    Disables the engine entirely.
+Disables the engine entirely.
 
 **Tuning false positives**
 
@@ -658,7 +658,7 @@ See Also
 
 .. _I_sect16_d1e12429:
 
-Blocking Worms with mod_security
+Blocking worms with mod_security
 --------------------------------
 
 // TODO: Wow. This is terrible. How about a useful recipe here.
@@ -668,7 +668,7 @@ Problem
 
 
 You want to use the ``mod_security`` third-party module to
-intercept common probes before they actually reach your Web server's
+intercept common probes before they actually reach your web server's
 pages.
 
 
@@ -679,9 +679,9 @@ Solution
 If you have ``mod_security``
 installed (see :ref:`Recipe_mod_security`), then
 you can use its basic 'core rules' accessory package to intercept many
-of the most common attack and probe forms that hit Web servers. The
+of the most common attack and probe forms that hit web servers. The
 core rules package is periodically updated to keep pace with new
-issues that appear on the Web.
+issues that appear on the web.
 
 
 Discussion
@@ -748,12 +748,11 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Recipe_Logging_POST`
 
 
 .. _Recipe_File_permissions:
 
-Setting Correct File Permissions
+Setting correct file permissions
 --------------------------------
 
 
@@ -779,10 +778,10 @@ The **bin** directory under the
         also be owned by root.root and be mode 755.
 
 Document directories, such as **htdocs**, **cgi-bin**, and **icons**, will have to have permissions set in
-        a way that makes the most sense for the development model of your
-        particular Web site, but under no circumstances should any of these
-        directories or files contained in them be writable by the Web server
-        user.
+a way that makes the most sense for the development model of your
+particular web site, but under no circumstances should any of these
+directories or files contained in them be writable by the web server
+user.
 
 
 .. _apacheckbk-CHP-6-NOTE-101:
@@ -797,23 +796,23 @@ Document directories, such as **htdocs**, **cgi-bin**, and **icons**, will have 
 
 
 The **conf** directory should
-        be readable and writable only by root, as should all the files
-        contained therein.
+be readable and writable only by root, as should all the files
+contained therein.
 
 The **include** and **libexec** directories should be readable by
-        everyone, writable by no one.
+everyone, writable by no one.
 
 The **logs** directory should
-        be owned and writable by root. You may, if you like, permit other
-        users to read files in this directory, as it is often useful for users
-        to be able to access their logfiles, particularly for troubleshooting
-        purposes.
+be owned and writable by root. You may, if you like, permit other
+users to read files in this directory, as it is often useful for users
+to be able to access their logfiles, particularly for troubleshooting
+purposes.
 
 The **man** directory should be
-        readable by all users.
+readable by all users.
 
 Finally, the **proxy**
-        directory should be owned by and writable by the server user.
+directory should be owned by and writable by the server user.
 
 
 .. _apacheckbk-CHP-6-NOTE-103:
@@ -857,7 +856,7 @@ and **htdigest** utilities, run CGI
 programs using the **suexec**
 utility, check the version of httpd using **httpd** -v, or use any of the
 other programs in this directory. There is no known security risk of
-permitting this access. The Web server itself cannot be stopped or
+permitting this access. The web server itself cannot be stopped or
 started by an unprivileged user under normal conditions. These files,
 or the directory, should never be writable by nonroot users, as this
 would allow compromised files to be executed with root
@@ -961,7 +960,7 @@ See Also
 
 .. _Protecting_Server_Files_from_Malicious_Scripts_id135552:
 
-Protecting Server Files from Malicious Scripts
+Protecting server files from malicious scripts
 ----------------------------------------------
 
 
@@ -971,9 +970,9 @@ Problem
 ~~~~~~~
 
 
-Scripts running on your Web server may access, modify, or
-        destroy files located on your Web server if they are not adequately
-        protected. You want to ensure that this cannot happen.
+Scripts running on your web server may access, modify, or
+destroy files located on your web server if they are not adequately
+protected. You want to ensure that this cannot happen.
 
 
 .. _Solution_id135616:
@@ -983,7 +982,7 @@ Solution
 
 
 Ensure that none of your files are writable by the ``nobody`` user or the ``nobody`` group, and that sensitive files are
-        not readable by that user and group:
+not readable by that user and group:
 
 
 .. code-block:: text
@@ -999,7 +998,7 @@ Discussion
 
 
 The **User** and **Group** directives specify a user and group
-under whose privileges the Web server will run. These are often set to
+under whose privileges the web server will run. These are often set to
 the values of ``nobody`` and ``nobody``, respectively, but they can vary in
 different setups. It is often advisable to create a completely new
 user and group for this purpose, so that there is no chance that the
@@ -1020,7 +1019,7 @@ used as a datafile by a script. And, even for this purpose, it is
 recommended that a real database be used, so that the file itself
 cannot be modified by the server user. And if files simply must be
 writable by the server, they should definitely not be in some
-Web-accessible location, such as **/cgi-bin/**.
+web-accessible location, such as **/cgi-bin/**.
 
 
 .. _See_Also_id135752:
@@ -1199,10 +1198,10 @@ See Also
 
 * https://httpd.apache.org/docs/current/mod/mod_headers.html
 
-* https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+* https://developer.mozilla.org/en-US/docs/web/HTTP/Headers/Content-Security-Policy
   — MDN reference for CSP directives
 
-* https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+* https://developer.mozilla.org/en-US/docs/web/HTTP/Headers/Strict-Transport-Security
   — MDN reference for HSTS
 
 * :ref:`Recipe_acme_mod_md` — automatic TLS certificates
@@ -1299,39 +1298,39 @@ client exceeds the configured thresholds, the module returns
 **Configuration directives explained**
 
 ``DOSHashTableSize``
-    The size of the internal hash table used to track clients. A larger
-    table reduces hash collisions when you have many concurrent
-    clients. The value should be a prime number; ``3097`` is a
-    reasonable default for moderate traffic.
+The size of the internal hash table used to track clients. A larger
+table reduces hash collisions when you have many concurrent
+clients. The value should be a prime number; ``3097`` is a
+reasonable default for moderate traffic.
 
 ``DOSPageCount``
-    The number of requests for the *same page* from a single IP that
-    triggers blocking within the ``DOSPageInterval``. For example,
-    with ``DOSPageCount 5`` and ``DOSPageInterval 1``, a client that
-    requests the same URL more than 5 times in 1 second is blocked.
+The number of requests for the *same page* from a single IP that
+triggers blocking within the ``DOSPageInterval``. For example,
+with ``DOSPageCount 5`` and ``DOSPageInterval 1``, a client that
+requests the same URL more than 5 times in 1 second is blocked.
 
 ``DOSSiteCount``
-    The number of requests for *any page* on the site from a single IP
-    that triggers blocking within the ``DOSSiteInterval``. This
-    catches clients that spread rapid requests across many different
-    URLs.
+The number of requests for *any page* on the site from a single IP
+that triggers blocking within the ``DOSSiteInterval``. This
+catches clients that spread rapid requests across many different
+URLs.
 
 ``DOSPageInterval`` / ``DOSSiteInterval``
-    The time window (in seconds) for the page and site counters.
+The time window (in seconds) for the page and site counters.
 
 ``DOSBlockingPeriod``
-    How long (in seconds) a blocked client receives ``403`` responses.
-    Every new request during the blocking period resets the timer, so
-    a client that keeps hammering will stay blocked indefinitely.
+How long (in seconds) a blocked client receives ``403`` responses.
+Every new request during the blocking period resets the timer, so
+a client that keeps hammering will stay blocked indefinitely.
 
 ``DOSLogDir``
-    Directory where lock files are written for blocked IPs. Each
-    blocked IP gets a file named ``dos-<IP>``. You can use this for
-    integration with external tools like ``fail2ban``.
+Directory where lock files are written for blocked IPs. Each
+blocked IP gets a file named ``dos-<IP>``. You can use this for
+integration with external tools like ``fail2ban``.
 
 ``DOSEmailNotify``
-    Optional email address to notify when an IP is blocked. This uses
-    the system's ``mail`` command, so ensure it's configured.
+Optional email address to notify when an IP is blocked. This uses
+the system's ``mail`` command, so ensure it's configured.
 
 **Integration with fail2ban**
 
@@ -1392,7 +1391,7 @@ See Also
 
 .. _Recipe_mod_reqtimeout:
 
-Defending Against Slowloris with mod_reqtimeout
+Defending against Slowloris with mod_reqtimeout
 -----------------------------------------------
 
 .. index:: mod_reqtimeout
@@ -1496,27 +1495,27 @@ The ``RequestReadTimeout`` directive controls three independent
 stages, each with its own timeout:
 
 ``handshake``
-    The time allowed to complete the TLS handshake (HTTPS only). The
-    default of ``0`` means no timeout is applied. Set this to a
-    positive value (e.g., ``5`` or ``10``) on TLS-enabled virtual hosts.
-    Note that clients configured to check Certificate Revocation Lists
-    (CRLs) may take extra time if the CRL server is slow to respond,
-    so allow for that overhead. The ``handshake`` stage was added in
-    httpd 2.4.39.
+The time allowed to complete the TLS handshake (HTTPS only). The
+default of ``0`` means no timeout is applied. Set this to a
+positive value (e.g., ``5`` or ``10``) on TLS-enabled virtual hosts.
+Note that clients configured to check Certificate Revocation Lists
+(CRLs) may take extra time if the CRL server is slow to respond,
+so allow for that overhead. The ``handshake`` stage was added in
+httpd 2.4.39.
 
 ``header``
-    The time allowed to receive the complete HTTP request headers
-    (request line plus all header fields). The default
-    ``header=20-40,MinRate=500`` means the client has an initial
-    timeout of 20 seconds, which is extended by 1 second for every 500
-    bytes of header data received, up to a maximum of 40 seconds.
+The time allowed to receive the complete HTTP request headers
+(request line plus all header fields). The default
+``header=20-40,MinRate=500`` means the client has an initial
+timeout of 20 seconds, which is extended by 1 second for every 500
+bytes of header data received, up to a maximum of 40 seconds.
 
 ``body``
-    The time allowed to receive the complete request body. The default
-    ``body=20,MinRate=500`` gives the client 20 seconds, extended by
-    1 second for every 500 bytes received. With no upper limit
-    specified, the timeout grows as long as data keeps arriving at
-    the minimum rate.
+The time allowed to receive the complete request body. The default
+``body=20,MinRate=500`` gives the client 20 seconds, extended by
+1 second for every 500 bytes received. With no upper limit
+specified, the timeout grows as long as data keeps arriving at
+the minimum rate.
 
 Each stage accepts the syntax ``timeout[-maxtimeout][,MinRate=rate]``:
 

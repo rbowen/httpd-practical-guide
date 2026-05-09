@@ -340,7 +340,7 @@ The fields are:
 3. **Process and thread ID**: ``[pid:tid]``
 4. **Client address** (when the error relates to a specific request)
 5. **Error code and message**: the ``AH#####`` codes are stable identifiers
-   you can search for
+you can search for
 
 The ``LogLevel`` directive accepts these severity levels, from most to
 least severe:
@@ -396,7 +396,9 @@ bundled modules includes a stable error code like ``AH00124``. These are
 searchable — both in the httpd documentation and on the web. When you see
 an error you don't understand, search for the AH code first. It's far
 more reliable than searching for the error message text, which may vary
-between versions.
+between versions. A complete reference for every ``AH#####`` code, with
+explanations and fix suggestions, is available at
+https://httpd.rcbowen.com/errors/.
 
 **Common error log entries and what they mean**:
 
@@ -466,6 +468,8 @@ Correlating error and access log entries
 
 .. index:: mod_unique_id
 
+
+.. _Recipe_Correlating_Logs:
 
 .. _Problem_Correlating_Logs:
 
@@ -1174,8 +1178,8 @@ See Also
 
 .. _Recipe_JSON_Logging:
 
-JSON/structured logging
-------------------------
+Json/structured logging
+-----------------------
 
 .. index:: JSON logging
 
@@ -1254,12 +1258,12 @@ it can happen.
 To handle this robustly, you have three options:
 
 1. Accept that occasional lines may be malformed and configure your
-   ingestion pipeline to skip parse errors
+ingestion pipeline to skip parse errors
 2. Pipe through a program that sanitizes the output (see
    :ref:`Recipe_Piped_Logging`)
 3. Use a log shipper (Fluent Bit, Filebeat) that can parse the
-   Combined format natively, and use JSON output from the *shipper*
-   instead
+Combined format natively, and use JSON output from the *shipper*
+instead
 
 **Timestamp format**: The ``%{%Y-%m-%dT%H:%M:%S%z}t`` produces ISO 8601
 format, which every log aggregator understands. Adding
@@ -1662,7 +1666,7 @@ Discussion
 :module:`mod_log_forensic` writes *two* entries for each request:
 
 1. A ``+`` line when the request arrives (before processing), containing
-   the complete request headers
+the complete request headers
 2. A ``-`` line when the request completes
 
 A forensic log entry looks like:
@@ -1822,11 +1826,11 @@ Discussion
 The directive takes up to three arguments:
 
 1. **Message** — the text to log, which can include ``ap_expr``
-   variables like ``%{REQUEST_URI}e``, ``%{reqenv:VARNAME}``, etc.
+variables like ``%{REQUEST_URI}e``, ``%{reqenv:VARNAME}``, etc.
 2. **hook=name** — which processing phase to log at. The default is
-   ``log_transaction`` (after the request is complete). Other useful
-   hooks: ``fixups`` (just before the handler), ``translate_name``
-   (early), or ``all`` (every phase).
+``log_transaction`` (after the request is complete). Other useful
+hooks: ``fixups`` (just before the handler), ``translate_name``
+(early), or ``all`` (every phase).
 3. **expr=condition** — only log when this expression is true.
 
 The ``hook=all`` option is particularly powerful for performance

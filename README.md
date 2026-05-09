@@ -6,7 +6,7 @@ This book covers the full range of Apache httpd administration — installation,
 
 ## Status
 
-This is a **work in progress** (v0.2). See the CHANGES file for revision history.
+This is a **work in progress** (v0.4). See the CHANGES file for revision history.
 
 Found a bug, typo, or have a suggestion? [File an issue](https://github.com/rbowen/httpd_practical_guide/issues).
 

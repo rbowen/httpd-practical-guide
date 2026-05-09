@@ -2,7 +2,7 @@
 .. _Chapter_mod_rewrite:
 
 ==============================
-URL Rewriting with mod_rewrite
+URL rewriting with mod_rewrite
 ==============================
 
 .. epigraph::
@@ -63,7 +63,7 @@ here.
 
 .. _Recipe_canonical-hostname:
 
-Enforcing a Preferred Hostname
+Enforcing a preferred hostname
 ------------------------------
 
 .. index:: Canonical hostname
@@ -218,8 +218,8 @@ to undo.
 
 .. _Recipe_path_to_querystring:
 
-Clean URLs — Rewriting Paths to Query Strings
-----------------------------------------------
+Clean URLs — Rewriting paths to query strings
+---------------------------------------------
 
 .. index:: Query string
 
@@ -289,7 +289,7 @@ See Also
 
 .. _Recipe_rewrite-htaccess:
 
-Using RewriteRule in .htaccess Files
+Using RewriteRule in .htaccess files
 ------------------------------------
 
 .. index:: Rewrite,htaccess
@@ -363,7 +363,7 @@ See Also
 
 .. _further_reading_mod_rewrite:
 
-Further Reading
+Further reading
 ---------------
 
 This chapter has covered only the most frequently needed
@@ -385,7 +385,7 @@ For comprehensive coverage of all of these topics, please see:
   https://httpd.apache.org/docs/current/rewrite/
 
 * The Apache httpd wiki:
-  https://wiki.apache.org/httpd/RewriteGuide
+  https://cwiki.apache.org/confluence/display/httpd/RewriteGuide
 
 
 .. _Recipe_rewrite-syntax:
@@ -429,7 +429,7 @@ For comprehensive coverage of all of these topics, please see:
 .. _Recipe_rewrite_variable:
 .. _Recipe_rewrite-logging:
 
-Additional Recipes
+Additional recipes
 ------------------
 
 The recipes formerly in this chapter — including RewriteMap, RewriteCond

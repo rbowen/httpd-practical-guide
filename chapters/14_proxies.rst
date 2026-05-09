@@ -17,9 +17,9 @@ Proxies
 .. index:: Content proxying
 
 
-Proxy means to act on behalf of another. In the context of a Web
+Proxy means to act on behalf of another. In the context of a web
 server, this means one server fetching content from another server, then
-returning it to the client. For example, you may have several Web servers
+returning it to the client. For example, you may have several web servers
 that hide behind a proxy server. The proxy server is responsible for
 making sure requests go to the right backend server.
 
@@ -58,7 +58,7 @@ task.
 
 .. _Recipe_Securing-proxy:
 
-Securing Your Proxy Server
+Securing your proxy server
 --------------------------
 
 
@@ -95,16 +95,16 @@ Discussion
 
 
 Running an open proxy is a concern because it permits Internet
-users to use your proxy server to cover their tracks as they visit Web
+users to use your proxy server to cover their tracks as they visit web
 sites. This can be a problem for a numbers of reasons. The user is
 effectively stealing your bandwidth and is certainly part of the
 problem. However, perhaps more concerning is the fact that you are
 probably enabling people to circumvent restrictions that have been put
 in place by their network administrators, or perhaps you are providing
-users with anonymity while they visit a Web site, and as a
+users with anonymity while they visit a web site, and as a
 consequence, these visits appear to come from your network.
 
-In these recipes, **``.yourdomain.com``**
+In these recipes, ``.yourdomain.com``
 should be replaced by the name of your particular domain, or, better
 yet, the network address(es) that are on your network. (IP addresses
 are harder to fake than host and domain names.) For example, rather
@@ -148,7 +148,7 @@ proxied requests:
 
 
 Then, in your log directive, specify that these requests are not
-        to be logged:
+to be logged:
 
 
 .. code-block:: text
@@ -169,7 +169,7 @@ See Also
 
 .. _Preventing_Your_Proxy_Server_from_Being_Used_as_an_Open_id147710:
 
-Preventing Your Proxy Server from Being Used as an Open Mail Relay
+Preventing your proxy server from being used as an open mail relay
 ------------------------------------------------------------------
 
 
@@ -237,7 +237,7 @@ See Also
 
 .. _Forwarding_Requests_to_Another_Server_id147962:
 
-Forwarding Requests to Another Server
+Forwarding requests to another server
 -------------------------------------
 
 
@@ -248,7 +248,7 @@ Problem
 
 
 You want requests for particular URLs to be transparently
-        forwarded to another server.
+forwarded to another server.
 
 
 .. _Solution_id148030:
@@ -288,43 +288,43 @@ These directives will cause requests to URLs starting with
         appear to come from the main server.
 
 This method is often used to have the dynamic portion of the
-        site served by a server running ``mod_perl``—often even on the same machine,
-        but on a different port—while the static portions of the site are
-        served from the main server, which can be lighter weight, and so run
-        faster.
+site served by a server running ``mod_perl``—often even on the same machine,
+but on a different port—while the static portions of the site are
+served from the main server, which can be lighter weight, and so run
+faster.
 
 Note that URLs contained within documents are not rewritten as
-        they pass through the proxy, and links within documents should be
-        relative, rather than absolute, so that they work correctly.
-        ``mod_proxy_html`` can be used to do that.
+they pass through the proxy, and links within documents should be
+relative, rather than absolute, so that they work correctly.
+``mod_proxy_html`` can be used to do that.
 
 Use this recipe when you have a frontend server and one or more
-        backend servers, inaccessible from the Internet, and you wish to serve
-        content from them. In the example given, when a request is made for a
-        URL starting with ``/other/``, httpd
-        makes a request for the URL
-        **http://other.server.com**, and returns the content
-        obtained by the client. For example, a request for the URL ``/other/example.html`` results in a request for
-        the URL
-        **http://other.server.com/example.html**.
+backend servers, inaccessible from the Internet, and you wish to serve
+content from them. In the example given, when a request is made for a
+URL starting with ``/other/``, httpd
+makes a request for the URL
+**http://other.server.com**, and returns the content
+obtained by the client. For example, a request for the URL ``/other/example.html`` results in a request for
+the URL
+**http://other.server.com/example.html**.
 
 The **ProxyPassReverse**
-        directive ensures that any header fields returned by the secondary
-        server (which contain the name of the server, such as ``Location`` headers) will be rewritten to
-        contain the URL that the end user will actually be using, ensuring
-        that the redirect actually functions as desired.
+directive ensures that any header fields returned by the secondary
+server (which contain the name of the server, such as ``Location`` headers) will be rewritten to
+contain the URL that the end user will actually be using, ensuring
+that the redirect actually functions as desired.
 
 Note that links within HTML documents on the secondary site
-        should all be relative, rather than absolute, so that these links work
-        for users using the content **via** the proxy server. In the recipe given,
-        for example, a link to **/index.html** removes the ``/other/`` portion of the URL, causing the
-        request to no longer hit the proxied portion of the server.
+should all be relative, rather than absolute, so that these links work
+for users using the content via the proxy server. In the recipe given,
+for example, a link to **/index.html** removes the ``/other/`` portion of the URL, causing the
+request to no longer hit the proxied portion of the server.
 
-Using this technique, you can have content for one Web site
-        actually served by multiple Web server machines. This can be used as a
-        means to traverse the border of your network, or it can be used as a
-        load-sharing technique to lessen the burden on your primary Web
-        server.
+Using this technique, you can have content for one web site
+actually served by multiple web server machines. This can be used as a
+means to traverse the border of your network, or it can be used as a
+load-sharing technique to lessen the burden on your primary web
+server.
 
 
 .. _See_Also_id148203:
@@ -338,12 +338,12 @@ See Also
 
 
           
-* :ref:`Distributing_Load_Evenly_Between_Several_Servers_id153837`
+* :ref:`Recipe_load-balancing-overview`
 
 
 .. _Blocking_Proxied_Requests_to_Certain_Places_id148235:
 
-Blocking Proxied Requests to Certain Places
+Blocking proxied requests to certain places
 -------------------------------------------
 
 
@@ -354,7 +354,7 @@ Problem
 
 
 You want to use your proxy server as a content filter,
-        forbidding requests to certain places.
+forbidding requests to certain places.
 
 
 .. _Solution_id148285:
@@ -380,7 +380,7 @@ Discussion
 
 
 This example forbids proxied requests to the sites listed. These
-        arguments are substring matches; ``example.com`` will also match ``www.example.com``, and an argument of ``example`` would match both.
+arguments are substring matches; ``example.com`` will also match ``www.example.com``, and an argument of ``example`` would match both.
 
 
 .. code-block:: text
@@ -391,9 +391,9 @@ This example forbids proxied requests to the sites listed. These
 Will block all proxy requests.
 
 If you want more fine-grained control of what content is
-        requested through your proxy server, you may want to use something
-        more sophisticated, such as Squid, which is more full-featured in that
-        area.
+requested through your proxy server, you may want to use something
+more sophisticated, such as Squid, which is more full-featured in that
+area.
 
 
 .. _See_Also_id148381:
@@ -407,7 +407,7 @@ See Also
 
 .. _Proxying_mod_perl_Content_to_Another_Server_id148425:
 
-Proxying mod_perl Content to Another Server
+Proxying mod_perl content to another server
 -------------------------------------------
 
 
@@ -418,8 +418,8 @@ Problem
 
 
 You want to run a second HTTP server for dynamically generated
-        content and have httpd transparently map requests for this content to
-        the other server.
+content and have httpd transparently map requests for this content to
+the other server.
 
 
 .. _Solution_id148476:
@@ -429,8 +429,8 @@ Solution
 
 
 First, install httpd, running on an alternate port, such as
-        port 90, on which you will generate this dynamic content. Then, on
-        your main server:
+port 90, on which you will generate this dynamic content. Then, on
+your main server:
 
 
 .. code-block:: text
@@ -483,7 +483,7 @@ See Also
 
 .. _Configuring_a_Caching_Proxy_Server_id148610:
 
-Configuring a Caching Proxy Server
+Configuring a caching proxy server
 ----------------------------------
 
 
@@ -503,7 +503,7 @@ Solution
 
 
 Configure your server to proxy requests and provide a location
-        for the cached files to be placed:
+for the cached files to be placed:
 
 
 .. code-block:: text
@@ -522,12 +522,12 @@ Running a caching proxy server allows users on your network to
 have more rapid access to content that others have already requested.
 They will perhaps not be getting the most recent version of the
 document in question, but since they are retrieving the content from a
-local copy rather than from the remote Web server, they will get it
+local copy rather than from the remote web server, they will get it
 much more quickly.
 
 With the contents of the WWW growing ever more dynamic, running
 a caching proxy server perhaps makes less sense than it once did, when
-most of the Web was composed of static content. However, because
+most of the web was composed of static content. However, because
 ``mod_proxy`` is fairly smart about
 what it caches and what it does not cache, this sort of setup will
 still speed things up by caching the static portions of documents,
@@ -552,7 +552,7 @@ See Also
 .. _Filtering_Proxied_Content_id148839:
 
 
-Filtering Proxied Content
+Filtering proxied content
 -------------------------
 
 
@@ -626,7 +626,7 @@ See Also
 
 .. _Requiring_Authentication_for_a_Proxied_Server_id149122:
 
-Requiring Authentication for a Proxied Server
+Requiring authentication for a proxied server
 ---------------------------------------------
 
 
@@ -667,13 +667,13 @@ Discussion
 
 
 This technique can be useful if you are running some sort of
-        special-purpose or limited-function Web server on your system, but you
-        need to apply httpd's rich set of access control and its other
-        features to access it. This is done by using the **ProxyPass** directive to make the
-        special-purpose server's URI space part of your main server, and using
-        the special ``proxy``:**``path``**
-        **&lt;Directory&gt;** container syntax
-        to apply httpd settings only to the mapped URIs.
+special-purpose or limited-function web server on your system, but you
+need to apply httpd's rich set of access control and its other
+features to access it. This is done by using the **ProxyPass** directive to make the
+special-purpose server's URI space part of your main server, and using
+the special ``proxy``:``path``
+``<Directory>`` container syntax
+to apply httpd settings only to the mapped URIs.
 
 
 .. _See_Also_id149271:
@@ -687,7 +687,7 @@ See Also
 
 .. _Recipe_mod_proxy_balancer:
 
-Load Balancing with mod_proxy_balancer
+Load balancing with mod_proxy_balancer
 --------------------------------------
 
 
@@ -707,7 +707,7 @@ Solution
 
 
 Use ``mod_proxy_balancer`` to
-        create a load-balanced cluster:
+create a load-balanced cluster:
 
 
 .. code-block:: text
@@ -753,9 +753,9 @@ receive twice as much traffic as other machines:
 
 
 Traffic may be balanced by traffic (bytes transferred) or by
-        request (number of requests made per host) by putting additional
-        arguments on the **ProxyPass**
-        directive:
+request (number of requests made per host) by putting additional
+arguments on the **ProxyPass**
+directive:
 
 
 .. code-block:: text
@@ -764,10 +764,10 @@ Traffic may be balanced by traffic (bytes transferred) or by
 
 
 See the ``mod_proxy``
-        documentation for more information on this point.
+documentation for more information on this point.
 
-And there is a Web-based balancer manager tool, which can be
-        configured as follows:
+And there is a web-based balancer manager tool, which can be
+configured as follows:
 
 
 .. code-block:: text
@@ -778,10 +778,10 @@ And there is a Web-based balancer manager tool, which can be
 
 
 The balancer manager lets you set servers available or
-        unavailable, and change their load factor, without restarting the
-        server. This allows you to take servers offline for maintenance, do
-        whatever needs to be done, and bring them back up, without ever
-        affecting the end user.
+unavailable, and change their load factor, without restarting the
+server. This allows you to take servers offline for maintenance, do
+whatever needs to be done, and bring them back up, without ever
+affecting the end user.
 
 
 .. _See_Also_mod_proxy_balancer:
@@ -795,7 +795,7 @@ See Also
 
 .. _I_sect110_d1e16904:
 
-Proxied Virtual Host
+Proxied virtual host
 --------------------
 
 
@@ -804,7 +804,7 @@ Problem
 
 
 You want to have an entire virtual host proxied to a different
-        server.
+server.
 
 
 Solution
@@ -812,8 +812,8 @@ Solution
 
 
 Place a **ProxyPass** directive
-        in your **VirtualHost** configuration
-        block:
+in your **VirtualHost** configuration
+block:
 
 
 .. code-block:: text
@@ -950,7 +950,7 @@ insufficient.
 
 .. tip::
 
-   **&lt;ProxyMatch&gt;**
+   ``<ProxyMatch>``
    containers work as well, so more complex patterns may be
    used.
 
@@ -986,7 +986,7 @@ See Also
 
 .. _I_sect110_d1e16958:
 
-Refusing to Proxy FTP
+Refusing to proxy FTP
 ---------------------
 
 
@@ -995,7 +995,7 @@ Problem
 
 
 You want to make sure that FTP (or, perhaps, other protocols)
-        are not proxied through your server.
+are not proxied through your server.
 
 
 Solution
@@ -1561,7 +1561,7 @@ See Also
 
 .. _Recipe_mod_proxy_fcgi:
 
-Proxying PHP and Other FastCGI Applications with mod_proxy_fcgi
+Proxying PHP and other FastCGI applications with mod_proxy_fcgi
 ---------------------------------------------------------------
 
 .. index:: mod_proxy_fcgi
@@ -1684,36 +1684,36 @@ as a separate process manager, which brings several advantages:
   appropriate pool.
 
 
-Understanding the Three URL Syntaxes
+Understanding the three URL syntaxes
 ------------------------------------
 
 :module:`mod_proxy_fcgi` supports three URL forms, each with different
 trade-offs:
 
 ``fcgi://hostname:port/path``
-    The TCP form. httpd connects to PHP-FPM over a TCP socket.
-    Works across network boundaries (e.g., PHP-FPM on a different host)
-    but has slightly more overhead than a Unix socket.
+The TCP form. httpd connects to PHP-FPM over a TCP socket.
+Works across network boundaries (e.g., PHP-FPM on a different host)
+but has slightly more overhead than a Unix socket.
 
 ``unix:/path/to/socket|fcgi://localhost/``
-    The Unix Domain Socket (UDS) form, available since version 2.4.9.
-    httpd connects to PHP-FPM through a local socket file. This is
-    faster and more secure than TCP because the connection never
-    leaves the machine, and file permissions control access to the
-    socket. The hostname after ``fcgi://`` is ignored when using UDS
-    syntax — ``localhost`` is conventional.
+The Unix Domain Socket (UDS) form, available since version 2.4.9.
+httpd connects to PHP-FPM through a local socket file. This is
+faster and more secure than TCP because the connection never
+leaves the machine, and file permissions control access to the
+socket. The hostname after ``fcgi://`` is ignored when using UDS
+syntax — ``localhost`` is conventional.
 
     :version: 2.4.9
 
 ``ProxyPassMatch`` with ``fcgi://``
-    Regex-based routing. This lets you match specific URL patterns (such
-    as ``\.php$``) and construct the backend path using captured groups.
-    Useful when you need fine-grained control over which requests are
-    forwarded. However, the ``$1`` backreference in the URL means each
-    request produces a unique backend URL, which historically prevented
-    connection reuse. Since version 2.4.47, parameters like
-    ``enablereuse=on`` are honored with backreferences, though the
-    default remains ``enablereuse=off`` for backward compatibility.
+Regex-based routing. This lets you match specific URL patterns (such
+as ``\.php$``) and construct the backend path using captured groups.
+Useful when you need fine-grained control over which requests are
+forwarded. However, the ``$1`` backreference in the URL means each
+request produces a unique backend URL, which historically prevented
+connection reuse. Since version 2.4.47, parameters like
+``enablereuse=on`` are honored with backreferences, though the
+default remains ``enablereuse=off`` for backward compatibility.
 
     :version: 2.4.47 (parameters honored with backreferences)
 
@@ -1737,7 +1737,7 @@ over ``ProxyPassMatch`` for several reasons:
   reuse connections to PHP-FPM, improving performance under load.
 
 
-Connection Reuse
+Connection reuse
 ----------------
 
 By default, :module:`mod_proxy_fcgi` does **not** reuse connections —
@@ -1760,7 +1760,7 @@ child process. Set this to a value that balances connection reuse
 against exhausting PHP-FPM's ``pm.max_children``.
 
 
-Common Pitfalls
+Common pitfalls
 ---------------
 
 **Timeout issues.** PHP-FPM has its own ``request_terminate_timeout``
@@ -1809,7 +1809,7 @@ block or ``ProxyPassMatch`` directive is active for the virtual host
 in question.
 
 
-A Complete Virtual Host Example
+A complete virtual host example
 -------------------------------
 
 Putting it all together — a production-style virtual host using the
@@ -1869,7 +1869,7 @@ See Also
 
 .. _Recipe_websocket_proxy:
 
-Proxying WebSocket Connections
+Proxying WebSocket connections
 ------------------------------
 
 .. index:: mod_proxy_wstunnel

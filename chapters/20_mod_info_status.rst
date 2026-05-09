@@ -922,7 +922,7 @@ Example output from the ``?auto`` argument is shown below:
 .. code-block:: text
 
    localhost
-   ServerVersion: Apache/2.4.62 (Fedora) PHP/8.3
+   ServerVersion: Apache/2.4.67 (Fedora) PHP/8.3
    ServerMPM: prefork
    Server Built: Dec  5 2016 16:41:37
    CurrentTime: Thursday, 15-Dec-2016 12:21:42 EST
@@ -958,7 +958,7 @@ Example output from the ``?auto`` argument is shown below:
 An example Perl program named ``log_server_status`` is provided in the
 ``/support`` directory of your httpd installation, which
 generates a simple log file of active vs idle server processes, and
-CPU load. It may be run periodically **via** a ``cron`` job to log this
+CPU load. It may be run periodically via a ``cron`` job to log this
 information as frequently as you require.
 
 There are also a variety of third-party utilities which use
@@ -1052,7 +1052,7 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Recipe_Correlating_error_access`
+* :ref:`Recipe_Correlating_Logs`
 
 
 .. _Recipe_server-status-hide-ip:

@@ -1,10 +1,10 @@
 =============================
-Revision History
-=============================
+Revision history
+================
 
 .. todo:: Add revision history for the 4th edition.
 
-4th Edition (2026)
+4th edition (2026)
 ------------------
 
 * Converted from AsciiDoc to reStructuredText / Sphinx.
@@ -12,19 +12,19 @@ Revision History
 * Added new chapters on security, .htaccess, user directories, programmable
   configuration, mod_info/mod_status.
 
-3rd Edition (2014)
+3rd edition (2014)
 ------------------
 
 * Updated for httpd 2.4.
 * Self-published (previously published by O'Reilly Media).
 
-2nd Edition (2004)
+2nd edition (2004)
 ------------------
 
 * Updated for httpd 2.2.
 * Self-published (previously published by O'Reilly Media).
 
-1st Edition (2003)
+1st edition (2003)
 ------------------
 
 * Initial publication (O'Reilly Media).

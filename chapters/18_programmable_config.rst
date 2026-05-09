@@ -2,7 +2,7 @@
 .. _Chapter_per_request:
 
 ==========================
-Programmable Configuration
+Programmable configuration
 ==========================
 
 .. epigraph::
@@ -40,12 +40,29 @@ hosting with ``mod_vhost_alias``.
 
 .. _recipe-expr-stubs:
 
-Recipes moved to *mod_rewrite And Friends*
+Recipes moved to *mod_rewrite and friends*
 ------------------------------------------
 
-The following recipes have been moved to our companion book,
-*mod_rewrite And Friends*, in the chapter *Configurable Configuration*.
-The labels below are preserved so that cross-references from other
+One of httpd 2.4's most powerful additions is the general-purpose
+expression parser and the ``<If>``, ``<ElseIf>``, and ``<Else>``
+directives that use it. These let you write conditional configuration
+that evaluates at request time — testing things like the request URL,
+HTTP headers, environment variables, the time of day, or whether the
+client's IP is in a particular range. They're enormously useful, and
+in many cases they eliminate the need for :module:`mod_rewrite` entirely.
+
+For example:
+
+.. code-block:: apache
+
+   <If "%{HTTP_HOST} != 'www.example.com'">
+       Redirect permanent "/" "https://www.example.com/"
+   </If>
+
+Full coverage of the expression parser and ``<If>`` directives lives in
+our companion book, *mod_rewrite And Friends*, in the chapter
+*Configurable Configuration*. The recipes listed below are covered there
+in depth. The labels are preserved here so that cross-references from other
 chapters continue to resolve.
 
 .. _Recipe_expr:

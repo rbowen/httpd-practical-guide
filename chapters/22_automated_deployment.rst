@@ -1,5 +1,3 @@
-.. _Chapter_Automated_Deployment:
-
 .. epigraph::
 
    "The first rule of any technology used in a business is that automation
@@ -8,6 +6,8 @@
    inefficiency."
 
    -- Bill Gates
+
+.. _Chapter_Automated_Deployment:
 
 ==============================
 Automated deployment
@@ -1027,7 +1027,7 @@ Create an InSpec profile that tests your httpd configuration:
 
      describe package('httpd') do
        it { should be_installed }
-       its('version') { should cmp >= '2.4.62' }
+       its('version') { should cmp >= '2.4.67' }
      end
    end
 
@@ -1387,7 +1387,7 @@ modules, then copy the binaries into a minimal runtime image:
        curl \
        && rm -rf /var/lib/apt/lists/*
 
-   ENV HTTPD_VERSION=2.4.62
+   ENV HTTPD_VERSION=2.4.67
 
    RUN curl -fSL https://dlcdn.apache.org/httpd/httpd-${HTTPD_VERSION}.tar.gz \
        -o httpd.tar.gz \
@@ -1540,13 +1540,13 @@ Discussion
 compatible with Docker. The primary advantages for httpd deployments are:
 
 1. **Rootless by default** --- containers run as your user, not as root. No
-   daemon running as root means a smaller attack surface.
+daemon running as root means a smaller attack surface.
 2. **Systemd integration** --- Quadlet files are native systemd units. You
-   manage containers with ``systemctl``, view logs with ``journalctl``, and
-   define dependencies with standard systemd syntax.
+manage containers with ``systemctl``, view logs with ``journalctl``, and
+define dependencies with standard systemd syntax.
 3. **No daemon** --- Podman doesn't require a background service. If the
-   ``podman`` process isn't running, your containers still are (they're just
-   regular processes).
+``podman`` process isn't running, your containers still are (they're just
+regular processes).
 
 **Quadlet replaced ``podman generate systemd``:** The older approach of
 generating unit files with ``podman generate systemd`` is deprecated. Quadlet
@@ -1559,7 +1559,7 @@ files so that the container process can read them. Without it on SELinux-enabled
 systems (RHEL, Fedora), you'll get permission denied errors. On systems without
 SELinux, the flag is harmlessly ignored.
 
-**``AutoUpdate=registry``** enables automatic image updates via
+``AutoUpdate=registry`` enables automatic image updates via
 ``podman auto-update``. When run (typically via a systemd timer), it checks
 if a newer version of the image exists, pulls it, and restarts the container.
 This is useful for keeping httpd patched but should be used cautiously in
@@ -1577,6 +1577,439 @@ See also
 - :ref:`Recipe_Docker_Minimal` for building minimal images (works with Podman too)
 - Podman Quadlet documentation:
   https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html
+
+
+
+.. _Recipe_K8s_Deployment:
+
+Deploying httpd on Kubernetes
+------------------------------
+
+.. index::
+   single: Kubernetes; httpd
+   single: Kubernetes; Deployment
+   single: Kubernetes; Service
+   single: Kubernetes; Ingress
+   single: Kubernetes; ConfigMap
+   single: Kubernetes; health checks
+   single: Kubernetes; rolling updates
+   single: kubectl
+   single: containers; Kubernetes
+
+Problem
+~~~~~~~
+
+You want to run httpd in a Kubernetes cluster with proper configuration
+management, health checks, and zero-downtime rolling updates.
+
+Solution
+~~~~~~~~
+
+Start with a ConfigMap that holds your httpd configuration:
+
+.. code-block:: yaml
+
+   # httpd-configmap.yaml
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: httpd-config
+   data:
+     httpd.conf: |
+       ServerRoot "/usr/local/apache2"
+       Listen 80
+       LoadModule mpm_event_module modules/mod_mpm_event.so
+       LoadModule authz_core_module modules/mod_authz_core.so
+       LoadModule dir_module modules/mod_dir.so
+       LoadModule mime_module modules/mod_mime.so
+       LoadModule log_config_module modules/mod_log_config.so
+       LoadModule unixd_module modules/mod_unixd.so
+       LoadModule status_module modules/mod_status.so
+
+       ServerName localhost
+       DocumentRoot "/usr/local/apache2/htdocs"
+
+       <Directory "/usr/local/apache2/htdocs">
+           Require all granted
+       </Directory>
+
+       # Health check endpoint for Kubernetes probes
+       <Location "/healthz">
+           SetHandler server-status
+           Require all granted
+       </Location>
+
+       ErrorLog /proc/self/fd/2
+       CustomLog /proc/self/fd/1 combined
+
+Now the Deployment itself:
+
+.. code-block:: yaml
+
+   # httpd-deployment.yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: httpd
+     labels:
+       app: httpd
+   spec:
+     replicas: 3
+     strategy:
+       type: RollingUpdate
+       rollingUpdate:
+         maxSurge: 1
+         maxUnavailable: 0
+     selector:
+       matchLabels:
+         app: httpd
+     template:
+       metadata:
+         labels:
+           app: httpd
+         annotations:
+           # Forces a rolling update when the ConfigMap changes
+           checksum/config: "PLACEHOLDER"
+       spec:
+         containers:
+           - name: httpd
+             image: httpd:2.4-alpine
+             ports:
+               - containerPort: 80
+                 protocol: TCP
+             resources:
+               requests:
+                 cpu: 100m
+                 memory: 128Mi
+               limits:
+                 cpu: 500m
+                 memory: 256Mi
+             readinessProbe:
+               httpGet:
+                 path: /healthz
+                 port: 80
+               initialDelaySeconds: 5
+               periodSeconds: 10
+               failureThreshold: 3
+             livenessProbe:
+               httpGet:
+                 path: /healthz
+                 port: 80
+               initialDelaySeconds: 15
+               periodSeconds: 20
+               failureThreshold: 3
+             volumeMounts:
+               - name: httpd-config-volume
+                 mountPath: /usr/local/apache2/conf/httpd.conf
+                 subPath: httpd.conf
+         volumes:
+           - name: httpd-config-volume
+             configMap:
+               name: httpd-config
+
+Expose the Deployment with a Service and Ingress:
+
+.. code-block:: yaml
+
+   # httpd-service.yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: httpd
+   spec:
+     selector:
+       app: httpd
+     ports:
+       - port: 80
+         targetPort: 80
+         protocol: TCP
+     type: ClusterIP
+
+.. code-block:: yaml
+
+   # httpd-ingress.yaml
+   apiVersion: networking.k8s.io/v1
+   kind: Ingress
+   metadata:
+     name: httpd
+     annotations:
+       nginx.ingress.kubernetes.io/rewrite-target: /
+   spec:
+     ingressClassName: nginx
+     rules:
+       - host: www.example.com
+         http:
+           paths:
+             - path: /
+               pathType: Prefix
+               backend:
+                 service:
+                   name: httpd
+                   port:
+                     number: 80
+
+Apply everything:
+
+.. code-block:: bash
+
+   $ kubectl apply -f httpd-configmap.yaml
+   $ kubectl apply -f httpd-deployment.yaml
+   $ kubectl apply -f httpd-service.yaml
+   $ kubectl apply -f httpd-ingress.yaml
+
+To trigger a rolling update after changing the ConfigMap, compute a new
+checksum and patch the annotation:
+
+.. code-block:: bash
+
+   $ kubectl create configmap httpd-config \
+       --from-file=httpd.conf=./httpd.conf \
+       --dry-run=client -o yaml | kubectl apply -f -
+   $ kubectl patch deployment httpd -p \
+       "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"checksum/config\":\"$(sha256sum httpd.conf | cut -d' ' -f1)\"}}}}}"
+
+Discussion
+~~~~~~~~~~
+
+**The ConfigMap hash annotation trick.** Kubernetes does *not* automatically
+restart pods when a mounted ConfigMap changes. The contents eventually propagate
+(within the kubelet sync period, typically 60--120 seconds), but httpd won't
+re-read :file:`httpd.conf` without a restart. The annotation trick works because
+any change to the pod template --- even a meaningless annotation --- triggers a
+new rollout. When you update the ``checksum/config`` annotation with the SHA-256
+of your configuration file, Kubernetes sees a spec change and performs a rolling
+update according to your ``strategy`` settings.
+
+If you use Helm or Kustomize (see the next recipe), this annotation can be
+computed automatically during rendering.
+
+**Health probes.** I'm using :module:`mod_status` at :file:`/healthz` as both
+the readiness and liveness endpoint. The readiness probe determines whether a
+pod receives traffic --- if it fails, the pod is removed from the Service's
+endpoint list. The liveness probe determines whether Kubernetes restarts the
+container. I've set the liveness ``initialDelaySeconds`` higher than readiness
+because you want to detect startup problems (readiness) before you start killing
+pods (liveness).
+
+For production, you might separate these: use a lightweight ``/healthz`` that
+simply returns 200 for liveness, and a ``/readyz`` endpoint that verifies your
+content directory is mounted and any backend proxy targets are reachable.
+
+**Rolling update strategy.** Setting ``maxUnavailable: 0`` means Kubernetes will
+never kill an existing pod until a new one passes its readiness probe. Combined
+with ``maxSurge: 1``, you get true zero-downtime deployments at the cost of
+briefly running one extra pod during updates. If you're resource-constrained,
+you can set ``maxSurge: 0, maxUnavailable: 1`` --- you'll save resources but
+accept one pod being down during the rollout.
+
+**Resource sizing.** The values above (100m CPU request, 256Mi memory limit)
+are conservative starting points for a static content server. If httpd is doing
+reverse proxying or handling TLS termination, bump memory to 512Mi. Use
+``kubectl top pods`` after your deployment is running to see actual consumption
+and adjust.
+
+**Ingress controllers.** The Ingress resource is just an API object --- it does
+nothing without an Ingress controller running in the cluster. Common choices:
+
+- **ingress-nginx** (community NGINX controller): the most widely deployed.
+  Good for general-purpose HTTP routing.
+- **AWS ALB Ingress Controller** (now AWS Load Balancer Controller): creates an
+  actual ALB per Ingress. Best for EKS deployments where you want AWS-native
+  load balancing.
+- **Traefik**: auto-discovers services and supports both Ingress and its own
+  IngressRoute CRD.
+
+**When to skip Ingress and use a LoadBalancer Service directly:** If you have
+a single service with no host-based or path-based routing, a ``type:
+LoadBalancer`` Service is simpler. Ingress earns its keep when you have multiple
+services behind one external IP, need TLS termination at the edge, or want
+host-based virtual hosting (which, as an httpd user, you certainly appreciate).
+
+See also
+~~~~~~~~
+
+- :ref:`Recipe_Helm_httpd` for managing this deployment with Helm
+- :ref:`Recipe_Docker_Basic` for the container image fundamentals
+- Kubernetes Deployment documentation:
+  https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+- Ingress documentation:
+  https://kubernetes.io/docs/concepts/services-networking/ingress/
+
+
+.. _Recipe_Helm_httpd:
+
+Managing httpd configuration with Helm
+---------------------------------------
+
+.. index::
+   single: Helm; httpd
+   single: Helm; Bitnami chart
+   single: Helm; values.yaml
+   single: Kubernetes; Helm
+   single: Kustomize
+
+Problem
+~~~~~~~
+
+You want a repeatable, version-controlled way to deploy httpd across multiple
+environments (dev, staging, prod) without maintaining raw YAML manifests for
+each one.
+
+Solution
+~~~~~~~~
+
+The Bitnami Apache chart on ArtifactHub provides a production-ready Helm chart
+for httpd. Add the repository and install:
+
+.. code-block:: bash
+
+   $ helm repo add bitnami https://charts.bitnami.com/bitnami
+   $ helm repo update
+   $ helm install my-httpd bitnami/apache
+
+To customize the deployment, create a :file:`values.yaml` override file:
+
+.. code-block:: yaml
+
+   # values.yaml
+   replicaCount: 3
+
+   image:
+     registry: docker.io
+     repository: bitnami/apache
+     tag: 2.4.65-debian-12-r2
+
+   resources:
+     requests:
+       cpu: 100m
+       memory: 128Mi
+     limits:
+       cpu: 500m
+       memory: 256Mi
+
+   # Supply a custom httpd.conf via ConfigMap name
+   httpdConfConfigMap: my-httpd-conf
+
+   service:
+     type: ClusterIP
+     ports:
+       http: 80
+
+   ingress:
+     enabled: true
+     ingressClassName: nginx
+     hostname: www.example.com
+     path: /
+     pathType: Prefix
+     annotations:
+       nginx.ingress.kubernetes.io/rewrite-target: /
+
+Install (or upgrade) with your values:
+
+.. code-block:: bash
+
+   $ kubectl create configmap my-httpd-conf \
+       --from-file=httpd.conf=./httpd.conf
+   $ helm install my-httpd bitnami/apache -f values.yaml
+
+When your configuration changes, upgrade the release:
+
+.. code-block:: bash
+
+   $ kubectl create configmap my-httpd-conf \
+       --from-file=httpd.conf=./httpd.conf \
+       --dry-run=client -o yaml | kubectl apply -f -
+   $ helm upgrade my-httpd bitnami/apache -f values.yaml
+
+For multiple environments, create per-environment files:
+
+.. code-block:: bash
+
+   $ helm upgrade my-httpd bitnami/apache \
+       -f values.yaml \
+       -f values-prod.yaml
+
+Where :file:`values-prod.yaml` overrides just what differs:
+
+.. code-block:: yaml
+
+   # values-prod.yaml
+   replicaCount: 5
+
+   resources:
+     requests:
+       cpu: 250m
+       memory: 256Mi
+     limits:
+       cpu: "1"
+       memory: 512Mi
+
+   ingress:
+     hostname: www.example.com
+     tls: true
+
+Discussion
+~~~~~~~~~~
+
+**When Helm makes sense.** Helm shines when you deploy the same application
+across multiple environments or clusters with minor variations. Instead of
+maintaining three nearly-identical sets of YAML manifests (dev, staging, prod),
+you maintain one chart and three small values files. Helm also gives you
+rollback (``helm rollback my-httpd 1``), release history, and atomic upgrades.
+
+**When Helm is overkill.** If you have a single cluster and a single
+environment, the raw manifests from the previous recipe are simpler to
+understand and debug. Helm adds a layer of indirection --- when something goes
+wrong, you're debugging the rendered templates, not the manifests you wrote.
+
+**Chart pinning.** Always pin your chart version in CI/CD:
+
+.. code-block:: bash
+
+   $ helm install my-httpd bitnami/apache --version 11.2.0 -f values.yaml
+
+Without ``--version``, ``helm install`` pulls the latest chart, which might
+introduce breaking changes on a Tuesday afternoon when you least expect it.
+Record pinned versions in a :file:`Chart.lock` or your deployment documentation.
+
+**Creating your own chart.** If you find yourself overriding more than a dozen
+values, or if you need resources the Bitnami chart doesn't support (custom
+sidecars, init containers for content sync, non-standard health endpoints),
+create your own chart:
+
+.. code-block:: bash
+
+   $ helm create my-httpd-chart
+
+This scaffolds a chart with templates for Deployment, Service, Ingress,
+ServiceAccount, and HPA. Replace the generated templates with your customized
+manifests and parameterize only what varies between environments.
+
+**Kustomize as an alternative.** If you dislike Helm's templating approach
+(Go templates can be painful to debug), Kustomize takes a different philosophy:
+you write plain YAML manifests as a "base," then apply patches and overlays per
+environment. Kustomize is built into ``kubectl``:
+
+.. code-block:: bash
+
+   $ kubectl apply -k overlays/production/
+
+Kustomize also solves the ConfigMap rollout problem natively --- its
+``configMapGenerator`` appends a content hash to the ConfigMap name, so any
+change automatically triggers a new rollout without annotation tricks.
+
+The choice between Helm and Kustomize often comes down to team preference. Helm
+is better for distributing reusable charts (like Bitnami's). Kustomize is
+better when you own the manifests and just need environment-specific overrides.
+
+See also
+~~~~~~~~
+
+- :ref:`Recipe_K8s_Deployment` for the raw manifest approach
+- Bitnami Apache chart on ArtifactHub:
+  https://artifacthub.io/packages/helm/bitnami/apache
+- Helm documentation: https://helm.sh/docs/
+- Kustomize documentation: https://kustomize.io/
 
 
 .. _Recipe_Terraform_Basic:
@@ -1732,9 +2165,9 @@ script is a bootstrap, not a configuration management tool.
 In production, the ``user_data`` script would typically do one of two things:
 
 1. **Install and configure an Ansible pull** to fetch configuration from a Git
-   repository
+repository
 2. **Signal a configuration management tool** (Ansible, Puppet) that the
-   instance is ready to be configured
+instance is ready to be configured
 
 The ``user_data`` approach has limitations:
 
@@ -1844,13 +2277,13 @@ The dynamic inventory approach (Approach 1) is strongly preferred over
 ``local-exec`` for several reasons:
 
 1. **Separation of concerns:** Terraform creates infrastructure. Ansible
-   configures it. They run independently and can be triggered separately.
+configures it. They run independently and can be triggered separately.
 2. **Idempotency:** You can re-run Ansible without re-running Terraform. With
-   ``local-exec``, the provisioner only runs when the resource is created.
+``local-exec``, the provisioner only runs when the resource is created.
 3. **Debugging:** When Ansible fails, you can fix and re-run it without
-   touching infrastructure.
+touching infrastructure.
 4. **Scaling:** Adding more servers means running ``terraform apply`` then
-   regenerating the inventory and running Ansible again.
+regenerating the inventory and running Ansible again.
 
 The ``local-exec`` approach (Approach 2) has the appeal of being "all in one
 command," but it creates tight coupling and is fragile (the ``sleep 30`` is a
@@ -1961,7 +2394,7 @@ projects:
 
 1. The HCL configuration language is identical.
 2. The state file format is compatible (OpenTofu reads Terraform state files
-   and vice versa).
+and vice versa).
 3. Most providers (including the AWS provider) work with both tools.
 4. The CLI commands are the same, just ``tofu`` instead of ``terraform``.
 
@@ -2015,13 +2448,13 @@ The tools in this chapter solve different problems at different layers:
 If you're starting from scratch in 2026, my opinionated recommendation is:
 
 1. For **traditional server deployments** (VMs, bare metal): Ansible.
-   It's the most accessible tool with the largest community for new projects.
+It's the most accessible tool with the largest community for new projects.
 2. For **containerized deployments**: Docker or Podman with Quadlet for systemd
-   integration. If you're on RHEL/Fedora, Podman is the default and integrates
-   beautifully.
+integration. If you're on RHEL/Fedora, Podman is the default and integrates
+beautifully.
 3. For **cloud infrastructure provisioning**: OpenTofu (or Terraform if you're
-   already using it). Pair with Ansible or containers for the actual httpd
-   configuration.
+already using it). Pair with Ansible or containers for the actual httpd
+configuration.
 
 The real-world pattern is usually a combination: Terraform provisions the VM,
 Ansible configures it, and InSpec validates it. Or: Terraform provisions a

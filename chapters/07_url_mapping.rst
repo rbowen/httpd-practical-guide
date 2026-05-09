@@ -2,7 +2,7 @@
 .. _Chapter_URL_Mapping:
 
 ===========
-URL Mapping
+URL mapping
 ===========
 
 .. epigraph::
@@ -35,7 +35,7 @@ When Apache HTTP Server receives a request, it is assumed that the client
 will be served a file out of the **DocumentRoot** directory. However, 
 there will be times when you want these resources to be served from 
 some other location.
-For example, if you wanted to place a set of documents on your Web site,
+For example, if you wanted to place a set of documents on your web site,
 it may be more convenient to leave them where they are, rather than to
 move them to a new location.
 
@@ -54,7 +54,7 @@ your content, and how to map URLs to that content.
 
 .. _Recipe_Alias:
 
-Mapping a URL to a Directory
+Mapping a URL to a directory
 ----------------------------
 
 .. index:: Alias
@@ -71,7 +71,7 @@ Problem
 You want to serve content out of a directory other than the
 **DocumentRoot** directory. For
 example, you may have an existing directory of documents, which you
-want to have on your Web site but that you do not want to move into
+want to have on your web site but that you do not want to move into
 the httpd document root.
 
 
@@ -193,7 +193,7 @@ See Also
 
 .. _Solving_the_Trailing_Slash_Problem_id156250:
 
-Solving the 'Trailing Slash' Problem
+Solving the 'trailing slash' problem
 ------------------------------------
 
 .. index:: Trailing slash
@@ -265,7 +265,7 @@ that it cannot retrieve.
 
 .. _Invalid_Alias_directive_id156456:
 
-Invalid Alias directive
+Invalid alias directive
 -----------------------
 
 
@@ -320,7 +320,7 @@ See Also
 
 .. _Creating_a_New_URL_for_Existing_Content_id124719:
 
-Creating a New URL for Existing Content
+Creating a new URL for existing content
 ---------------------------------------
 
 .. index:: Alias
@@ -361,7 +361,7 @@ Discussion
 Although **Alias** is usually
 used to map URLs to a directory outside of the **DocumentRoot** directory
 tree, this is not necessarily required. There are many times when it
-is desirable to have the same content accessible **via** a number of
+is desirable to have the same content accessible via a number of
 different names. This is typically the case when a directory has its
 name changed, and you wish to have the old URLs continue to work, or
 when different people refer to the same content by different
@@ -400,7 +400,7 @@ See Also
 
 .. _Recipe_AliasMatch:
 
-Aliasing Several URLs with a Single Directive
+Aliasing several URLs with a single directive
 ---------------------------------------------
 
 .. index:: AliasMatch
@@ -476,7 +476,7 @@ See Also
 
 .. _Recipe_ScriptAliasMatch:
 
-Mapping Several URLs to the Same CGI Directory
+Mapping several URLs to the same CGI directory
 ----------------------------------------------
 
 .. index:: ScriptAlias
@@ -524,9 +524,9 @@ directive maps requests starting with **/script/**, **/scripts/**, **/Script/**,
 that directory to be treated as CGI programs.
 
 This kind of directive is generally used to clean up a mess that
-you have made. If you design your Web site well from the start, this
+you have made. If you design your web site well from the start, this
 sort of thing is never necessary, but the first time you redesign, or
-otherwise rearrange your Web site, you'll find the necessity for these
+otherwise rearrange your web site, you'll find the necessity for these
 sorts of contortions.
 
 
@@ -545,7 +545,7 @@ See Also
 
 .. _Recipe_Redirect:
 
-Redirecting to Another Location
+Redirecting to another location
 -------------------------------
 
 .. index:: Redirect
@@ -617,7 +617,7 @@ the future. If no keyword is specified, the ``temp`` meaning is used by default:
 
 .. index:: Redirect,temporary
 
-``temp``:: 
+``temp``
 A ``temporary`` redirection
 is used when the document is not in the originally requested
 location at the moment, but is expected to be there again some
@@ -630,7 +630,7 @@ same document.
 
 .. index:: Redirect,permanent
 
-``permanent``:: 
+``permanent``
 A ``permanent``
 redirection indicates that not only is the requested
 document not in the location specified by the client, but that
@@ -642,7 +642,7 @@ subsequent requests for the resource.
 
 .. index:: Gone
 
-``gone``:: 
+``gone``
 This keyword means that the document doesn't exist in this
 location, and it shouldn't bother asking any more. This differs
 from the ``404 Not Found`` error
@@ -654,7 +654,7 @@ here, even though it isn't any more.
 
 .. index:: Redirect,seeother
 
-``seeother``:: 
+``seeother``
 A ``seeother`` redirection
 tells the client that the original document isn't located here
 any more and has been superseded by another one in a different
@@ -794,7 +794,7 @@ See Also
 
 .. _Recipe_mod_speling:
 
-Permitting Case-Insensitive URLs
+Permitting case-insensitive URLs
 --------------------------------
 
 .. index:: mod_speling
@@ -975,7 +975,7 @@ See Also
 
 .. _Redirecting_Allor_Partof_Your_Server_to_SSL_id127998:
 
-Redirecting All—or Part—of Your Server to SSL
+Redirecting all—or part—of your server to SSL
 ---------------------------------------------
 
 .. index:: SSL
@@ -989,7 +989,7 @@ Problem
 ~~~~~~~
 
 
-You want certain parts of your non-SSL Web space to be
+You want certain parts of your non-SSL web space to be
 redirected to a secured area.
 
 
@@ -1056,7 +1056,7 @@ complete site redirection, it's simplest to use the server's official
 name for itself.
 
 The directive shown in the second solution causes all portions
-of the server's Web space under http://myhost/normal/secure to be redirected to the SSL
+of the server's web space under http://myhost/normal/secure to be redirected to the SSL
 location rooted at https://myhost/. The use of
 ``HTTP_HOST`` rather than ``SERVER_NAME`` means that only the location and
 the scheme in the visitor's browser, not the server name.

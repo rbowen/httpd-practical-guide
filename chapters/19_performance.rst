@@ -2,8 +2,6 @@
 
    \part{Operations}
 
-.. _Chapter_Performance_and_testing:
-
 .. comment::
    NOTE: The Nikto security scanning recipe has been relocated to
    Chapter 10 (Security). The mod_dialup recipe has been removed
@@ -12,6 +10,8 @@
    is the modern approach, covered briefly in the MPM recipe discussion).
    Disabling content negotiation and optimizing symbolic links recipes
    were removed as too obscure for a 2026 audience.
+
+.. _Chapter_Performance_and_testing:
 
 ===========
 Performance
@@ -207,7 +207,7 @@ See Also
 .. index:: MaxConnectionsPerChild
 .. index:: event MPM; tuning
 
-Tuning the Event MPM
+Tuning the event MPM
 --------------------
 
 
@@ -327,16 +327,16 @@ stability. Values between 5000 and 50000 are common for production.
 **The tuning formula.** Start with this approach:
 
 1. Determine how much RAM httpd can use (total RAM minus OS, database,
-   and other services).
+and other services).
 
 2. Measure the RSS (Resident Set Size) of a typical httpd child process
-   under load using ``ps`` or ``top``.
+under load using ``ps`` or ``top``.
 
 3. Divide available RAM by per-process RSS to get your maximum number of
-   child processes (``ServerLimit``).
+child processes (``ServerLimit``).
 
 4. Multiply ``ServerLimit × ThreadsPerChild`` to get your
-   ``MaxRequestWorkers``.
+``MaxRequestWorkers``.
 
 .. code-block:: bash
 
@@ -418,7 +418,7 @@ Then apply the formula:
 
 .. code-block:: text
 
-   Available RAM for httpd = Total RAM − OS overhead − other services
+   Available RAM for httpd = Total RAM - OS overhead - other services
    Max child processes = Available RAM / average process RSS
    MaxRequestWorkers = Max child processes × ThreadsPerChild
 
@@ -575,25 +575,25 @@ Key flags:
 **Best practices for benchmarking:**
 
 1. Never run the benchmark tool on the same machine as the server.
-   You'll measure the client's resource contention, not the server's
-   capacity.
+You'll measure the client's resource contention, not the server's
+capacity.
 
 2. Change one variable at a time. If you change ``ThreadsPerChild`` and
-   enable compression simultaneously, you won't know which change
-   affected the results.
+enable compression simultaneously, you won't know which change
+affected the results.
 
 3. Run each test multiple times and average the results. Network jitter,
-   kernel scheduling, and background processes introduce noise.
+kernel scheduling, and background processes introduce noise.
 
 4. Use a representative URL. Benchmarking a static HTML file tells you
-   nothing about the performance of your CGI scripts or proxied
-   applications. Test what your users actually hit.
+nothing about the performance of your CGI scripts or proxied
+applications. Test what your users actually hit.
 
 5. Watch the server side too. While the benchmark runs, monitor httpd
-   with :module:`mod_status` (``/server-status?auto``) and watch system
-   metrics with ``top``, ``vmstat``, or ``sar``. A throughput number
-   without context is meaningless — you need to know whether the
-   bottleneck was CPU, memory, disk I/O, or network.
+with :module:`mod_status` (``/server-status?auto``) and watch system
+metrics with ``top``, ``vmstat``, or ``sar``. A throughput number
+without context is meaningless — you need to know whether the
+bottleneck was CPU, memory, disk I/O, or network.
 
 **Limitations of synthetic benchmarks.** Both ``ab`` and ``h2load``
 hammer a single URL repeatedly. Real users browse multiple pages, have
@@ -762,18 +762,18 @@ the thread handling that request is blocked and cannot serve anyone else.
 There are two situations where httpd performs DNS lookups:
 
 1. **HostnameLookups On** — httpd resolves every client's IP address to
-   a hostname and logs the hostname instead of the IP. This is a
-   per-request DNS hit and is devastating to performance at scale. Leave
-   it off. If you need hostnames in logs for analysis, run
-   ``logresolve`` (ships with httpd) on the log files after the fact,
-   or let your log analysis tool handle resolution.
+a hostname and logs the hostname instead of the IP. This is a
+per-request DNS hit and is devastating to performance at scale. Leave
+it off. If you need hostnames in logs for analysis, run
+``logresolve`` (ships with httpd) on the log files after the fact,
+or let your log analysis tool handle resolution.
 
 2. **Hostname-based access control** — when you use ``Require host
-   example.com`` instead of ``Require ip``, httpd must do a reverse DNS
-   lookup on the client IP, then a forward lookup on the resulting
-   hostname to verify it matches. That's *two* DNS queries per request.
-   Always use IP-based access control (``Require ip``) unless you have
-   a compelling reason not to.
+example.com`` instead of ``Require ip``, httpd must do a reverse DNS
+lookup on the client IP, then a forward lookup on the resulting
+hostname to verify it matches. That's *two* DNS queries per request.
+Always use IP-based access control (``Require ip``) unless you have
+a compelling reason not to.
 
 .. code-block:: bash
 
@@ -1351,9 +1351,9 @@ empty, check:
 
 1. The ``CacheRoot`` directory exists and is writable by the httpd user.
 2. The origin response includes ``Expires`` or ``Cache-Control: max-age``
-   headers (or you've set ``CacheDefaultExpire``).
+headers (or you've set ``CacheDefaultExpire``).
 3. The response does not include ``Cache-Control: no-store`` or
-   ``Cache-Control: private``.
+``Cache-Control: private``.
 
 Verify with ``curl -I`` that the origin content is cacheable.
 
@@ -1479,13 +1479,13 @@ meaningful modification time) and doesn't work well with proxy caches.
 **The cache-busting strategy.** The gold standard for static assets is:
 
 1. Set long cache lifetimes (one year) for CSS, JavaScript, images, and
-   fonts.
+fonts.
 2. Include a content hash or version number in the filename:
    :file:`style.a3f2b1c4.css`, :file:`app.v2.1.0.js`.
 3. When the content changes, the filename changes, so browsers fetch
-   the new version immediately.
+the new version immediately.
 4. Set HTML documents to short lifetimes (minutes) because they contain
-   the references to versioned assets.
+the references to versioned assets.
 
 This gives returning visitors instant cache hits while ensuring they
 always get updated content when you deploy changes.
@@ -1825,7 +1825,7 @@ Proxies and Gatekeeping chapter.
 See Also
 ~~~~~~~~
 
-* :ref:`Chapter_Reverse_Proxy` (full load balancing treatment)
+* :ref:`Chapter_Proxies` (full load balancing treatment)
 * https://httpd.apache.org/docs/current/mod/mod_proxy_balancer.html
 * https://httpd.apache.org/docs/current/mod/mod_proxy_hcheck.html
 
@@ -1906,17 +1906,17 @@ it tells you *why* a caching decision was made.
 **Common "why isn't it caching?" causes:**
 
 1. **No expiry information.** The origin sends neither ``Expires`` nor
-   ``Cache-Control: max-age``. Fix by setting ``CacheDefaultExpire``:
+``Cache-Control: max-age``. Fix by setting ``CacheDefaultExpire``:
 
    .. code-block:: apache
 
       CacheDefaultExpire 3600
 
 2. **Cache-Control: private or no-store.** The origin explicitly
-   prohibits caching. Check your application's headers.
+prohibits caching. Check your application's headers.
 
 3. **Permissions.** The ``CacheRoot`` directory isn't writable by the
-   httpd user:
+httpd user:
 
    .. code-block:: bash
 
@@ -1924,14 +1924,14 @@ it tells you *why* a caching decision was made.
       chmod 750 /var/cache/httpd/mod_cache_disk
 
 4. **Vary header explosion.** If responses include ``Vary:
-   Accept-Encoding, Cookie, User-Agent``, the cache stores a separate
-   entry for every combination — effectively preventing cache hits. Fix
-   by normalizing or removing unnecessary ``Vary`` values.
+Accept-Encoding, Cookie, User-Agent``, the cache stores a separate
+entry for every combination — effectively preventing cache hits. Fix
+by normalizing or removing unnecessary ``Vary`` values.
 
 5. **Query strings.** By default, ``mod_cache`` treats URLs with
-   different query strings as different resources. If your application
-   uses query strings for tracking but serves the same content,
-   consider ``CacheIgnoreQueryString On`` (:version:`2.4.39`).
+different query strings as different resources. If your application
+uses query strings for tracking but serves the same content,
+consider ``CacheIgnoreQueryString On`` (:version:`2.4.39`).
 
 **Logging cache decisions.** Include the ``cache-status`` environment
 variable in your access log:
@@ -2009,16 +2009,16 @@ That said, if you take away only three things from this chapter, make
 them these:
 
 1. **Use the Event MPM.** If you're still on Prefork because of
-   ``mod_php``, switch to PHP-FPM and Event. This is the single biggest
-   performance improvement most servers can make.
+``mod_php``, switch to PHP-FPM and Event. This is the single biggest
+performance improvement most servers can make.
 
 2. **Enable compression.** Load :module:`mod_brotli` and
    :module:`mod_deflate`. This costs negligible CPU and saves enormous
    bandwidth.
 
 3. **Set explicit cache headers.** Use :module:`mod_expires` to tell
-   browsers how long to cache your static assets. This eliminates
-   redundant requests entirely.
+browsers how long to cache your static assets. This eliminates
+redundant requests entirely.
 
 Everything else in this chapter — HTTP/2, server-side caching, MPM
 tuning, KeepAlive — is refinement on top of these three fundamentals.

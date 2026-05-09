@@ -2,7 +2,7 @@
 
 
 =================
-List of Epigraphs
+List of epigraphs
 =================
 
 

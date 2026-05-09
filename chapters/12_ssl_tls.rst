@@ -21,7 +21,7 @@ SSL and TLS
 
 Transport Layer Security (TLS) and Secure Socket Layer (SSL) are
 cryptographic protocols. They are the standard way to implement
-secure Web sites.
+secure web sites.
 
 By encrypting the traffic between the server and the client,
 which is what TLS/SSL does, that content is protected from a third party
@@ -154,7 +154,7 @@ See Also
 
 * http://httpd.apache.org/docs/platform/windows.html
 
-* https://wiki.apache.org/httpd/SSL
+* https://cwiki.apache.org/confluence/display/httpd/SSL
 
 * http://www.openssl.org
 
@@ -204,7 +204,7 @@ been done by the people that prepared ithe binaries above.
 
 .. _Generating_SSL_Certificates_id138549:
 
-Generating Self-Signed SSL Certificates
+Generating self-signed SSL certificates
 ---------------------------------------
 
 
@@ -283,7 +283,7 @@ use **/dev/urandom** by default if that exists, and it will try
 have a good source of randomness in order for the encryption to be
 secure. If your system has neither **/dev/urandom** nor **/dev/random**,
 you should consider installing a random number generator, such as
-**egd**. You can find out more information about this on the OpenSSL Web
+**egd**. You can find out more information about this on the OpenSSL web
 site at http://www.openssl.org/docs/crypto/RAND_egd.html.
 
 The ``-out`` argument specifies the name of the key file that you will
@@ -350,7 +350,7 @@ During this step, you'll be asked a number of questions. The answers
 to these questions will become part of the certificate, and will be
 used by the browser to verify that the certificate is coming from a
 trusted source. End users may inspect these details any time they
-connect to your Web site.
+connect to your web site.
 
 The questions will look like the following:
 
@@ -374,7 +374,7 @@ Name. You must supply the correct value here, which is the hostname of
 the server on which this certicate will be used. It is crucial that
 the hostname that you put in here exactly match the hostname that will
 be used to access the site. Failure to do this will result in a
-warning message each time a user connects to your Web site.
+warning message each time a user connects to your web site.
 
 
 Removing the passphrase
@@ -391,7 +391,7 @@ The key encrypted so that only someone with the passphrase can read
 the contents of the key. A side-effect of this is that every time you
 start up your httpd, you will need to type in the
 passprase. This is extremely inconvenient, as it means that starting
-up the Web server always requires a manual step. This is particularly
+up the web server always requires a manual step. This is particularly
 a problem for reboots or other automated restarts of httpd,
 when there might not be a human handy to type in the
 passphrase.
@@ -409,7 +409,7 @@ The key is copied to a backup location just in case you screw something
 up, and then the command is issued to remove the passphrase, resulting
 in an unencrupted key. You must remember to change the permissions on
 the file so that only root can read this file. Failure to do so may
-result in someone stealing that file and then being able to run a Web
+result in someone stealing that file and then being able to run a web
 site while pretending to be you.
 
 Note that the **SSLPassPhraseDialog** directive allows to get
@@ -509,7 +509,7 @@ See Also
 ~~~~~~~~
 
 
-* The manpage for the **openssl** tool, **``man openssl``**
+* The manpage for the **openssl** tool, ``man openssl``
 
 * **CA.pl** documentation at
   http://www.openssl.org/docs/apps/CA.pl.html
@@ -517,7 +517,7 @@ See Also
 
 .. _Generating_a_Trusted_CA_id139220:
 
-Generating a Trusted CA
+Generating a trusted CA
 -----------------------
 
 
@@ -606,8 +606,8 @@ Clicking on that file will launch the SSL certificate wizard and guide
 users through installing the CA certificate into their browser.
 
 Other browsers, such as Mozilla, expect to directly import the
-**cacert.pem** file. Users will navigate through their menus (Edit =&gt;
-Preferences =&gt; Privacy and Security =&gt; Certificates), then click
+**cacert.pem** file. Users will navigate through their menus (Edit =>
+Preferences => Privacy and Security => Certificates), then click
 on Manage Certificates, then on the Authorities tab, and finally on
 Import, to select the certificate file.
 
@@ -630,7 +630,7 @@ See Also
 
 .. _Serving_a_Portion_of_Your_Site_via_SSL_id139588:
 
-Serving a Portion of Your Site _via_ SSL
+Serving a portion of your site _via_ SSL
 ----------------------------------------
 
 
@@ -640,7 +640,7 @@ Problem
 ~~~~~~~
 
 
-You want to have a certain portion of your site available **via** SSL
+You want to have a certain portion of your site available via SSL
 exclusively.
 
 
@@ -710,7 +710,7 @@ global section of the **config** file may cause looping, as the new URL
 will match the **Redirect** requirement and get redirected itself.
 
 Finally, note that if you want the entire site to be available only
-**via** SSL, you can accomplish this by simply redirecting all URLs,
+via SSL, you can accomplish this by simply redirecting all URLs,
 rather than a particular directory:
 
 
@@ -756,7 +756,7 @@ they each have a small additional requirement for use.
 The second recipe listed, using **SSLRequireSSL**, is
 a directive added specifically to address
 this need. Placing the **SSLRequireSSL** directive in a particular
-**&lt;Directory&gt;** section will ensure that non-SSL accesses to that
+``<Directory>`` section will ensure that non-SSL accesses to that
 directory are not permitted. It does not redirect users to the SSL
 host; it merely forbids non-SSL access.
 
@@ -786,7 +786,7 @@ See Also
 
 .. _Authenticating_with_Client_Certificates_id140141:
 
-Authenticating with Client Certificates
+Authenticating with client certificates
 ---------------------------------------
 
 
@@ -823,7 +823,7 @@ Discussion
 
 
 If you happen to be lucky enough to have a small, closed user
-community, such as an intranet, or a Web site for a group of friends
+community, such as an intranet, or a web site for a group of friends
 or family, it is possible to distribute client certificates so that
 each user can identify himself.
 
@@ -849,7 +849,7 @@ See Also
 
 .. _I_sect17_d1e13480:
 
-SSL Virtual Hosts
+SSL virtual hosts
 -----------------
 
 
@@ -874,7 +874,7 @@ httpd will know which certificate/key pair to use for the SSL
 encrypted connection.
 
 If not using SNI you can only run one SSL host
-**per** IP address and port. This has to do with the way that SSL works,
+per IP address and port. This has to do with the way that SSL works,
 and is not a limitation specifically of httpd. Attempting to run
 multiple SSL hosts on the same IP address and port will result in
 warning messages being displayed by the browser, because it will be
@@ -924,7 +924,7 @@ something like:
 You have attempted to establish a connection with
 ``www.example1.com``. However, the security certificate presented belogs
 to ``www.example2.com``. It is possible, although unlikely, that someone
-may be trying to intercept your communication with this Web site. If
+may be trying to intercept your communication with this web site. If
 you suspect the certificate shown does not belong to
 ``www.example1.com``, please cancel the connection and notify the site
 administrator.
@@ -938,7 +938,7 @@ warning messages is bound to get one into problems eventually. Or she
 may indeed take the suggested action and contact you, the site
 administrator. In any of these cases, you probably can immediately see
 why this isn't a valid solution when you're running an actual secure
-Web site and performing tasks like taking credit card transactions.
+web site and performing tasks like taking credit card transactions.
 
 
 Use one certificate on several hosts
@@ -950,7 +950,7 @@ all of those hostnames are in the same domain. This is called a
 wildcard certificate, and is discussed in the next recipe.
 
 
-Use Server Name Indication
+Use server name indication
 --------------------------
 
 
@@ -975,14 +975,14 @@ See Also
 ~~~~~~~~
 
 
-* https://wiki.apache.org/httpd/NameBasedSSLVHostsWithSNI
+* https://cwiki.apache.org/confluence/display/httpd/NameBasedSSLVHostsWithSNI
 
 * https://www.ietf.org/rfc/rfc4366.txt
 
 
 .. _I_sect17_d1e13557:
 
-Wildcard Certificates
+Wildcard certificates
 ---------------------
 
 
@@ -1087,7 +1087,7 @@ Then run **certbot -i apache**
 
    How would you like to authenticate with the ACME CA?
    * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   1: Apache Web Server plugin - Beta (apache)
+   1: Apache web Server plugin - Beta (apache)
    2: Spin up a temporary webserver (standalone)
    3: Place files in webroot directory (webroot)
    * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1296,7 +1296,7 @@ Solution
 The protocol HTTP/2 allows to multiplex HTTP/1.1 connection in order to
 reduce the latency when displaying a page on a browser.
 HTTP/2 in the browser requires TLS 1.2, the browser in the Hello TLS will
-list the protocol it is supporting. The Web server can do HTTP/2 if mod_http2
+list the protocol it is supporting. The web server can do HTTP/2 if mod_http2
 is configured and enabled. Note that mod_http2 requires additional threads and
 resources, make you have space for those before enabling HTTP/2
 
@@ -1428,55 +1428,55 @@ httpd—no external tools or cron jobs are required.
 The module's lifecycle:
 
 1. On startup, ``mod_md`` checks whether each managed domain has a
-   valid certificate. If not, it begins the ACME sign-up process.
+valid certificate. If not, it begins the ACME sign-up process.
 2. For the ``http-01`` challenge, Let's Encrypt makes an HTTP request
-   to ``http://yourdomain/.well-known/acme-challenge/<token>``.
-   ``mod_md`` intercepts this internally—you don't need to configure
-   a special ``Alias`` or ``Location`` block.
+to ``http://yourdomain/.well-known/acme-challenge/<token>``.
+``mod_md`` intercepts this internally—you don't need to configure
+a special ``Alias`` or ``Location`` block.
 3. Once the challenge is verified, ``mod_md`` downloads the signed
-   certificate and chain, and stores them in the ``MDStoreDir``
-   (default: :file:`{ServerRoot}/md/`).
+certificate and chain, and stores them in the ``MDStoreDir``
+(default: :file:`{ServerRoot}/md/`).
 4. On the next server restart or graceful reload, httpd picks up the
-   new certificate.
+new certificate.
 5. When the certificate approaches expiry (controlled by
-   ``MDRenewWindow``, default 33%), ``mod_md`` automatically repeats
-   the process.
+``MDRenewWindow``, default 33%), ``mod_md`` automatically repeats
+the process.
 
 **Key directives**
 
 ``MDomain``
-    Declares one or more domain names as a managed group. ``mod_md``
-    requests a single certificate covering all listed names. With the
-    default ``auto`` mode, ``ServerAlias`` values from associated
-    virtual hosts are automatically included.
+Declares one or more domain names as a managed group. ``mod_md``
+requests a single certificate covering all listed names. With the
+default ``auto`` mode, ``ServerAlias`` values from associated
+virtual hosts are automatically included.
 
 ``MDContactEmail``
-    The email address registered with the CA. Let's Encrypt uses this
-    to send expiry warnings. Available since httpd 2.4.42. For older
-    versions, use ``ServerAdmin``.
+The email address registered with the CA. Let's Encrypt uses this
+to send expiry warnings. Available since httpd 2.4.42. For older
+versions, use ``ServerAdmin``.
 
 ``MDCertificateAgreement accepted``
-    Confirms you accept the CA's terms of service.
+Confirms you accept the CA's terms of service.
 
 ``MDRenewWindow``
-    Controls how early renewal begins. The default ``33%`` means
-    renewal starts when one-third of the certificate's lifetime
-    remains. You can also specify an absolute duration, for example
-    ``21d`` (21 days before expiry).
+Controls how early renewal begins. The default ``33%`` means
+renewal starts when one-third of the certificate's lifetime
+remains. You can also specify an absolute duration, for example
+``21d`` (21 days before expiry).
 
 ``MDCertificateAuthority``
-    Defaults to ``letsencrypt``. You can point this to another ACME
-    provider or to the Let's Encrypt staging server for testing:
+Defaults to ``letsencrypt``. You can point this to another ACME
+provider or to the Let's Encrypt staging server for testing:
 
     .. code-block:: apache
 
        MDCertificateAuthority https://acme-staging-v02.api.letsencrypt.org/directory
 
 ``MDPortMap``
-    If your server sits behind a reverse proxy or firewall that maps
-    external ports to different internal ports, use ``MDPortMap`` to
-    tell ``mod_md`` how to translate. For example, if external port 80
-    maps to internal port 8080:
+If your server sits behind a reverse proxy or firewall that maps
+external ports to different internal ports, use ``MDPortMap`` to
+tell ``mod_md`` how to translate. For example, if external port 80
+maps to internal port 8080:
 
     .. code-block:: apache
 
@@ -1607,12 +1607,12 @@ If the wrong certificate is returned for a given ``-servername``,
 check the following:
 
 1. Ensure ``ServerName`` in each ``<VirtualHost>`` exactly matches the
-   hostname clients use (and the certificate's CN or SAN).
+hostname clients use (and the certificate's CN or SAN).
 
 2. Verify that the **first** ``<VirtualHost>`` block on the
-   ``*:443`` address is the one whose certificate you want
-   non-SNI clients to receive (this is the default/fallback
-   virtual host).
+``*:443`` address is the one whose certificate you want
+non-SNI clients to receive (this is the default/fallback
+virtual host).
 
 3. Increase the ``LogLevel`` to see SNI matching decisions:
 
@@ -1665,16 +1665,16 @@ The ``SSLStrictSNIVHostCheck`` directive controls whether non-SNI
 clients can access name-based SSL virtual hosts:
 
 ``SSLStrictSNIVHostCheck off`` (default)
-    Non-SNI clients fall through to the default virtual host. They
-    receive that host's certificate, which may not match the hostname
-    they intended to reach.
+Non-SNI clients fall through to the default virtual host. They
+receive that host's certificate, which may not match the hostname
+they intended to reach.
 
 ``SSLStrictSNIVHostCheck on``
-    Non-SNI clients are rejected with a TLS handshake failure. Use
-    this when you want to enforce that every client must send an SNI
-    hostname. When set in the *default* virtual host, it prevents
-    all non-SNI access. When set in a *specific* virtual host, only
-    that host rejects non-SNI clients.
+Non-SNI clients are rejected with a TLS handshake failure. Use
+this when you want to enforce that every client must send an SNI
+hostname. When set in the *default* virtual host, it prevents
+all non-SNI access. When set in a *specific* virtual host, only
+that host rejects non-SNI clients.
 
 **Common pitfalls**
 
@@ -1731,5 +1731,5 @@ Summary
 
 TLS/SSL supported via _mod_ssl_ and the libraries provided by **OpenSSL** allows to
 make sure your content is protected from a third party listening to the traffic going past
-as weel as make sure that your Web site will accessible to eveyone using recent browsers.
+as weel as make sure that your web site will accessible to eveyone using recent browsers.
 

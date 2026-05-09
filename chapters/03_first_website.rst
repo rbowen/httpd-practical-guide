@@ -2,7 +2,7 @@
 .. _Chapter_My_First_Website:
 
 ================
-My First Website
+My first website
 ================
 
 .. epigraph::
@@ -27,7 +27,7 @@ I'll cover such things as how to edit a configuration file, how to
 upload files to your site, and what other skills you'll need to
 learn before you can move on.
 
-Of course, this can't be comprehensive. Web site design is an entire
+Of course, this can't be comprehensive. web site design is an entire
 discipline, and not one that I claim to be an expert on. I'm going
 to try to give you a starting place, and point you in the right
 direction to learn more.
@@ -57,7 +57,7 @@ Problem
 ~~~~~~~
 
 
-Now that you have te Apache httpd installed, you want to set up
+Now that you have the Apache httpd installed, you want to set up
 your first simple website.
 
 
@@ -93,10 +93,19 @@ the new front page of your server.
 
 .. _It_works:
 
-.It works!
+.. raw:: latex
+
+   \FloatBarrier
 
 .. figure:: ../images/it_works.png
+   :alt: The "It works!" page in a browser
+   :align: center
 
+   The "It works!" default page served by a fresh httpd installation
+
+.. raw:: latex
+
+   \FloatBarrier
 
 .. _Discussion_Hello_world_website:
 
@@ -147,22 +156,17 @@ configuration.
 
 .. code-block:: text
 
-   [rbowen@grenache:httpd/conf]$ sudo httpd -S
+   $ sudo httpd -S
    VirtualHost configuration:
    *:80                   is a NameVirtualHost
-            default server grenache.rcbowen.com (/etc/httpd/conf.d/vhosts/00_grenache.conf:4)
-            port 80 namevhost grenache.rcbowen.com (/etc/httpd/conf.d/vhosts/00_grenache.conf:4)
-                    alias grenache
-            port 80 namevhost www.apacheadmin.com (/etc/httpd/conf.d/vhosts/apacheadmin.com.conf:2)
-                    alias apacheadmin.com
-            port 80 namevhost tm3.org (/etc/httpd/conf.d/vhosts/tm3.org.conf:1)
-                    wild alias *.tm3.org
-            port 80 namevhost boxofclue.com (/etc/httpd/conf.d/vhosts/boxofclue.com.conf:1)
-                    alias www.boxofclue.com
-            port 80 namevhost dandelionforge.com (/etc/httpd/conf.d/vhosts/dandelionforge.com.conf:1)
+            default server df925.net (/etc/httpd/conf.d/vhosts/00_default.conf:4)
+            port 80 namevhost df925.net (/etc/httpd/conf.d/vhosts/00_default.conf:4)
+            port 80 namevhost forty.bottlesofringboree.com (/etc/httpd/conf.d/vhosts/ringboree.conf:2)
+                    alias www.forty.bottlesofringboree.com
+            port 80 namevhost dandelionforge.com (/etc/httpd/conf.d/vhosts/dandelionforge.conf:1)
                     alias www.dandelionforge.com
-                    alias cmbowen.com
-                    alias www.cmbowen.com
+            port 80 namevhost httpd.rcbowen.com (/etc/httpd/conf.d/vhosts/rcbowen.conf:1)
+                    alias www.rcbowen.com
            <... etc. ...>
    ServerRoot: "/etc/httpd"
    Main DocumentRoot: "/var/www/html"
@@ -197,7 +201,7 @@ index.html
 
 The default front page of a website is a file named **index.html**. This
 is defined in the directive **DirectoryIndex**, which may be defined
-globally, or **per**-directory. But it's a pretty safe bet that, unless
+globally, or per-directory. But it's a pretty safe bet that, unless
 someone has modified the configuration, **index.html** will work as a
 front page.
 
@@ -368,7 +372,7 @@ layout — understanding these elements helps you diagnose whether the
 problem is in the HTML or in the server configuration.
 
 The comprehensive guide to HTML may be found at
-https://developer.mozilla.org/en-US/docs/Web/HTML — the Mozilla
+https://developer.mozilla.org/en-US/docs/web/HTML — the Mozilla
 Developer Network (MDN) reference is thorough, up to date, and free.
 The W3Schools tutorial at https://www.w3schools.com/html/ is another
 popular starting point.
@@ -440,7 +444,7 @@ See Also
 * :ref:`Recipe_File_permissions`
 
 * The Mozilla Developer Network HTML reference at
-  https://developer.mozilla.org/en-US/docs/Web/HTML
+  https://developer.mozilla.org/en-US/docs/web/HTML
 
 * :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
 
@@ -484,7 +488,7 @@ Solution
 ~~~~~~~~
 
 
-Apache httpd is configured **via** text configuration files. So, in order
+Apache httpd is configured via text configuration files. So, in order
 to modify the configuration, you need to use a text editor.
 
 Fortunately (and unfortunately), there are dozen to choose from.
@@ -580,7 +584,7 @@ See Also
 
 .. _Recipe_Directive_goes_where:
 
-Placing Directives Properly
+Placing directives properly
 ---------------------------
 
 .. index:: directives
@@ -610,19 +614,19 @@ Solution
 
 
 If you wish the scope of the directive to be global (**i.e.**, you
-want it to affect all requests to the Web server), then it should be
+want it to affect all requests to the web server), then it should be
 put in the main body of the configuration file or it should be put in
-the section starting with the line **&lt;Directory /&gt;** and ending with **&lt;/Directory&gt;**.
+the section starting with the line ``<Directory />`` and ending with ``</Directory>``.
 
 If you wish the directive to affect only a particular directory,
-it should be put in a **&lt;Directory&gt;** section that specifies
+it should be put in a ``<Directory>`` section that specifies
 that directory. Be aware that directives specified in this manner also
 affect subdirectories of the stated directory.
 
 Likewise, if you wish the directive to affect a particular
 virtual host or a particular set of URLs, then the directive should be
-put in a **&lt;VirtualHost&gt;**
-section, **&lt;Location&gt;** section, or perhaps a **&lt;Files&gt;** section, referring to the
+put in a ``<VirtualHost>``
+section, ``<Location>`` section, or perhaps a ``<Files>`` section, referring to the
 particular scope in which you want the directive to apply.
 
 In short, the answer to "Where should I put it?" is to find the scope
@@ -642,13 +646,13 @@ from one situation to another.
 
 The situation is further complicated by the fact that the
 configuration file is frequently split over several files, which are
-loaded **via** **Include** directives, and
+loaded via **Include** directives, and
 the (usually) mistaken impression that it will make a difference
 whether a directive is put in one file or another.
 
 Knowing exactly where to put a particular directive comes from
 understanding how httpd deals with sections (such as 
-**&lt;Directory&gt;** and **&lt;Location&gt;**). There is seldom one magic
+``<Directory>`` and ``<Location>``). There is seldom one magic
 place that a directive must be placed to make it work. Rather, you
 need to think about how the configuration file is parsed, and which
 portion of it will be in effect during any specific request.
@@ -669,7 +673,7 @@ the last one appearing will be the one that is actually in
 effect.
 
 In the other situation, it's important to understand that, while
-directives in one directory apply to subdirectories, a **&lt;Directory&gt;** section referring to a
+directives in one directory apply to subdirectories, a ``<Directory>`` section referring to a
 more specific or "deeper" directory will have precedence over sections
 referring to "shallower" directories. For example, consider the
 following configuration:
@@ -692,7 +696,7 @@ following configuration:
    </Directory>
 
 
-Files accessed from the directory **``/www/docs/mod/misc/``** will 
+Files accessed from the directory ``/www/docs/mod/misc/`` will 
 have **Options** **Includes** in effect but will not have
 **Options ExecCGI** in effect, because
 the more specific directory section is the configuration that
@@ -855,7 +859,7 @@ Because there are several third-party distributions of httpd,
 and each one makes their own decisions about
 configuration file layout, these decisions have been documented in the
 Apahche HTTP server wiki, at
-http://wiki.apache.org/httpd/DistrosDefaultLayout where
+https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout where
 they can be updated as those layouts shift over time.
 
 
@@ -865,7 +869,7 @@ See Also
 ~~~~~~~~
 
 
-http://wiki.apache.org/httpd/DistrosDefaultLayout
+https://cwiki.apache.org/confluence/display/httpd/DistrosDefaultLayout
 
 .. refcosplay
 
@@ -1119,30 +1123,30 @@ Discussion
 
 Each of the possible values of ``Options`` enables (or disables) major
 categories of functionality of httpd. These can be
-set globally, **per** directory, **per** virtual host, or in ``.htaccess``
+set globally, per directory, per virtual host, or in ``.htaccess``
 files.
 
 Possible values for the ``Options`` directive are:
 
 
 +------------------------------+-----------------------------------------------------------------+
-| **``All``**                  | All options except for MultiViews. This is the default setting. |
+| ``All``                  | All options except for MultiViews. This is the default setting. |
 +------------------------------+-----------------------------------------------------------------+
-| **``None``**                 | Disable all categories of options                               |
+| ``None``                 | Disable all categories of options                               |
 +------------------------------+-----------------------------------------------------------------+
-| **``ExecCGI``**              | Execution of CGI scripts using mod_cgi is permitted.            |
+| ``ExecCGI``              | Execution of CGI scripts using mod_cgi is permitted.            |
 +------------------------------+-----------------------------------------------------------------+
-| **``FollowSymLinks``**       | The server will follow symbolic links in this directory.        |
+| ``FollowSymLinks``       | The server will follow symbolic links in this directory.        |
 +------------------------------+-----------------------------------------------------------------+
-| **``SymLinksIfOwnerMatch``** |                                                                 |
+| ``SymLinksIfOwnerMatch`` |                                                                 |
 +------------------------------+-----------------------------------------------------------------+
-| **``Includes``**             | Server-side includes provided by _mod_include_ are permitted.   |
+| ``Includes``             | Server-side includes provided by _mod_include_ are permitted.   |
 +------------------------------+-----------------------------------------------------------------+
-| **``IncludesNOEXEC``**       | Server-side includes are permitted, but ``#exec`` is disabled.  |
+| ``IncludesNOEXEC``       | Server-side includes are permitted, but ``#exec`` is disabled.  |
 +------------------------------+-----------------------------------------------------------------+
-| **``Indexes``**              |                                                                 |
+| ``Indexes``              |                                                                 |
 +------------------------------+-----------------------------------------------------------------+
-| **``MultiViews``**           |                                                                 |
+| ``MultiViews``           |                                                                 |
 +------------------------------+-----------------------------------------------------------------+
 
 
@@ -1262,7 +1266,7 @@ such as http://www.whatismyip.com/ which tells you what address you
 are visiting from.
 
 If you have a server at a public cloud provider, such as Amazon
-Web Services, or Rackspace, you can determine your IP address by
+web Services, or Rackspace, you can determine your IP address by
 typing, at the command line:
 
 
@@ -1305,7 +1309,7 @@ Finding website hosting
 
 .. index:: VPS
 
-.. index:: Web hosting
+.. index:: web hosting
 
 .. index:: Finding website hosting
 
@@ -1330,10 +1334,10 @@ Solution
 Many server hosting companies are available where you can host a web
 server, or any other Internet service, for a monthly fee. Some of
 these give you a dedicated server on which you can run any service you
-wish. Others give you a shared Web host, where you can only run a
+wish. Others give you a shared web host, where you can only run a
 Website and no other services.
 
-Searching on your favorite Web search engine for 'web hosting' or 'vps
+Searching on your favorite web search engine for 'web hosting' or 'vps
 hosting' will find many many options.
 
 
@@ -1343,7 +1347,7 @@ Discussion
 ~~~~~~~~~~
 
 
-There are a large number of organizations that provide Web hosting
+There are a large number of organizations that provide web hosting
 services, and it would be impossible to enumerate them here. As
 mentioned above, a web search for 'web hosting' or 'vps hosting' will
 find many of them.
@@ -1351,7 +1355,7 @@ find many of them.
 VPS stands for Virtual Private Server, and refers generally to a
 service where you can rent a virtual server which you can do with as
 you please. This is one of the most common ways that you might acquire
-Web space.
+web space.
 
 A VPS requires that you act as your own server administrator, managing
 the operating system as well as the web server, and so is the route
@@ -1359,8 +1363,8 @@ you want to take if you know something about server administration,
 usually on Linux, and want to control everything. Reputable VPS
 hosting providers include such vendors as Rackspace.com and DigitalOcean.Com.
 
-On the other hand, if you just want Web space where you can put Web
-content, a shared Web space host may be the way to go. Such vendors
+On the other hand, if you just want web space where you can put web
+content, a shared web space host may be the way to go. Such vendors
 are too numerous to name, but popular ones include Dreamhost.com and
 1and1.com.
 
@@ -1374,7 +1378,7 @@ beneath that level.
 For the purposes of this book, and hosting your own httpd,
 a VPS makes the most sense, since you'll need to be able to
 configure and restart your own server, which isn't possible when
-you're simply renting Web space.
+you're simply renting web space.
 
 
 .. _See_Also_hosting:
@@ -1417,7 +1421,7 @@ Problem
 ~~~~~~~
 
 
-You've acquired a web host, and need to copy your Web content from
+You've acquired a web host, and need to copy your web content from
 your local computer to the remote server.
 
 
@@ -1431,7 +1435,7 @@ There are a variety of ways to copy files across the internet. Common
 protocols include SCP (Secure Copy), SFTP (Secure File Transfer
 Protocol), and FTP (File Transfer Protocol), in decreasing order of
 security (and, thus, desirability). What's available to you will
-depend on the exact nature of your Web hosting provider.
+depend on the exact nature of your web hosting provider.
 
 Depending on what operating system you're running on your local
 computer, different remote copy solutions will be available to you.
@@ -1449,7 +1453,7 @@ Discussion
 
 SCP - Secure Copy - allows you to transfer files securely from one
 computer to another across the Internet, and is the preferred way to
-copy files up to your web host. There are still a few Web hosting
+copy files up to your web host. There are still a few web hosting
 providers that don't support SCP, but not very many.
 
 FTP, File Transfer Protocol, once fairly universal, is falling out of
@@ -1559,7 +1563,7 @@ See Also
 
 .. _Recipe_favicon:
 
-Setting a Default 'favicon'
+Setting a default 'favicon'
 ---------------------------
 
 .. index:: favicon.ico
@@ -1606,7 +1610,7 @@ Discussion
 ~~~~~~~~~~
 
 
-**favicon.ico** files allow Web
+**favicon.ico** files allow web
 sites to provide a small (16 × 16 pixels) image to clients for use in
 labeling pages; for instance, the Mozilla browser will show the
 favicon in the location bar and in any page tabs. These files are
@@ -1644,7 +1648,7 @@ See Also
 Web site design
 ---------------
 
-.. index:: Web site design
+.. index:: web site design
 
 .. index:: Design
 
@@ -1675,7 +1679,7 @@ Discussion
 ~~~~~~~~~~
 
 
-Web site design is an art, and not one that I, the author of this
+web site design is an art, and not one that I, the author of this
 book, have mastered. Fortunately, there are many practitioners of this
 art who you can contact to help you with your website. There are also
 many, many web site design books available. 
@@ -1684,7 +1688,7 @@ Don't neglect designing for mobile clients, as that is a large and
 growing percentage of your audience.
 
 A good place to start on your quest to be a web designer might be
-*Learning Web Design* by Jennifer Niederst Robbins
+*Learning web Design* by Jennifer Niederst Robbins
 (https://www.learningwebdesign.com/). The Mozilla Developer Network
 also has an excellent free tutorial series, "Learn web development,"
 at https://developer.mozilla.org/en-US/docs/Learn that covers HTML,
@@ -1706,7 +1710,7 @@ See Also
    The following content needs editorial review.
    Check technical accuracy, voice/tone, and fit with surrounding content.
 
-* *Learning Web Design* by Jennifer Niederst Robbins —
+* *Learning web Design* by Jennifer Niederst Robbins —
   https://www.learningwebdesign.com/
 
 * MDN "Learn web development" —

@@ -5,7 +5,7 @@
 .. _Chapter_Dynamic_content:
 
 ===============
-Dynamic Content
+Dynamic content
 ===============
 
 .. index:: Dynamic content
@@ -17,14 +17,14 @@ Dynamic Content
 .. index:: Running scripts
 
 
-Very few Web sites can survive without some mechanism for providing
+Very few web sites can survive without some mechanism for providing
 dynamic content—content that is generated in response to the needs of
 the user. The recipes in this chapter guide you through enabling
 various mechanisms to produce this dynamic content and help you
 troubleshoot possible problems that may occur.
 
 CGI programs are one of the simplest ways to provide dynamic content
-for your Web site. They tend to be easy to write because you can write
+for your web site. They tend to be easy to write because you can write
 them in any language. Thus, you don't have to learn a new language to
 write CGI programs. Examples in this chapter will be given in a
 variety of languages, but it's not necessary that you know these
@@ -106,15 +106,15 @@ lines:
 
 .. warning::
 
-   Note that URLs that map to the directory in question **via** some other
+   Note that URLs that map to the directory in question via some other
    mechanism or URL path, such as another **Alias** or a **RewriteRule**,
    will not benefit from the **ScriptAlias** setting, as this mapping is by
-   URL (``&lt;Location&gt;``), not by directory. As a result, accessing
+   URL (``<Location>``), not by directory. As a result, accessing
    the scripts in this directory through some other URL path may result
    in their code being displayed rather than the script being executed.
 
 
-You also may need to add a **&lt;Directory&gt;** block to permit access
+You also may need to add a ``<Directory>`` block to permit access
 to the directory in question, as a **cgi-bin** directory is usually
 outside of the document directory tree. It is also recommended that
 you deny the use of **.htaccess** files in **cgi-bin** directories:
@@ -150,7 +150,7 @@ See Also
 
 .. _Enabling_CGI_Scripts_in_Non-ScriptAliased_Directories_id140724:
 
-Enabling CGI Scripts in Non-ScriptAliased Directories
+Enabling CGI scripts in Non-ScriptAliased directories
 -----------------------------------------------------
 
 
@@ -196,7 +196,7 @@ Discussion
 .. index:: Directives,ScriptAlias
 
 
-Enabling CGI execution **via** the **ScriptAlias** directive is preferred
+Enabling CGI execution via the **ScriptAlias** directive is preferred
 for a number of reasons over permitting CGI execution in arbitrary
 document directories. The primary reason is security auditing. It is
 much easier to audit your CGI programs if you know where they are, and
@@ -237,7 +237,7 @@ See Also
 
 .. _I_sect18_d1e13831:
 
-Specifying a Default Document in a CGI Directory
+Specifying a default document in a CGI directory
 ------------------------------------------------
 
 
@@ -366,7 +366,7 @@ See Also
 
 .. _Using_Windows_File_Extensionsto_Launch_CGI_Programs_id141031:
 
-Using Windows File Extensions to Launch CGI Programs
+Using Windows file extensions to launch CGI programs
 ----------------------------------------------------
 
 
@@ -379,7 +379,7 @@ Problem
 You want to have CGI programs on Windows executed by the program
 associated with the file extension. For example, you want **.pl**
 scripts to be executed by **perl.exe** without having to change the
-scripts' **``#!``** line to point at the right location of **perl.exe**.
+scripts' ``#!`` line to point at the right location of **perl.exe**.
 
 
 .. _Solution_id141107:
@@ -481,7 +481,7 @@ See Also
 
 .. _Using_Extensions_to_Identify_CGI_Scripts_id141365:
 
-Using Extensions to Identify CGI Scripts
+Using extensions to identify CGI scripts
 ----------------------------------------
 
 
@@ -555,7 +555,7 @@ that matches a particular pattern. In this case, a file with a file
 extension of **.cgi**. As mentioned above, a file may have several file
 extensions. Thus, rather than using a pattern of **\.cgi$**, which would
 require that the filename ended with **.cgi**, the pattern **\.cgi(\.|$)** is used instead. The
-**``(\.|$)``** regular expression syntax requires that **.cgi** be
+``(\.|$)`` regular expression syntax requires that **.cgi** be
 followed either by another **.**, or the end of the string.
 
 
@@ -570,7 +570,7 @@ See Also
 
 .. _Testing_That_CGI_Is_Set_Up_Correctly_id141582:
 
-Testing that CGI Is Set Up Correctly
+Testing that CGI is set up correctly
 ------------------------------------
 
 
@@ -582,7 +582,7 @@ Problem
 
 You want to test that you have CGI enabled correctly. Alternatively,
 you are receiving an error message when you try to run your CGI script
-and you want to ensure the problem doesn't lie in the Web server
+and you want to ensure the problem doesn't lie in the web server
 before you try to find a problem in the script.
 
 
@@ -658,7 +658,7 @@ the correctness of a particular CGI program.
 
 There are a variety of reasons why a particular CGI program might not
 work. In very general terms, it can be in one of three categories:
-misconfiguration of the Web server; an error in the program itself; or
+misconfiguration of the web server; an error in the program itself; or
 incorrect permissions on the files and directories in question.
 
 Fortunately, when something goes wrong with one of your CGI programs,
@@ -736,7 +736,7 @@ example, to find the correct location for Perl, you would type:
 The other scenario is that the file has been corrupted somehow so that
 the ``#!`` line is illegible. The most common cause of this second
 condition is when a script file is transferred from a Windows machine
-to a Unixish machine, **via** FTP, in binary mode rather than ASCII
+to a Unixish machine, via FTP, in binary mode rather than ASCII
 mode. This results in a file with the wrong type of end-of-line
 characters, so that httpd is unable to correctly read the location of
 the script interpreter.
@@ -770,7 +770,7 @@ See Also
 
 .. _Reading_Form_Parameters_id142026:
 
-Reading Form Parameters
+Reading form parameters
 -----------------------
 
 
@@ -780,7 +780,7 @@ Problem
 ~~~~~~~
 
 
-You want your CGI program to read values from Web forms for use in
+You want your CGI program to read values from web forms for use in
 your program.
 
 
@@ -884,7 +884,7 @@ library than to reimplement functionality yourself.
 The Perl example uses Lincoln Stein's **CGI.pm** module, which is a
 standard part of the Perl distribution and will be installed if you
 have Perl installed. The library is loaded using the **use** keyword and
-is used **via** the object-oriented (OO) interface.
+is used via the object-oriented (OO) interface.
 
 The **param** method returns the value of a given form field. When
 called with no arguments, **params()** returns a list of the form field
@@ -928,7 +928,7 @@ programs is as follows:
 
 The examples given in this recipe each use CGI libraries, or modules,
 for the actual functionality of parsing the HTML form
-contents. Although many CGI tutorials on the Web show you how to do
+contents. Although many CGI tutorials on the web show you how to do
 the form parsing yourself, I don't recommend it. One of the great
 virtues of a programmer is laziness, and using modules, rather than
 reinventing the wheel, is one of the most important manifestations of
@@ -960,7 +960,7 @@ See Also
 
 .. _Recipe_CGI_Action:
 
-Invoking a CGI Program for Certain Content Types
+Invoking a CGI program for certain content types
 ------------------------------------------------
 
 
@@ -973,7 +973,7 @@ Problem
 You want to invoke a CGI program to act as a sort of content filter
 for certain document types. For example, a photographer may wish to
 create a custom handler to add a watermark to photographs served from
-his Web site.
+his web site.
 
 
 .. _Solution_CGI_Action:
@@ -1075,7 +1075,7 @@ used to filter the contents of the page itself. This
 may be better accomplished with ``mod_ext_filter``.
 
 This script is intended to illustrate the technique, **not** to be used
-to add footer text to Web pages!  It doesn't do any of the checking
+to add footer text to web pages!  It doesn't do any of the checking
 that would be necessary for such a task ("Is this an HTML file?," "Is
 it safe to add HTML after all of the content?," and so on).
 
@@ -1094,7 +1094,7 @@ See Also
 
 .. _Getting_SSIs_to_Work_id142764:
 
-Getting SSIs to Work
+Getting SSIs to work
 --------------------
 
 
@@ -1147,7 +1147,7 @@ Discussion
 ~~~~~~~~~~
 
 
-SSIs provide a way to add dynamic content to an HTML page **via** a
+SSIs provide a way to add dynamic content to an HTML page via a
 variety of simple tags. This functionality is implemented by the
 ``mod_include`` module, which is documented at
 http://httpd.apache.org/docs/mod/mod_include.html. There
@@ -1171,11 +1171,11 @@ following line in it:
 .. tip::
 
    Note the space between the last argument and the closing
-   "``--&gt;``". This space is surprisingly important; many SSI failures
+   "``-->``". This space is surprisingly important; many SSI failures
    can be traced to its omission.
 
 
-Accessing this document **via** your server should result in the page
+Accessing this document via your server should result in the page
 displaying the date and time when you modified (or created) the file.
 
 If you wish to enable SSIs, but do not wish to permit execution of CGI
@@ -1230,7 +1230,7 @@ See Also
 
 .. _Displaying_Last_Modified_Date_id143266:
 
-Displaying Last Modified Date
+Displaying last modified date
 -----------------------------
 
 
@@ -1240,7 +1240,7 @@ Problem
 ~~~~~~~
 
 
-You want your Web page to indicate when it was last modified but not
+You want your web page to indicate when it was last modified but not
 have to change the date every time.
 
 
@@ -1289,7 +1289,7 @@ See Also
 
 .. _Including_a_Standard_Header_id143444:
 
-Including a Standard Header
+Including a standard header
 ---------------------------
 
 
@@ -1324,7 +1324,7 @@ Discussion
 
 
 By using the SSI **include** directive, you can have a single header
-file that can be used throughout your Web site. When your header needs
+file that can be used throughout your web site. When your header needs
 to be modified, you can make this change in one place and have it go
 into effect immediately across your whole site.
 
@@ -1383,7 +1383,7 @@ See Also
 
 .. _Including_the_Output_of_a_CGI_Program_id143785:
 
-Including the Output of a CGI Program
+Including the output of a CGI program
 -------------------------------------
 
 
@@ -1440,7 +1440,7 @@ See Also
 
 .. _Running_CGI_Scripts_as_a_Different_User_with_suexec_id144040:
 
-Running CGI Scripts as a Different User with suexec
+Running CGI scripts as a different user with suexec
 ---------------------------------------------------
 
 
@@ -1514,10 +1514,10 @@ content are still accessed as the user and group specified in the
 those in the virtual host, and need to be readable by that user and
 group. Second, any CGI program run out of a **UserDir** directory is
 run with the permissions of the owner of that directory. That is, if a
-CGI program is accessed **via** the URL
+CGI program is accessed via the URL
 http://example.com/~rbowen/cgi-bin/test.cgi, then that
-program will be executed, **via** **suexec**, with a userid of
-**``rbowen``**, and a groupid of **``rbowen``**'s primary group.
+program will be executed, via **suexec**, with a userid of
+``rbowen``, and a groupid of ``rbowen``'s primary group.
 
 
 .. _apacheckbk-CHP-8-NOTE-114:
@@ -1540,12 +1540,12 @@ program will be executed, **via** **suexec**, with a userid of
       --with-suexec-userdir=www
 
 
-Running CGI programs **via** **suexec** eliminates some of the security
+Running CGI programs via **suexec** eliminates some of the security
 concerns surrounding CGI programs. By default, CGI programs run with
 the permissions of the user and group specified in the **User** and
 **Group** directives, meaning that they have rather limited ability to
 do any damage. However, it also means that CGI programs on one part of
-your Web server run with all the same permissions as those on another
+your web server run with all the same permissions as those on another
 part of your server, and any files that are created or modified by one
 will be modifiable by another.
 
@@ -1553,7 +1553,7 @@ By running a CGI program under **suexec**, you allow each user to
 exercise a little more control over her own file permissions, and in
 the event that a malicious CGI program is written, it can only damage
 the files owned by the user in question, rather than having free rein
-over the entire Web server.
+over the entire web server.
 
 PHP scripts that are run as CGI programs, rather than under the
 ``mod_php`` handler, may be run as **suexec** processes in the same
@@ -1584,7 +1584,7 @@ See Also
 
 .. _Installing_a_mod_perl_Handler_from_CPAN_id144561:
 
-Installing a mod_perl Handler from CPAN
+Installing a mod_perl handler from CPAN
 ---------------------------------------
 
 
@@ -1652,7 +1652,7 @@ of ``mod_perl`` handlers.
 
 The module specified in this recipe is a very simple one that gives
 you HTML documentation for any Perl module you have installed,
-accessible **via** your httpd. Other ones provide photo albums,
+accessible via your httpd. Other ones provide photo albums,
 weblog handlers, and DNS zone management, among other things.
 
 The first time you run the CPAN shell, you will need to answer a
@@ -1686,7 +1686,7 @@ See Also
 
 .. _Writing_a_mod_perl_Handler_id144894:
 
-Writing a mod_perl Handler
+Writing a mod_perl handler
 --------------------------
 
 
@@ -1733,7 +1733,7 @@ Discussion
 
 The example handler given is fairly trivial and does not do anything
 useful. More useful examples may be obtained from the ``mod_perl``
-Web site (http://perl.apache.org) and from Geoffrey Young's
+web site (http://perl.apache.org) and from Geoffrey Young's
 (et al.) excellent book) ``mod_perl Developer's Cookbook``
 (Sams). Also, although it is somewhat dated, the "Eagle book"
 (**Writing httpd Modules with Perl and C**) by Lincoln Stein and Doug
@@ -1821,7 +1821,7 @@ See Also
 
 .. _Recipe_enabling_mod_php:
 
-Enabling PHP Script Handling with mod_php
+Enabling PHP script handling with mod_php
 -----------------------------------------
 
 
@@ -1873,13 +1873,13 @@ See Also
 ~~~~~~~~
 
 
-* Installation instructions on the ``mod_php`` Web site at
+* Installation instructions on the ``mod_php`` web site at
   http://www.php.net/manual/en/install.apache2.php
 
 
 .. _Verifying_PHP_Installation_id145392:
 
-Verifying PHP Installation
+Verifying PHP installation
 --------------------------
 
 
@@ -1970,7 +1970,7 @@ See Also
 
 .. _ACB-CH-08-SECT-ssi-cgi:
 
-Parsing CGI Output for Server Side Includes
+Parsing CGI output for Server Side Includes
 -------------------------------------------
 
 
@@ -2019,7 +2019,7 @@ See Also
 
 .. _ACB-CH-08-SECT-ssi-scriptalias:
 
-Parsing ScriptAlias Script Output for Server-Side Includes
+Parsing ScriptAlias script output for server-side includes
 ----------------------------------------------------------
 
 
@@ -2036,7 +2036,7 @@ Solution
 ~~~~~~~~
 
 
-Put the following into the **&lt;Directory&gt;** container for your
+Put the following into the ``<Directory>`` container for your
 **ScriptAlias** directory:
 
 
@@ -2064,7 +2064,7 @@ See Also
 
 .. _I_sect18_d1e15579:
 
-Getting mod_perl to Handle All Perl Scripts
+Getting mod_perl to handle all Perl scripts
 -------------------------------------------
 
 
@@ -2090,7 +2090,7 @@ module declaration and activation sections:
 
 Place this code in the section of your **httpd.conf** file which
 includes the scope where you want this behavior to occur (such as
-within a **&lt;Directory&gt;** container:
+within a ``<Directory>`` container:
 
 
 .. code-block:: text
@@ -2110,11 +2110,11 @@ Discussion
 
 
 The **PerlModule** directive ensures that the necessary bits from
-``mod_perl`` are available. The **&lt;FilesMatch&gt;_ applies to
+``mod_perl`` are available. The **<FilesMatch>_ applies to
 every file ending in ``.pl`` and instructs the server to treat it as a
 script to be handled as CGI scripts by the **Apache::Registry** package.
 
-More information can be found at the ``mod_perl`` Web site
+More information can be found at the ``mod_perl`` web site
 (http://perl.apache.org).
 
 These directives will result in **all** ``.pl`` files being treated as CGI
@@ -2130,7 +2130,7 @@ See Also
 ~~~~~~~~
 
 
-* The mod_perl Web site at http://perl.apache.org
+* The mod_perl web site at http://perl.apache.org
 
 * ``mod_perl Developer's Cookbook``, by
    Geoffrey Young et al., which can be accessed at http://modperlcookbook.org/
@@ -2138,7 +2138,7 @@ See Also
 
 .. _ACB-CH-08-SECT-pythonenable:
 
-Enabling Python Script Handling
+Enabling Python script handling
 -------------------------------
 
 .. index:: Python; CGI scripts
@@ -2307,7 +2307,7 @@ Discussion
    The following content needs editorial review.
    Check technical accuracy, voice/tone, and fit with surrounding content.
 
-WSGI — the Web Server Gateway Interface — is the standard Python
+WSGI — the web Server Gateway Interface — is the standard Python
 interface between web servers and web applications. Frameworks like
 Django, Flask, Pyramid, and Bottle all provide a WSGI-compatible
 application object. ``mod_wsgi`` embeds a Python interpreter inside
@@ -2389,8 +2389,8 @@ See Also
 
 .. _Recipe_mod_cgid:
 
-CGI with Threaded MPMs: mod_cgid
----------------------------------
+CGI with threaded MPMs: mod_cgid
+--------------------------------
 
 .. index:: mod_cgid
 .. index:: CGI; threaded MPMs
@@ -2525,15 +2525,15 @@ When CGI scripts that worked under **prefork** fail after a
 switch to **event** or **worker**, check the following:
 
 1. **Socket permissions.** If you see ``(13)Permission denied``
-   errors in the error log referencing the CGI socket, the
-   ``ScriptSock`` directory may have incorrect ownership or
-   permissions.
+errors in the error log referencing the CGI socket, the
+``ScriptSock`` directory may have incorrect ownership or
+permissions.
 
 2. **Script log.** Enable ``ScriptLog`` temporarily to capture
-   headers and output from failing scripts. Remember that
-   ``ScriptLog`` is a debugging tool and should not remain
-   enabled on production servers, as it is not optimized for
-   performance:
+headers and output from failing scripts. Remember that
+``ScriptLog`` is a debugging tool and should not remain
+enabled on production servers, as it is not optimized for
+performance:
 
    .. code-block:: apache
 
@@ -2542,13 +2542,13 @@ switch to **event** or **worker**, check the following:
       ScriptLogBuffer 4096
 
 3. **SELinux or AppArmor.** Security frameworks may block the
-   server from creating or connecting to the Unix domain socket.
-   Check your audit log for denials and create an appropriate
-   policy rule.
+server from creating or connecting to the Unix domain socket.
+Check your audit log for denials and create an appropriate
+policy rule.
 
 4. **Timeout errors.** If your error log shows
-   ``Timeout waiting for output from CGI script``, increase
-   ``CGIDScriptTimeout`` or investigate why the script is slow.
+``Timeout waiting for output from CGI script``, increase
+``CGIDScriptTimeout`` or investigate why the script is slow.
 
 
 .. _See_Also_mod_cgid:
@@ -2572,8 +2572,8 @@ See Also
 
 .. _Recipe_mod_env:
 
-Passing Environment Variables to Applications
------------------------------------------------
+Passing environment variables to applications
+---------------------------------------------
 
 .. index:: mod_env
 .. index:: Environment variables

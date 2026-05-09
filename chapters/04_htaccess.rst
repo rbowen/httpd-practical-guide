@@ -2,7 +2,7 @@
 .. _Chapter_htaccess:
 
 ===============
-.htaccess Files
+.htaccess files
 ===============
 
 .. epigraph::
@@ -679,7 +679,7 @@ Solution
 
 
 This problem is discussed in detail in
-:ref:`Recipe_Performance_impact_of_htaccess_files`.
+:ref:`Recipe_htaccess-performance`.
 
 See Also
 ~~~~~~~~
@@ -690,7 +690,7 @@ See Also
 
 .. _Recipe_Renaming-htaccess:
 
-Renaming .htaccess Files
+Renaming .htaccess files
 ------------------------
 
 .. index:: .htaccess files,Renaming
@@ -719,7 +719,7 @@ Problem
 
 
 You want to change the default name of
-**per**-directory configuration files on a Windows
+per-directory configuration files on a Windows
 system, because filenames beginning with a dot can cause
 problems on Microsoft Windows servers.
 
@@ -763,8 +763,8 @@ something else, as show in the recipe above.
 
 If you use the **AccessFileName**
 directive, be sure to make any additional appropriate changes to your
-configuration such as the **&lt;FilesMatch "^\.ht"&gt;** container that keeps the files from being
-fetchable over the Web:
+configuration such as the ``<FilesMatch "^\.ht">`` container that keeps the files from being
+fetchable over the web:
 
 
 .. code-block:: text
@@ -798,7 +798,7 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Recipe_Performance_impact_of_htaccess_files`
+* :ref:`Recipe_htaccess-performance`
 
 * http://httpd.apache.org/docs/howto/htaccess.html
 
@@ -807,7 +807,7 @@ See Also
 
 .. _Recipe_rewrite-htaccess-seeother:
 
-Troubleshooting Rewrite directives in .htaccess files
+Troubleshooting rewrite directives in .htaccess files
 -----------------------------------------------------
 
 

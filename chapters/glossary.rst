@@ -127,7 +127,7 @@ Glossary
 
    HTTP
       HyperText Transfer Protocol. The foundational application-layer
-      protocol of the World Wide Web, defining how clients request resources
+      protocol of the World Wide web, defining how clients request resources
       and how servers respond. Defined by a series of :term:`RFC` documents.
 
    HTTPS

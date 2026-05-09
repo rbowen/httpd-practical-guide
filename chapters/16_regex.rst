@@ -185,7 +185,7 @@ instead.
 
 .. _charclass:
 
-Character Classes
+Character classes
 -----------------
 
 .. index:: Character classes

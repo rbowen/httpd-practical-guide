@@ -1,7 +1,7 @@
 .. _Chapter_Filters_And_Handlers:
 
 ====================
-Filters and Handlers
+Filters and handlers
 ====================
 
 .. epigraph::
@@ -325,7 +325,7 @@ following:
 Notice that in this example, the ``$`` has been removed from the regular
 expression, and thus it will match ``.php`` anywhere in the file name.
 
-You can remove a handler that has been applied **via** ``SetHandler`` by
+You can remove a handler that has been applied via ``SetHandler`` by
 specifying the argument ``none``:
 
 
@@ -710,7 +710,7 @@ Solution
 
 
 ``mod_brotli`` is a new module in httpd 2.4 which provides content
-compression **via** the ``brotli`` compression library.
+compression via the ``brotli`` compression library.
 
 Load ``mod_brotli``, and enable compression:
 
@@ -1887,7 +1887,7 @@ Solution
 ~~~~~~~~
 
 
-Use ``mod_reflector`` to make a filter available to external clients **via**
+Use ``mod_reflector`` to make a filter available to external clients via
 the filter stack.
 
 
@@ -1924,8 +1924,8 @@ available as a service:
    </Location>
 
 
-Clients would then post their movie clip **via** HTTP, and receive the gif
-file **via** the HTTP response.
+Clients would then post their movie clip via HTTP, and receive the gif
+file via the HTTP response.
 
 
 .. _See_Also_filtering_as_a_service:

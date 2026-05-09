@@ -5,7 +5,7 @@
 .. _Chapter_AAA:
 
 =================================================
-Authentication, Authorization, and Access Control
+Authentication, authorization, and access control
 =================================================
 
 .. index:: AAA
@@ -37,19 +37,19 @@ distinct, but closely related and interconnected.
 In this chapter, security means allowing people to see what you
 want them to see and preventing them from seeing what you don't want them
 to see. Additionally, there are the issues of what measures you need to
-take on your server in order to restrict access **via** non-Web means. This
+take on your server in order to restrict access via non-web means. This
 chapter illustrates the precautions you need to take to protect your
-server from malicious access and modification of your Web site.
+server from malicious access and modification of your web site.
 
 The most common questions ask how to protect documents and restrict
 access. Unfortunately, because of
-the complexity of the subject and the nature of the Web architecture,
+the complexity of the subject and the nature of the web architecture,
 these questions also tend to have the most complex answers or often no
 convenient answers at all.
 
 Normal security nomenclature and methodology separate the process of
 applying access controls into two
-discrete steps; in the case of the Web, they may be thought of as the
+discrete steps; in the case of the web, they may be thought of as the
 server asking itself these questions:
 
 * Are you really who you claim to be?
@@ -93,7 +93,7 @@ restrict access from malicious or otherwise undesirable clients.
 .. _Authentication_and_Authorization_sidebar:
 
 
-Authentication and Authorization
+Authentication and authorization
 --------------------------------
 
 .. sidebar:: Authentication and Authorization
@@ -103,7 +103,7 @@ Authentication and Authorization
    and checking to see if you're allowed to see the document. Just like
    in the example of boarding a plane, earlier.
    
-   The Web server doesn't know who you are, so you need to provide some proof of your identity, such as a
+   The web server doesn't know who you are, so you need to provide some proof of your identity, such as a
    username and matching password. This is the authentication step. When the server successfully compares
    these bits of information (called credentials)
    with those in its databases, the server will proceed, but if you're not
@@ -133,7 +133,7 @@ Authentication and Authorization
 
 .. _Recipe_authn_provider_architecture:
 
-Understanding the Authentication Provider Architecture
+Understanding the authentication provider architecture
 ------------------------------------------------------
 
 .. index:: mod_authn_core
@@ -204,21 +204,21 @@ Here is how the full provider chain works in a typical configuration:
 The processing flow is:
 
 1. ``AuthType Basic`` (:module:`mod_authn_core`) tells the server to
-   use HTTP Basic authentication and to send a ``401`` challenge if no
-   credentials are present.
+use HTTP Basic authentication and to send a ``401`` challenge if no
+credentials are present.
 
 2. ``AuthName "Staff Portal"`` (:module:`mod_authn_core`) sets the
-   realm string displayed in the browser's password dialog.
+realm string displayed in the browser's password dialog.
 
 3. ``AuthBasicProvider file ldap`` (:module:`mod_auth_basic`) defines
-   the provider chain. The ``file`` provider
-   (:module:`mod_authn_file`) is tried first. If it cannot verify the
-   user, the ``ldap`` provider (:module:`mod_authnz_ldap`) is tried
-   next. Providers are consulted in the order listed.
+the provider chain. The ``file`` provider
+(:module:`mod_authn_file`) is tried first. If it cannot verify the
+user, the ``ldap`` provider (:module:`mod_authnz_ldap`) is tried
+next. Providers are consulted in the order listed.
 
 4. ``Require valid-user`` (:module:`mod_authz_user`) grants access to
-   any user who was successfully authenticated by any provider in the
-   chain.
+any user who was successfully authenticated by any provider in the
+chain.
 
 **Creating provider aliases** with ``<AuthnProviderAlias>`` lets you
 define named instances of a provider with different configurations.
@@ -375,7 +375,7 @@ See Also
 
 .. _Recipe_ldap_connection_pooling:
 
-LDAP Connection Pooling and Performance Tuning
+LDAP connection pooling and performance tuning
 ----------------------------------------------
 
 .. index:: mod_ldap
@@ -552,17 +552,17 @@ LDAP server with immediate retries.
 caching in shared memory:
 
 1. **Search/bind cache** (``LDAPCacheEntries`` / ``LDAPCacheTTL``):
-   Caches the result of successful search-and-bind operations. When a
-   user authenticates, the username, retrieved DN, and password hash
-   are stored. Subsequent requests with the same credentials skip the
-   LDAP server entirely and are validated from cache. Only successful
-   authentications are cached -- failed attempts are always checked
-   against the LDAP server.
+Caches the result of successful search-and-bind operations. When a
+user authenticates, the username, retrieved DN, and password hash
+are stored. Subsequent requests with the same credentials skip the
+LDAP server entirely and are validated from cache. Only successful
+authentications are cached -- failed attempts are always checked
+against the LDAP server.
 
 2. **Operation cache** (``LDAPOpCacheEntries`` / ``LDAPOpCacheTTL``):
-   Caches the results of LDAP compare operations used for group
-   membership checks and attribute comparisons. This avoids repeating
-   expensive ``Require ldap-group`` lookups on every request.
+Caches the results of LDAP compare operations used for group
+membership checks and attribute comparisons. This avoids repeating
+expensive ``Require ldap-group`` lookups on every request.
 
 The ``LDAPSharedCacheSize`` directive controls the total shared memory
 segment available for both caches. The default of 500KB is sufficient
@@ -648,7 +648,7 @@ See Also
 
 .. _Recipe_auth_cache:
 
-Caching Authentication Credentials with Shared Object Caches
+Caching authentication credentials with shared object caches
 ------------------------------------------------------------
 
 .. index:: mod_socache_shmcb
@@ -748,17 +748,17 @@ provider acts as a transparent caching layer in the provider chain:
 1. A request arrives with Basic credentials.
 
 2. ``AuthBasicProvider socache dbd`` causes the ``socache`` provider
-   to be consulted first. It checks the shared memory cache for a
-   matching username and password.
+to be consulted first. It checks the shared memory cache for a
+matching username and password.
 
 3. **Cache hit:** The cached credentials match, and the user is
-   authenticated without contacting the database.
+authenticated without contacting the database.
 
 4. **Cache miss:** The ``socache`` provider passes through to the
-   next provider in the chain (``dbd``). If ``dbd`` authenticates
-   the user successfully, and ``dbd`` is listed in
-   ``AuthnCacheProvideFor``, the credentials are stored in the cache
-   for subsequent requests.
+next provider in the chain (``dbd``). If ``dbd`` authenticates
+the user successfully, and ``dbd`` is listed in
+``AuthnCacheProvideFor``, the credentials are stored in the cache
+for subsequent requests.
 
 The order of providers in the ``AuthBasicProvider`` directive
 matters: ``socache`` must come *before* the heavyweight provider it
@@ -902,7 +902,7 @@ See Also
 
 .. _Recipe_Basic_Auth:
 
-Configuring Basic Authentication
+Configuring basic authentication
 --------------------------------
 
 .. index:: Basic Authentication
@@ -1093,13 +1093,13 @@ See Also
 
 .. _HTTP_Browsers_and_Credentials_sidebar:
 
-.HTTP, Browsers, and Credentials
+.HTTP, browsers, and credentials
 --------------------------------
 
 .. sidebar:: Sidebar
 
    It is easy to draw incorrect conclusions about the behavior of
-   the Web; when you have a page displayed in your browser, it is
+   the web; when you have a page displayed in your browser, it is
    natural to think that you are still connected to that site. In
    actuality, however, that's not the case—once your browser fetches
    the page from the server, both disconnect and forget about each
@@ -1114,7 +1114,7 @@ See Also
    called stateless, and it has a bearing on how
    HTTP access control works.
    
-   When it comes to password-protected pages, the Web server
+   When it comes to password-protected pages, the web server
    doesn't remember whether you've accessed them before or not. Down at
    the HTTP level where the client (browser) and server talk to each
    other, the client has to prove who it is every time; it's the
@@ -1131,7 +1131,7 @@ See Also
    . The server responds, "You are not authorized to access
                  this resource (a ``401 unauthorized`` status). This
                  resource is part of authentication realm
-                 **``XYZ``**." (This information is conveyed
+                 ``XYZ``." (This information is conveyed
                  using the ``WWW-Authenticate``
                  response header field; see RFC 2616 for more
                  information.)
@@ -1172,7 +1172,7 @@ See Also
              users being "logged on" to a site.
    
    This is how all HTTP weak authentication works. One of the
-             common features of most interactive Web browsers is that the
+             common features of most interactive web browsers is that the
              credentials are forgotten when the client is shut down. This is why
              you need to reauthenticate each time you access a protected document in a new browser
              session.
@@ -1180,7 +1180,7 @@ See Also
 
 .. _Recipe_htpasswd:
 
-Creating password files for Basic authentication
+Creating password files for basic authentication
 ------------------------------------------------
 
 .. index:: Basic Authentication,Password file
@@ -1571,7 +1571,7 @@ See Also
 
 .. _Recipe_authentication_groups:
 
-Authentication Groups
+Authentication groups
 ---------------------
 
 .. index:: Authentication,Groups
@@ -1672,7 +1672,7 @@ See Also
 
 .. _Recipe_Digest_Auth:
 
-Configuring Digest Authentication
+Configuring digest authentication
 ---------------------------------
 
 .. index:: Digest Authentication
@@ -1783,7 +1783,7 @@ See Also
 
 .. _Recipe_htdigest:
 
-Managing password files for Digest authentication
+Managing password files for digest authentication
 -------------------------------------------------
 
 .. index:: Digest Authentication
@@ -2280,19 +2280,19 @@ and password across requests.
 
 Important concepts:
 
-- **``Session On``** must appear in each directory or location context
+- ``Session On`` must appear in each directory or location context
   where you want sessions. It doesn't cascade automatically to
   sub-locations.
 
-- **``SessionMaxAge``** is a server-side expiration timer, not a cookie
+- ``SessionMaxAge`` is a server-side expiration timer, not a cookie
   expiration. The timer resets with each request that touches the
   session. Set it to ``0`` to disable expiration (the default).
 
-- **``SessionEnv On``** makes the session contents available to CGI
+- ``SessionEnv On`` makes the session contents available to CGI
   scripts and backend applications as the ``HTTP_SESSION`` environment
   variable. This is off by default for privacy reasons.
 
-- **``SessionHeader``** lets applications write back into the session
+- ``SessionHeader`` lets applications write back into the session
   by returning a named HTTP response header with URL-encoded key-value
   pairs.
 
@@ -2405,12 +2405,12 @@ Key points:
   ``secure`` attribute ensures the cookie is only sent over HTTPS.
   Always set both.
 
-- **``SessionMaxAge``** controls the session lifetime on the server
+- ``SessionMaxAge`` controls the session lifetime on the server
   side. When a session exceeds this age without a request, it's
   treated as expired. Setting it to ``0`` (the default) disables
   expiration.
 
-- **``SessionCookieRemove On``** strips the session cookie from
+- ``SessionCookieRemove On`` strips the session cookie from
   requests forwarded to backend servers in a reverse proxy setup.
   This prevents leaking session data to backends that don't need it.
 
@@ -3869,7 +3869,7 @@ Problem
 
 
 You want all the users on your Unixish system to be able to
-authenticate themselves over the Web using their already-assigned
+authenticate themselves over the web using their already-assigned
 usernames and passwords.
 
 
@@ -3907,7 +3907,7 @@ Discussion
    are protected.
 
 
-We must stress that using system account information for Web
+We must stress that using system account information for web
 authentication is a very bad idea, unless your site is also secured
 using SSL.
 
@@ -3915,11 +3915,11 @@ There are a number of reasons for this.
 
 Any intruder who happens to obtain one of
 your users' credentials not only can access the protected files over
-the Web, but can actually log onto your system where it's possible to
+the web, but can actually log onto your system where it's possible to
 do significant damage.
   
-Web logins don't have the same
-security controls as most operating systems; over the Web, an intruder
+web logins don't have the same
+security controls as most operating systems; over the web, an intruder
 can keep hammering away at a username with password after password
 without the system taking any defensive measures; all these
 authentication modules will do is record a message in the
@@ -3980,7 +3980,7 @@ Problem
 
 
 You wish to place an upper limit on the size of files that may be
-uploaded to your server **via** HTTP POST.
+uploaded to your server via HTTP POST.
 
 
 .. _Solution_limit_upload_size:
@@ -4022,7 +4022,7 @@ HTTP request. Requests that exceed this limit result in a 413 error -
 .. warning::
 
    The same ``Content-length``
-   field is used to indicate the amount of data included in a ``POST`` request, such as from a Web form
+   field is used to indicate the amount of data included in a ``POST`` request, such as from a web form
    submission, so be careful not to set your maximum too low or your
    forms may start getting this error!
 
@@ -4037,7 +4037,7 @@ See Also
 
 .. _Requiring_Both_Weak_and_Strong_Authentication_id130793:
 
-Requiring Both Weak and Strong Authentication
+Requiring both weak and strong authentication
 ---------------------------------------------
 
 
@@ -4126,7 +4126,7 @@ See Also
 .. _Weak_and_Strong_Authentication_sidebar:
 
 
-Weak and Strong Authentication
+Weak and strong authentication
 ------------------------------
 
 .. sidebar:: Weak and Strong Authentication
@@ -4162,7 +4162,7 @@ Weak and Strong Authentication
 
 .. _Recipe_Relaxing:
 
-Relaxing Restrictions for a Subdirectory
+Relaxing restrictions for a subdirectory
 ----------------------------------------
 
 .. index:: Relaxing restrictions
@@ -4253,7 +4253,7 @@ See Also
 
 .. _Recipe_FilesRelax:
 
-Lifting Restrictions Selectively For Files
+Lifting restrictions selectively for files
 ------------------------------------------
 
 .. index:: Relaxing restrictions
@@ -4346,8 +4346,8 @@ Problem
 
 
 You wish to require user authentication based on system file
-        ownership. That is, you want to require that the user that owns the
-        file matches the username that authenticated.
+ownership. That is, you want to require that the user that owns the
+file matches the username that authenticated.
 
 
 .. _Solution_id132728:
@@ -4410,7 +4410,7 @@ See Also
 
 .. _Recipe_Username:
 
-Accessing the Authenticated Username
+Accessing the authenticated username
 ------------------------------------
 
 .. index:: Authentication,username
@@ -4499,7 +4499,7 @@ See Also
 
 .. _Recipe_GetPassword:
 
-Obtaining the Password Used to Authenticate
+Obtaining the password used to authenticate
 -------------------------------------------
 
 .. index:: Authentication,obtaining the password
@@ -4714,7 +4714,7 @@ distribute a link to your users to access a password-protected site
 directly without being prompted for the password.
 
 The browser takes care of the details of sending the username and
-password to the server in the ordinary way (**i.e.**, **via** the
+password to the server in the ordinary way (**i.e.**, via the
 ``WWW-Authenticate`` header) and not as part of the URL.
 
 
@@ -4887,7 +4887,7 @@ module, and to download the latest release.
 The second recipe uses ``mod_security``, which is discussed in further
 detail in :ref:`Chapter_Security`, **Security**. ``mod_security`` is a general purpose
 http-level firewall, and this particular recipe only shows a tiny
-fraction of what it can do. In this recipe, we count request **per** IP
+fraction of what it can do. In this recipe, we count request per IP
 address, and when a particular IP address makes more than 30 requests
 in a second, we block them for 5 seconds. When a client has been
 blocked more than 5 times, we block them for an entire hour. In this
@@ -5258,8 +5258,8 @@ See Also
 
 .. _Recipe_jwt_bearer_auth:
 
-JWT/Bearer token authentication
---------------------------------
+Jwt/bearer token authentication
+-------------------------------
 
 :version:`trunk`
 
@@ -5296,7 +5296,7 @@ JWT/Bearer token authentication
 Problem
 ~~~~~~~
 
-You want to authenticate API requests using JWT (JSON Web Token) bearer
+You want to authenticate API requests using JWT (JSON web Token) bearer
 tokens instead of traditional username/password credentials.
 
 Solution
@@ -5495,8 +5495,8 @@ See Also
 
 .. _Recipe_Migrate_Access_Compat:
 
-Migrating from Order/Allow/Deny to Require
--------------------------------------------
+Migrating from order/allow/deny to Require
+------------------------------------------
 
 .. index:: mod_access_compat
 
@@ -5638,7 +5638,6 @@ See Also
 
 * `mod_access_compat reference <https://httpd.apache.org/docs/current/mod/mod_access_compat.html>`_
 * `Upgrading to 2.4 from 2.2 <https://httpd.apache.org/docs/current/upgrading.html>`_
-* :ref:`Recipe_Authz_User` — the ``Require`` directives for user-based access
 
 
 Summary
