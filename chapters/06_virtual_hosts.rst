@@ -308,15 +308,16 @@ The output of **httpd** **-S** will look like:
 
 .. code-block:: text
 
-   [rbowen@grenache:conf.d/vhosts]$ sudo httpd -S
-   
+   $ sudo httpd -S
+
    VirtualHost configuration:
    *:80  is a NameVirtualHost
-         default server grenache.rcbowen.com (/etc/httpd/conf.d/vhosts/00_grenache.conf:4)
-         port 80 namevhost grenache.rcbowen.com (/etc/httpd/conf.d/vhosts/00_grenache.conf:4)
-         alias grenache
-         port 80 namevhost www.apacheadmin.com (/etc/httpd/conf.d/vhosts/apacheadmin.com.conf:2)
-         alias apacheadmin.com
+         default server df925.net (/etc/httpd/conf.d/vhosts/00_default.conf:4)
+         port 80 namevhost df925.net (/etc/httpd/conf.d/vhosts/00_default.conf:4)
+         port 80 namevhost dandelionforge.com (/etc/httpd/conf.d/vhosts/dandelionforge.conf:2)
+                 alias www.dandelionforge.com
+         port 80 namevhost httpd.rcbowen.com (/etc/httpd/conf.d/vhosts/rcbowen.conf:1)
+                 alias www.rcbowen.com
 
 
 

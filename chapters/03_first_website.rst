@@ -266,17 +266,16 @@ following:
 
 .. code-block:: text
 
-   $ ls -al
-   drwxr-xr-x. 15 rbowen rbowen  4096 Jan  1 16:00 .
-   drwxr-xr-x. 30 root   root    4096 Jan  1 13:49 ..
-   drwxr-xr-x.  8 rbowen rbowen  4096 Oct 29 16:56 .git
-   -rw-r--r--.  1 rbowen rbowen   958 Jan  1 16:00 index.html
-   -rw-r--r--.  1 rbowen rbowen   163 Sep 12 15:41 test.html
+   $ ls -la /usr/local/apache2/htdocs/
+   total 4
+   drwxr-xr-x.  2 root root  24 May  9 17:40 .
+   drwxr-xr-x. 15 root root 175 May  9 18:04 ..
+   -rw-r--r--.  1 root root 191 Nov  7  2025 index.html
 
 
 Each line of output gives a number of pieces of information, including
-the file ownership (these files are owned by the user **rbowen** and by the
-group **rbowen**), the date and time when the file was last modified,
+the file ownership (these files are owned by the user **root** and by the
+group **root**), the date and time when the file was last modified,
 and the file permissions.
 
 That line of letters and dashes at the beginning of of the line shows
@@ -304,7 +303,7 @@ For example, the file permissions for **index.html**, shown above, are:
 
 
 The only requirement for the index.html file is that it be readable by the
-**apache** user. Since the file is owned by **rbowen**, it is sufficient
+**apache** user. Since the file is owned by **root**, it is sufficient
 that there be an **r** in the third group (Other), which there is.
 
 
@@ -339,6 +338,14 @@ http://en.wikipedia.org/wiki/Chmod
 
 See also the ``chown`` command, for changing file ownership.
 
+.. note::
+
+   On SELinux-enabled systems (AlmaLinux, Fedora, RHEL), correct file
+   permissions alone may not be enough — files must also carry the
+   correct SELinux context. If httpd returns "Permission denied" despite
+   correct Unix permissions, try ``restorecon -Rv /path/to/htdocs/``.
+   See :ref:`Recipe_File_permissions` for more detail.
+
 HTML
 ----
 
@@ -348,11 +355,6 @@ HTML
 
 .. index:: JavaScript
 
-
-.. admonition:: DRAFT — Review needed
-
-   The following content needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
 
 HTML — the HyperText Markup Language — is the language of web pages,
 and you need at least a passing familiarity with it if you're going
@@ -393,38 +395,15 @@ companions as you create web content.
 .. index:: localhost
 
 
-At this point, you have your content in place, and, assuming that the
-server is running (See :ref:`Recipe_Starting_stopping`), you will now be
-able to load that content in a web browser. In order to do this, you
-need to know the address of your server.
+To test your server, open a browser and go to ``http://127.0.0.1/``
+(also known as ``localhost``). This is the loopback address — it always
+refers to the machine you're on, regardless of whether it has a public
+hostname yet.
 
-At the moment, your http server doesn't have a name, but it does have
-a network address. The address **127.0.0.1**, also known as **localhost**,
-or **loopback**, refers to the local machine - the computer that you're currently
-using. **127.0.0.1** is network language for "me" - it's the name that
-every computer has for itself.
-
-
-.. tip::
-
-   Every computer that is on a network (or on the Internet) has a network
-   address, called an IP address. (IP stands for Internet Protocol.) This
-   might be a public address (**i.e.**, one that everyone on the Internet can
-   get to), or it might be a private address that is only accessible on
-   your priviate (home or office) network.
-
-
-Opening your web browser and typing that address into the address
-bar will cause the computer to ask itself for a web page. The browser
-will open a HTTP socket to the local machine, and Apache httpd will be
-listening, and will respond by sending the default index page for that
-server.
-
-The first part of the URL - the **http:** part - indicates what protocol
-will be used for the request. Other things that can go in this part of
-the URL include **https:** (See :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**), or other
-things like **ftp:** and **mailto:** for other protocols (FTP and Email,
-respectively).
+If the server is running (see :ref:`Recipe_Starting_stopping`), you
+should see your ``index.html`` page. If you want to access the server
+from another machine on your network, you'll need the server's actual
+IP address or hostname instead.
 
 
 .. _See_Also_Hello_world_website:
@@ -461,15 +440,11 @@ Editing configuration files.
 
 .. index:: Editors
 
+.. index:: VS Code
+
 .. index:: Vim
 
-.. index:: Emacs
-
-.. index:: VI
-
 .. index:: Nano
-
-.. index:: Pico
 
 
 .. _Problem_Editing_config_files:
@@ -478,8 +453,7 @@ Problem
 ~~~~~~~
 
 
-Every change to httpd configuration requires that you
-edit a configuration file. How do you do that?
+You need to edit httpd configuration files. What tools should you use?
 
 
 .. _Solution_Editing_config_files:
@@ -488,20 +462,21 @@ Solution
 ~~~~~~~~
 
 
-Apache httpd is configured via text configuration files. So, in order
-to modify the configuration, you need to use a text editor.
+Use any plain-text editor you're comfortable with. [#vim-joke]_
 
-Fortunately (and unfortunately), there are dozen to choose from.
+On a remote server (over SSH), use a terminal editor:
 
-On Microsoft Windows, you can edit your files using Notepad, or
-whatever plain text editor you prefer. Do not use Word, or other
-binary format word processor programs, but only something that saves
-plain text files by default.
+* **Vim** or **Neovim** — ubiquitous on Linux servers
+* **Nano** — simpler, good for quick edits
 
-On Unix, there are many editors, and if you ask ten people, you'll get
-a dozen recommendations. Favorites include VI (or Vim), Emacs, Nano,
-and Pico. For a beginning Unix user, you might try something more
-graphically oriented such as Gedit.
+On your local machine, use whatever you prefer. A few popular choices
+in 2026:
+
+* **VS Code** (https://code.visualstudio.com/) — free, cross-platform,
+  with Apache config syntax highlighting via extensions. Its Remote-SSH
+  feature lets you edit files on a remote server with a local GUI.
+* **Sublime Text** (https://www.sublimetext.com/)
+* **BBEdit** (macOS) — https://www.barebones.com/products/bbedit/
 
 
 .. _Discussion_Editing_config_files:
@@ -510,67 +485,24 @@ Discussion
 ~~~~~~~~~~
 
 
-Editor choice is a surprisingly controversial topic. People in the
-geek world feel very strongly about their choice of editor, and the
-convesation often leads to argument. So, I'm not going to recommend
-a specific editor. [#vim-joke]_ But here are some of the more popular choices.
+The only real rule: use a plain-text editor, never a word processor
+(Word, Google Docs, Pages, LibreOffice Writer). Word processors embed
+formatting characters that will silently break your configuration.
 
-.. index:: Windows,Editors
+Whatever you choose, look for Apache httpd syntax highlighting — it'll
+catch mismatched quotes, typos in directive names, and unclosed
+containers before they bite you. VS Code, Vim, and Sublime all have
+plugins or built-in support for Apache config files.
 
-.. index:: Editors,Microsoft Windows
+If you're making changes on a remote server, you have two approaches:
 
-On Windows, Notepad is a common choice for editing configuration
-files, because you already have it installed, and it's very simple to
-use. If you intend to do more than just edit configuration files -
-that is, if you intend to write programming code at some point, you
-may want to look at some of the more featureful editors that are
-avaible. There are, however, so many of them, that it's difficult to
-recommend just a few. 
+1. **Edit in place** with a terminal editor (Vim, Nano) directly on the
+   server.
 
-However, since I am an advocate of free and open source software, I'd
-recommend that you look at Emacs
-(https://ftp.gnu.org/gnu/emacs/windows/), Winvim
-(http://winvim.codeplex.com/), Atom
-(https://atom.io/), or Notepad++
-(http://notepad-plus-plus.org/),
-although there are many, many others.
-There's an article (probably out of date by the time you read this) at
-http://goo.gl/mYhjBt that may also be worth looking at, too.
-
-.. index:: Editors,Linux
-
-.. index:: Unix,Editors
-
-.. index:: Linux,Editors
-
-On Unix, Emacs and VI (and VI's more modern brother, Vim) are the top
-of the pack, and have been for a few decades. Others swear by (or at)
-Pico and Nano. These are all console editors, meaning that they are
-a textual interface, with no fancy GUI (Graphical User Interface), and
-so may be a little hostile to someone coming from a more graphical
-computing environment like Windows or macOS.
-
-Most Linuxes come with a graphical editor like Gedit or Kedit, or some
-other generic Notepad-like editor, which give a more point-and-click
-navigation interface, as well as helpful drop-down menu items to
-assist in common tasks.
-
-macOS has a wide variety of featureful editors, including Sublime
-(http://www.sublimetext.com/),
-BBEdit (http://www.barebones.com/products/bbedit/), and
-TextWrangler
-(http://www.barebones.com/products/TextWrangler/),
-although, of those, only TextWrangler is free. There are also Mac
-versions of Emacs and Vim, which are free.
-
-In the end, however, you'll need to find an editor that works for you,
-as you will be editing text files a lot in your newly chosen career as
-httpd administrator. So, look around, and find
-something that you like.
-
-Whichever platform you're using, do not use a word processor, like
-Word, or OpenOffice, as these applications typically save files in
-binary, or at least non-plain-text, formats.
+2. **Edit locally and deploy** — edit on your own machine with your
+   preferred GUI editor, then copy files to the server (via ``scp``,
+   ``rsync``, or a deployment tool). This is the approach most people
+   take once their setup becomes more than trivial.
 
 
 .. _See_Also_Editing_config_files:
@@ -579,7 +511,6 @@ See Also
 ~~~~~~~~
 
 .. refcosplay
-
 
 
 .. _Recipe_Directive_goes_where:
@@ -768,7 +699,7 @@ Solution
 ~~~~~~~~
 
 
-Your Apache httpd configuration file is split into several smaller
+Your httpd configuration file may be split into several smaller
 files for convenience, not because it matters which file you put
 directives into. Placing directives into a particular file aids in
 keeping your configuration organized, but doesn't have a direct effect
@@ -781,15 +712,11 @@ Discussion
 ~~~~~~~~~~
 
 
-Since the first versions of Apache httpd, the server configuration
-file was split into several files, in order to provide a logical
-organization of directives.
-
-Historically, the server configuration was split into three fixed
-files — **httpd.conf**, **access.conf**, and **srm.conf** — and each
-directive had to go in its designated file. That restriction has long
-since been removed, and configuration files are now divided into
-smaller files purely for convenience and organization.
+httpd reads one main configuration file — typically ``httpd.conf`` —
+but that file can ``Include`` other files, and most installations take
+advantage of this. The split is purely for the operator's convenience:
+httpd itself doesn't care how many files its configuration lives in.
+It reads them all in order and treats the result as one big file.
 
 .. index:: Include
 
@@ -882,7 +809,7 @@ When should I quote directive arguments?
 
 .. index:: Quoting arguments
 
-.. index:: When should I quite directive arguments
+.. index:: When should I quote directive arguments
 
 
 .. _Problem_syntax:
@@ -891,7 +818,7 @@ Problem
 ~~~~~~~
 
 
-Sometimes configuration file arguments are quotes, and other times
+Sometimes configuration file arguments are quoted, and other times
 they aren't. What's the best practice?
 
 
@@ -926,7 +853,7 @@ Consider, for example:
    DocumentRoot C:/program files/apache2/html
 
 
-Apache httpd sees this as two separate arguments provides to the
+Apache httpd sees this as two separate arguments provided to the
 **DocumentRoot** directive, and fails with the error message
 
 
@@ -959,7 +886,7 @@ useful except when you are formatting examples for books and articles.
 .. code-block:: text
 
    AddDescription "The planet Jupiter and its moons" \
-       juputer.gif 
+       jupiter.gif
 
 
 .. _See_Also_syntax:
@@ -999,6 +926,7 @@ Solution
 
 
 You can set and use a variable using the ``Define`` directive:
+
 .. index:: directives,Define
 
 .. index:: directives,DocumentRoot
@@ -1234,7 +1162,7 @@ Discussion
 
 DNS - the Domain Name System - is a basic service of the Internet,
 whereby names, like **www.apache.org**, are mapped to network addresses,
-like **104.130.219.184**, so that humans don't have to remember
+like **151.101.2.132**, so that humans don't have to remember
 numerical IP addresses.
 
 When you run a website, you want a name, rather than an address, so
@@ -1249,46 +1177,31 @@ https://www.icann.org/registrar-reports/accredited-list.html or you
 can find a short list of the most popular ones by searching for
 'register domain name' on your favorite search engine.
 
-Registering a domain name, like 'boxofclue.com', is cheap and easy.
+Registering a domain name, like 'dandelionforge.com', is cheap and easy.
 Once you have it registered, most registrars also provide name
 resolution services - that is, resolving a name like
-'www.boxofclue.com' to the network address of your server. Exactly how
+'www.dandelionforge.com' to the network address of your server. Exactly how
 this works will vary from one registrar to another, and you'll need to
 consult with whichever registrar you choose for details.
 
-Your ISP - your Internet Service Provider - can tell you the IP
-address of your server, so that you know what to put in the hostname
-record. 
-
-Or, if you're running a server on your home internet
-connection, you can determine your IP address by visiting a website
-such as http://www.whatismyip.com/ which tells you what address you
-are visiting from.
-
-If you have a server at a public cloud provider, such as Amazon
-web Services, or Rackspace, you can determine your IP address by
-typing, at the command line:
+To find your server's public IP address, use:
 
 
 .. code-block:: text
 
-   ifconfig -a
+   ip addr show
 
 
-This will return a lot of information about your network connections,
-including the IP address of your network interface.
+or, for just the public IP on a cloud instance:
 
 
 .. code-block:: text
 
-   eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-      inet 146.78.185.89  netmask 255.255.255.0  broadcast 146.78.185.255
+   curl -s ifconfig.me
 
 
-
-In this case, the IP address of the server is 166.78.185.89, so you'd
-want to have your hostname resolve to that address in order to serve a
-website from that server.
+You'll need this address when setting up your DNS record — it's what
+your hostname should resolve to.
 
 
 .. _See_Also_dns:
@@ -1309,7 +1222,7 @@ Finding website hosting
 
 .. index:: VPS
 
-.. index:: web hosting
+.. index:: Cloud hosting
 
 .. index:: Finding website hosting
 
@@ -1320,9 +1233,8 @@ Problem
 ~~~~~~~
 
 
-You want to run httpd somewhere, but you don't have either a
-server class machine to run it on, or an Internet connection capable
-of supporting a busy website. Where should you put your site?
+You want to run httpd somewhere accessible on the Internet, but you
+don't have a server of your own with a public IP address.
 
 
 .. _Solution_hosting:
@@ -1331,14 +1243,15 @@ Solution
 ~~~~~~~~
 
 
-Many server hosting companies are available where you can host a web
-server, or any other Internet service, for a monthly fee. Some of
-these give you a dedicated server on which you can run any service you
-wish. Others give you a shared web host, where you can only run a
-Website and no other services.
+Get a virtual server (VPS) from a cloud provider. Any of these will
+give you a Linux VM where you can install and configure httpd:
 
-Searching on your favorite web search engine for 'web hosting' or 'vps
-hosting' will find many many options.
+* **Amazon EC2** — https://aws.amazon.com/ec2/
+* **DigitalOcean** — https://www.digitalocean.com/
+* **Hetzner** — https://www.hetzner.com/
+* **Linode (Akamai)** — https://www.linode.com/
+
+All of these offer Linux VMs starting at a few dollars per month.
 
 
 .. _Discussion_hosting:
@@ -1347,38 +1260,22 @@ Discussion
 ~~~~~~~~~~
 
 
-There are a large number of organizations that provide web hosting
-services, and it would be impossible to enumerate them here. As
-mentioned above, a web search for 'web hosting' or 'vps hosting' will
-find many of them.
+A VPS (Virtual Private Server) gives you a full Linux system where
+you are the root administrator. You install the operating system
+packages you need, configure httpd, open firewall ports, and manage
+everything yourself. This is exactly what this book assumes you're
+doing.
 
-VPS stands for Virtual Private Server, and refers generally to a
-service where you can rent a virtual server which you can do with as
-you please. This is one of the most common ways that you might acquire
-web space.
+Most providers offer one-click Linux images (AlmaLinux, Ubuntu,
+Debian) with SSH access, so you can be up and running in minutes.
+The installation recipes in :ref:`Chapter_Installation` apply
+directly.
 
-A VPS requires that you act as your own server administrator, managing
-the operating system as well as the web server, and so is the route
-you want to take if you know something about server administration,
-usually on Linux, and want to control everything. Reputable VPS
-hosting providers include such vendors as Rackspace.com and DigitalOcean.Com.
-
-On the other hand, if you just want web space where you can put web
-content, a shared web space host may be the way to go. Such vendors
-are too numerous to name, but popular ones include Dreamhost.com and
-1and1.com.
-
-Finally, if you're really only interested in putting content on a
-Website that is powered by an existing application which someone else
-manages entirely, you may be interested in an 'application as a service'
-solution, such as Wordpress.com or Blogger.com, where you create an
-account and create content, and someone else manages everything else
-beneath that level.
-
-For the purposes of this book, and hosting your own httpd,
-a VPS makes the most sense, since you'll need to be able to
-configure and restart your own server, which isn't possible when
-you're simply renting web space.
+If you don't want to manage a server yourself — if you just want to
+put a website on the Internet without thinking about configuration —
+then a managed hosting service, a static site host (like GitHub Pages
+or Cloudflare Pages), or a platform like WordPress.com may be more
+appropriate. But then you don't need this book.
 
 
 .. _See_Also_hosting:
@@ -1387,12 +1284,13 @@ See Also
 ~~~~~~~~
 
 
-* http://rackspace.com/
-* http://digitalocean.com.com/
-* http://dreamhost.com/
-* http://1and1.com/
-* http://wordpress.com/
-* http://blogger.com/
+* https://aws.amazon.com/ec2/
+
+* https://www.digitalocean.com/
+
+* https://www.hetzner.com/
+
+* https://www.linode.com/
 
 
 .. _Recipe_rcp:
@@ -1511,11 +1409,14 @@ Solution
 ~~~~~~~~
 
 
-Usually, you can test your server by just firing up a browser and
-typing in your site address. Third-party solutions can give you a
-deeper analysis of how your site is performing, and there are even
-sites that will monitor your site day and night, and notify you when
-it goes down.
+Point your browser at your server's address (hostname or IP) and
+verify that your pages load correctly. For more thorough testing,
+use ``curl`` from the command line — it shows you exactly what the
+server is returning, including headers and status codes:
+
+.. code-block:: text
+
+   curl -v http://your-server/
 
 
 .. _Discussion_sitetesting:
@@ -1524,26 +1425,24 @@ Discussion
 ~~~~~~~~~~
 
 
-The easiest solution is to point your browser at your server and see
-what happens. Hopefully you know the name or address of your server
-(see :ref:`Recipe_dns` above). Put that into your browser's address bar
-preceeded by a **http://**. For example, if your hostname is
-'boxofclue.com', type 'http://boxofclue.com/' into your browser
-address bar. This should load your site's front page.
+The simplest test is opening your site in a browser. If you see your
+page, the server is working. If you see an error, the error message
+and your error log (see :ref:`Chapter_Logging`) will tell you what's
+wrong.
 
-On the other hand, if you only know an IP address, you can use that
-instead of the hostname.
+For automated or scripted testing, ``curl`` is your best friend.
+``curl -I http://your-server/`` fetches just the response headers,
+which is useful for verifying status codes, content types, and
+caching behavior without downloading the full page.
 
-There are also services that allow you to test your site from various
-places around the world, so that you can ensure that your site works
-everywhere. A site like http://websitetest.com/ tests your site using
-a variety of locations and browsers, so that you can know what your
-site looks like, and how it performs, from the perspective of people
-around the world.
+If you want to test how your site appears from outside your network,
+or from different geographic locations, services like
+https://www.webpagetest.org/ and https://tools.pingdom.com/ provide
+third-party testing and performance analysis.
 
-Finally, if you want to monitor your website and ensure that it stays
-up, a service like http://pingmybox.com/ will look at your website
-periodically and notify you if it stops responding.
+For ongoing uptime monitoring — being alerted when your site goes
+down — look at services like UptimeRobot (https://uptimerobot.com/)
+or Better Uptime (https://betterstack.com/uptime).
 
 
 .. _See_Also_sitetesting:
@@ -1552,9 +1451,11 @@ See Also
 ~~~~~~~~
 
 
-* http://websitetest.com/
+* https://www.webpagetest.org/
 
-* http://pingmybox.com/
+* https://uptimerobot.com/
+
+* https://betterstack.com/uptime
 
 * :ref:`Recipe_dns`
 
@@ -1652,6 +1553,8 @@ Web site design
 
 .. index:: Design
 
+.. index:: CSS frameworks
+
 
 .. _Problem_Design:
 
@@ -1659,7 +1562,7 @@ Problem
 ~~~~~~~
 
 
-You want your website to look prettier
+You want your website to look professional.
 
 
 .. _Solution_Design:
@@ -1668,9 +1571,13 @@ Solution
 ~~~~~~~~
 
 
-This is firmly outside of the scope of this book. Consult one of the
-many website design books on the market, or, better yet, hire a
-professional.
+This is outside the scope of this book. httpd serves your content — it
+doesn't care what it looks like. For design, you have two practical
+paths:
+
+1. Use a CSS framework to get a professional look without hiring a
+   designer.
+2. Hire a web designer.
 
 
 .. _Discussion_Design:
@@ -1679,24 +1586,21 @@ Discussion
 ~~~~~~~~~~
 
 
-web site design is an art, and not one that I, the author of this
-book, have mastered. Fortunately, there are many practitioners of this
-art who you can contact to help you with your website. There are also
-many, many web site design books available. 
+If you're a server administrator who also needs to produce
+decent-looking pages, a CSS framework will get you most of the way
+without needing to learn graphic design. Two popular choices:
 
-Don't neglect designing for mobile clients, as that is a large and
-growing percentage of your audience.
+* **Tailwind CSS** (https://tailwindcss.com/) — utility-first, highly
+  customizable, the current favorite among developers.
+* **Bootstrap** (https://getbootstrap.com/) — component-based, good
+  defaults out of the box, has been around for years.
 
-A good place to start on your quest to be a web designer might be
-*Learning web Design* by Jennifer Niederst Robbins
-(https://www.learningwebdesign.com/). The Mozilla Developer Network
-also has an excellent free tutorial series, "Learn web development,"
-at https://developer.mozilla.org/en-US/docs/Learn that covers HTML,
-CSS, and JavaScript from the ground up. Both are practical,
-beginner-friendly, and regularly updated.
+Both produce responsive layouts that work on phones, tablets, and
+desktops. Both have extensive documentation and examples you can
+copy.
 
-There are also numerous talented web designers that you can hire to
-help with your web site, either in your local phone book or online.
+For learning HTML, CSS, and JavaScript from scratch — or for brushing
+up — see the resources in the See Also below.
 
 
 .. _See_Also_Design:
@@ -1705,12 +1609,7 @@ See Also
 ~~~~~~~~
 
 
-.. admonition:: DRAFT — Review needed
-
-   The following content needs editorial review.
-   Check technical accuracy, voice/tone, and fit with surrounding content.
-
-* *Learning web Design* by Jennifer Niederst Robbins —
+* *Learning Web Design* by Jennifer Niederst Robbins —
   https://www.learningwebdesign.com/
 
 * MDN "Learn web development" —
