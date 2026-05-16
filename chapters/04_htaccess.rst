@@ -7,9 +7,10 @@
 
 .. epigraph::
 
-   Breaking the law, breaking the law.
+   "We must view with profound respect the infinite capacity of the
+   human mind to resist the introduction of useful knowledge."
 
-   -- Judas Priest, *Breaking the Law*
+   -- Thomas R. Lounsbury
 
 
 .. index:: .htaccess files
@@ -71,13 +72,22 @@ Solution
 ~~~~~~~~
 
 
-Find the ``<Directory>`` block referring to your ``DocumentRoot``
+Find, or create, the ``<Directory>`` block referring to your
+``DocumentRoot``
 directory, and add the following to it:
 
 
 .. code-block:: text
 
    AllowOverride All
+
+For example, if your document root is ``/var/www/htdocs``:
+
+.. code-block:: text
+
+   <Directory /var/www/htdocs>
+       AllowOverride All
+   </Directory>
 
 
 .. _Discussion_AllowOverride-all:
@@ -90,13 +100,26 @@ The ``AllowOverride`` directive determines whether ``.htaccess`` files
 will be permitted, or ignored. For more fine-grained control, see
 :ref:`Recipe_AllowOverride-categories` and :ref:`Recipe_AllowOverrideList`.
 
-Because ``AllowOverride`` configures per-directory behavior, it can
-only be used in Directory context. Context, also sometimes called
-scope, is discussed in :ref:`Recipe_Directive_goes_where`. In this case,
-it means that the ``AllowOverride`` directive must be placed inside a
-``<Directory>`` block where you want it to take effect. This block will
-probably be the one that configures your document directory, such as
-``<Directory /var/www/htdocs>``.
+Because ``AllowOverride`` configures per-directory behavior, it can only
+be used in Directory context. Context, also sometimes called scope, is
+discussed in :ref:`Recipe_Directive_goes_where`. In this case, it means
+that the ``AllowOverride`` directive must be placed inside a
+``<Directory>`` block where you want it to take effect.
+
+Best practice is to be as restrictive as possible: enable
+``AllowOverride`` only in the specific directories where you actually
+need it, rather than globally across your document tree. If only one
+subdirectory needs ``.htaccess`` support — say, a user-managed blog
+under ``/var/www/htdocs/blog`` — grant override permission there alone:
+
+.. code-block:: text
+
+   <Directory /var/www/htdocs/blog>
+       AllowOverride All
+   </Directory>
+
+This limits the attack surface and performance impact to only the
+directories that actually require per-directory overrides.
 
 
 .. warning::
@@ -117,9 +140,9 @@ See Also
 
 * :ref:`Recipe_AllowOverrideList`
 
-* http://httpd.apache.org/docs/mod/core.html#allowoverride
+* https://httpd.apache.org/docs/current/mod/core.html#allowoverride
 
-* http://httpd.apache.org/docs/howto/htaccess.html
+* https://httpd.apache.org/docs/current/howto/htaccess.html
 
 * :ref:`Recipe_Directive_goes_where`
 
@@ -183,21 +206,21 @@ Each configuration directive that is part of the Apache httpd
 configuration is placed in an override category, and this is indicated
 in the documentation for that directive.
 
-For example, if you look at the documentation for the ``Deny``
-directive, you'll see in the documentation:
+For example, if you look at the documentation for the
+``DirectoryIndex`` directive, you'll see:
 
 
 .. code-block:: text
 
-   Override: Limit
+   Override: Indexes
 
 
 This means that the directive is permitted in ``.htaccess`` files if
-``AllowOverride`` is set to ``Limit``. Setting ``AllowOverride`` to ``All``,
+``AllowOverride`` is set to ``Indexes``. Setting ``AllowOverride`` to ``All``,
 as discussed in :ref:`Recipe_AllowOverride-all`, enables all of the
 various categories of overrides.
 
-Some directives may not be places in ``.htaccess`` files no matter what
+Some directives may not be placed in ``.htaccess`` files no matter what
 ``AllowOverride`` is set to, for a variety of reasons, usually
 pertaining to security considerations.
 
@@ -208,17 +231,24 @@ of them:
 +------------+-------------------------------------------------------------+
 | Override   | Meaning                                                     |
 +------------+-------------------------------------------------------------+
-| AuthConfig | Allow directives that deal with authentication and          |
+| AuthConfig | Permit directives related to authentication and             |
+|            | authorization (e.g., ``AuthType``, ``Require``).            |
 +------------+-------------------------------------------------------------+
-| FileInfo   |                                                             |
+| FileInfo   | Permit directives that control document types and metadata  |
+|            | (e.g., ``ErrorDocument``, ``SetHandler``, ``Header``).      |
 +------------+-------------------------------------------------------------+
 | Indexes    | Permit the use of directives controlling directory indexing |
+|            | (e.g., ``DirectoryIndex``, ``IndexOptions``).               |
 +------------+-------------------------------------------------------------+
-| Limit      | Permit the use of directives controlling host access - that |
+| Limit      | Permit the use of directives controlling host access        |
+|            | (e.g., ``Require``, and the deprecated ``Allow``,           |
+|            | ``Deny``, ``Order``).                                       |
 +------------+-------------------------------------------------------------+
-| Nonfatal   | Defines how to handle errors in ``.htaccess`` files.        |
+| Nonfatal   | Defines how to handle syntax errors in ``.htaccess``        |
+|            | files. See :ref:`Recipe_AllowOverride-nonfatal`.            |
 +------------+-------------------------------------------------------------+
 | Options    | Permit use of the ``Options`` directive. See                |
+|            | :ref:`Recipe_AllowOverride-options`.                        |
 +------------+-------------------------------------------------------------+
 
 
@@ -257,7 +287,7 @@ See Also
 
 * :ref:`Recipe_AllowOverride-nonfatal`
 
-* http://httpd.apache.org/docs/mod/core.html#allowoverride
+* https://httpd.apache.org/docs/current/mod/core.html#allowoverride
 
 
 .. _Recipe_AllowOverrideList:
@@ -332,7 +362,7 @@ See Also
 
 * :ref:`Recipe_AllowOverride-categories`
 
-* http://httpd.apache.org/docs/mod/core.html#allowoverridelist
+* https://httpd.apache.org/docs/current/mod/core.html#allowoverridelist
 
 
 .. _Recipe_disabling-htaccess:
@@ -387,13 +417,11 @@ troubleshoot problems.
 
 .. note::
 
-   As hard drive (and SSD) access rates become faster and faster, the
-   performance impact of using ``.htaccess`` files becomes less and less.
-   Anecdotally, it has been reported that there is almost no perceptible
-   performance impact of using ``.htaccess`` files on most modern hardware.
-   Despite this, I still recommend avoiding ``.htaccess`` files unless
-   they are absolutely necessary, due to the maintenance benefits of
-   having all of your configuration in one place.
+   On modern hardware, the performance cost of ``.htaccess`` files is
+   negligible — the filesystem lookups involved are trivially fast on
+   current SSDs. The stronger reasons to avoid them are maintainability
+   and security: keeping configuration in one place makes it easier to
+   audit, troubleshoot, and hand off to the next administrator.
 
 
 Note also that when ``AllowOverride`` is enabled, httpd will check for
@@ -417,7 +445,7 @@ See Also
 
 * :ref:`Recipe_htaccess-performance`
 
-* http://httpd.apache.org/docs/mod/core.html#allowoverride
+* https://httpd.apache.org/docs/current/mod/core.html#allowoverride
 
 
 .. _Recipe_htaccess-testing:
@@ -446,14 +474,14 @@ Solution
 ~~~~~~~~
 
 
-Test whether your ``.htaccess`` files are being loaded by putting
-garbage in them, and seeing if this causes a server error. For
-example, you might put the following directive in a ``.htaccess`` file.
+Test whether your ``.htaccess`` files are being loaded by placing an
+invalid configuration directive in them, and seeing if this causes a
+server error. For example, put the following in a ``.htaccess`` file:
 
 
 .. code-block:: text
 
-   BadConfigurationDirectiveHere
+   TestMe
 
 
 .. _Discussion_htaccess-testing:
@@ -463,13 +491,13 @@ Discussion
 
 
 When you just can't get your ``.htaccess`` files working, you might need
-a sanity check to ensure that the files are in fact being loaded and
+a smoke test to ensure that the files are in fact being loaded and
 considered in the configuration. The best way to do this is to put
 something in the ``.htaccess`` file that generates an error.
 
-Under normal circumstances, putting garbage in a ``.htaccess`` file
-will cause a ``Server Errror`` messaage when a browser loads content
-from that directory. This comfirms that the server is indeed loading
+Under normal circumstances, putting an invalid configuration directive in a ``.htaccess`` file
+will cause a ``Server Error`` message when a browser loads content
+from that directory. This confirms that the server is indeed loading
 your ``.htaccess`` file and finding an error in it.
 
 If it does not result in an error, then you will have confirmed that
@@ -563,7 +591,7 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/mod/core.html#options
+* https://httpd.apache.org/docs/current/mod/core.html#options
 
 * :ref:`Recipe_Options`
 
@@ -616,9 +644,23 @@ Discussion
 
 The ``Nonfatal`` keyword allows the use of unrecognized or disallowed
 configuration directives in ``.htaccess`` files, without resulting in an
-Internal Server Error. The error will, however, still be logged.
+Internal Server Error. The error will, however, still be logged to the
+error log as a warning. For an unknown directive, you'll see:
 
-Syntax errors in a valid dirctive will still cause an
+.. code-block:: text
+
+   [core:warn] [pid 12345] AH02296: Unknown directive TestMe
+   perhaps misspelled or defined by a module not included in the
+   server configuration
+
+For a directive that is forbidden by your ``AllowOverride`` setting:
+
+.. code-block:: text
+
+   [core:warn] [pid 12345] AH02295: Options in .htaccess forbidden
+   by AllowOverride
+
+Syntax errors in a valid directive will still cause an
 Internal Server Error.
 
 The ``Nonfatal`` keyword can take one of three possible arguments:
@@ -632,6 +674,41 @@ The ``Nonfatal`` keyword can take one of three possible arguments:
 | Nonfatal=All      | Treats both the above as nonfatal.                 |
 +-------------------+----------------------------------------------------+
 
+For example, suppose you have ``AllowOverride AuthConfig`` set, and
+someone places the following in a ``.htaccess`` file:
+
+.. code-block:: text
+
+   Options +Indexes
+   FakeDirective on
+
+With ``Nonfatal=Override``, the ``Options`` line (forbidden because
+``AllowOverride`` doesn't include ``Options``) is silently ignored and
+logged:
+
+.. code-block:: text
+
+   [core:warn] [pid 12345] AH02295: Options in .htaccess forbidden
+   by AllowOverride
+
+But the ``FakeDirective`` line still causes an Internal Server Error,
+because it's an unknown directive — not a forbidden override.
+
+With ``Nonfatal=Unknown``, the situation is reversed: ``FakeDirective``
+is silently ignored and logged:
+
+.. code-block:: text
+
+   [core:warn] [pid 12345] AH02296: Unknown directive FakeDirective
+   perhaps misspelled or defined by a module not included in the
+   server configuration
+
+But the ``Options`` line still causes an Internal Server Error, because
+it's a recognized directive being used in a context where it's not
+permitted.
+
+With ``Nonfatal=All``, both are ignored and logged — no server error
+occurs.
 
 .. warning::
 
@@ -649,7 +726,7 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/mod/core.html#allowoverride
+* https://httpd.apache.org/docs/current/mod/core.html#allowoverride
 
 
 .. _Recipe_htaccess-performance:
@@ -678,14 +755,19 @@ Solution
 ~~~~~~~~
 
 
-This problem is discussed in detail in
-:ref:`Recipe_htaccess-performance`.
+Disable ``.htaccess`` files (see :ref:`Recipe_disabling-htaccess`) and
+move any directives you need into the main server configuration inside
+the appropriate ``<Directory>`` block. This eliminates the per-request
+filesystem lookups that ``.htaccess`` files require.
+
+For a broader discussion of performance tuning, see
+:ref:`Chapter_Performance_and_testing`.
 
 See Also
 ~~~~~~~~
 
 
-* :ref:`Chapter_Performance_and_testing`, **Performance and Testing**
+* :ref:`Chapter_Performance_and_testing`
 
 
 .. _Recipe_Renaming-htaccess:
@@ -800,7 +882,7 @@ See Also
 
 * :ref:`Recipe_htaccess-performance`
 
-* http://httpd.apache.org/docs/howto/htaccess.html
+* https://httpd.apache.org/docs/current/howto/htaccess.html
 
 * :ref:`Recipe_Hiding-directory-items`
 

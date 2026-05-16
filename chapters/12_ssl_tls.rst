@@ -7,9 +7,9 @@ SSL and TLS
 
 .. epigraph::
 
-   I got my mind set on you. I got my mind set on you.
+   If it keeps on raining, the levee's gonna break.
 
-   -- George Harrison, *Got My Mind Set on You*
+   -- Led Zeppelin, *When the Levee Breaks*
 
 
 .. index:: SSL
@@ -97,8 +97,8 @@ On most Linux distribution the configure can detect the location
 of openssl. Make sure our install openssl-dev or openssl-devel
 package.
 
-Consult Chapters :ref:`Chapter_Installation`, **Installation**, and
-:ref:`Chapter_Common_modules`, **Adding Common Modules**, for more
+Consult Chapters :ref:`Chapter_Installation`, and
+:ref:`Chapter_Common_modules`, for more
 information on installing third-party modules, particularly if you
 have installed a binary distribution of httpd rather than building it
 yourself from the source code.

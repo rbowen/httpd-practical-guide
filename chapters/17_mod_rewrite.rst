@@ -7,11 +7,11 @@ URL rewriting with mod_rewrite
 
 .. epigraph::
 
-   | Should I stay or should I go now?
-   | If I go, there will be trouble.
-   | And if I stay, it will be double.
+   "What if the grain doesn't want to become a pearl? Is it ever
+   asked to climb out quietly and take up its old position as a bit
+   of ocean floor?"
 
-   -- The Clash, *Should I Stay or Should I Go*
+   -- Robin McKinley, *The Blue Sword*
 
 
 .. index:: mod_rewrite
@@ -347,7 +347,7 @@ The rule is the same in each case — only the path prefix changes.
 Forgetting to remove the leading slash is the single most common
 :module:`mod_rewrite` mistake in ``.htaccess`` files.
 
-See :ref:`Chapter_htaccess`, **.htaccess Files**, for a full
+See :ref:`Chapter_htaccess`, for a full
 discussion of ``.htaccess`` advantages and limitations.
 
 
@@ -356,7 +356,7 @@ discussion of ``.htaccess`` advantages and limitations.
 See Also
 ~~~~~~~~
 
-* :ref:`Chapter_htaccess`, **.htaccess Files**
+* :ref:`Chapter_htaccess`
 * *mod_rewrite And Friends* by Rich Bowen (Amazon) for
   per-directory rewrite edge cases and debugging techniques
 

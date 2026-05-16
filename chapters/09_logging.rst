@@ -6,9 +6,11 @@ Logging
 
 .. epigraph::
 
-   | The palest ink is better than the best memory.
+   "There are those quintessential moments in a man's life: Losing
+   his virginity; getting married; becoming a father; and having the
+   right girl smile at him."
 
-   -- Chinese proverb
+   -- *St. Elmo's Fire*
 
 
 .. index:: Logging

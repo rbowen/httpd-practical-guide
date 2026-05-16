@@ -7,9 +7,12 @@ URL mapping
 
 .. epigraph::
 
-   I can't get no satisfaction.
+   "Which road do I take?" she asked.
+   "Where do you want to go?" was his response.
+   "I don't know," Alice answered.
+   "Then," said the cat, "it doesn't matter."
 
-   -- The Rolling Stones, *(I Can't Get No) Satisfaction*
+   -- Lewis Carroll, *Alice in Wonderland*
 
 
 .. index:: URL Mapping
@@ -20,13 +23,12 @@ where 'resource' can mean a file on disk, a handler of some kind, a
 redirect to some other server, or, really, anything that results in
 the client getting some content.
 
-Virtual hosts, covered in :ref:`Chapter_Virtual_hosts`, **Virtual Hosts**,  are a subset of
+Virtual hosts, covered in :ref:`Chapter_Virtual_hosts`, are a subset of
 URL mapping, but are a sufficiently large topic that they warranted
-their own chappter.
+their own chapter.
 
-Similarly, URL rewriting with _mod_rewrite_ is a large enough topic
-for its own chapter, and that is covered in :ref:`Chapter_mod_rewrite`,
-**URL Rewriting with mod_rewrite**.
+Similarly, URL rewriting with :module:`mod_rewrite` is a large enough topic
+for its own chapter, and that is covered in :ref:`Chapter_mod_rewrite`.
 
 This chapter covers URL Mapping topics in general, and refers to those
 other chapters where appropriate.
@@ -103,8 +105,8 @@ being sent to the client.
 
 This same effect could be achieved on Unixish systems by simply
 creating a symbolic link from the main document directory to the
-target directory and turning on the **Options \+FollowSymLinks** directive. [#apacheckbk-CHP-5-FNOTE-1]_.
-] However, using **Alias**
+target directory and turning on the ``Options +FollowSymLinks``
+directive. However, using ``Alias``
 explicitly allows you to keep track of these directories more easily.
 Creating symlinks to directories makes it hard to keep track of the
 location of all of your content. Additionally, a stray symlink may
@@ -115,8 +117,8 @@ You may also need to add a few configuration directives to
 permit access to the directory that you are mapping to. An error
 message (in your ``error_log`` file)
 saying that the request was "denied by server configuration" usually
-indicates this condition. It is fairly common—and recommended in the
-documentation (http://httpd.apache.org/docs/misc/security_tips.html#protectserverfiles)—to
+indicates this condition. It is fairly common—and recommended in
+the documentation [#security-tips]_—to
 configure httpd to deny all access, by default, outside of the
 **DocumentRoot** directory. Thus, you
 must override this for the directory in question, with a configuration
@@ -179,6 +181,34 @@ of saying, "If you end the alias with a slash, end the directory with
 one, too; if the alias doesn't end with a slash, the directory
 shouldn't, either."
 
+Although ``Alias`` is most commonly used to map URLs to directories
+*outside* the ``DocumentRoot`` tree, it can also create alternative
+names for content already inside it — useful when a directory has been
+renamed and you want old URLs to keep working.
+
+Note that ``Alias`` only affects the local URI path (the ``/one/two.html``
+part); it does not change the hostname portion of the URL. To alter
+that, use ``Redirect`` or ``RewriteRule``.
+
+.. tip::
+
+   Be aware that URL-based access restrictions placed on the original
+   path may not apply to the aliased path, since the URL is now
+   different. If you restrict access based on URL patterns, verify that
+   your new alias doesn't bypass those restrictions.
+
+Another common cause of "trailing slash" problems is an incorrect or
+missing ``ServerName``. When you request a URL such as
+``http://example.com/something``, where ``something`` is a directory,
+httpd sends a redirect to the client telling it to add the trailing
+slash. It constructs the redirect URL using the value of
+``ServerName``. If ``ServerName`` is not set correctly — or not set at
+all — the redirect URL will be wrong (e.g., using ``127.0.0.1`` or
+``localhost``), and the client will get an error.
+
+Always set ``ServerName`` explicitly in your configuration to the
+hostname that clients use to reach your server.
+
 
 .. _See_Also_Alias:
 
@@ -186,216 +216,9 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/mod/mod_alias.html
-
-* http://httpd.apache.org/docs/mod/core.html#options
-
-
-.. _Solving_the_Trailing_Slash_Problem_id156250:
-
-Solving the 'trailing slash' problem
-------------------------------------
-
-.. index:: Trailing slash
-
-.. index:: Alias
-
-.. index:: ServerName
-
-
-.. _Problem_id156265:
-
-Problem
-~~~~~~~
-
-
-Loading a particular URL works with a trailing slash but does
-not work without it.
-
-
-.. _Solution_id156304:
-
-Solution
-~~~~~~~~
-
-
-Make sure that **ServerName** is
-set correctly and that none of the **Alias** directives have a trailing
-slash.
-
-
-.. _Discussion_id156346:
-
-Discussion
-~~~~~~~~~~
-
-
-The "trailing slash" problem can be caused by one of two
-configuration problems: an incorrect or missing value of **ServerName**, or an **Alias** with a trailing slash that doesn't
-work without it.
-
-
-.. _Incorrect_ServerName_id156374:
-
-Incorrect ServerName
---------------------
-
-
-An incorrect or missing **ServerName** seems to be the most prevalent
-cause of the problem, and it works something like this: when you
-request a URL such as
-**http://example.com/something**, where **something** is the name of a directory,
-httpd actually sends a redirect to the client telling it to add the
-trailing slash.
-
-The way that it does this is to construct the URL using the
-value of **ServerName** and the
-requested URL. If **ServerName** is
-not set correctly, then the resultant URL, which is sent to the
-client, will generate an error on the client end when it can't find
-the resulting URL.
-
-If, by contrast, **ServerName**
-is not set at all, httpd will attempt to guess a reasonable value
-when you start it up. This will often lead it to guess incorrectly,
-using values such as 127.0.0.1 or localhost, which will not work for
-remote clients. Either way, the client will end up getting a URL
-that it cannot retrieve.
-
-
-.. _Invalid_Alias_directive_id156456:
-
-Invalid alias directive
------------------------
-
-
-In the second incarnation of this problem, a slightly
-malformed **Alias** directive may
-cause a URL with a missing trailing slash to be an invalid URL
-entirely.
-
-Consider, for example, the following directive:
-
-
-.. code-block:: text
-
-   Alias /example/ /home/www/example/
-
-
-The **Alias** directive is very
-literal, and aliases URLs starting with **/example/**, but it does not alias URLs
-starting with **/example**. Thus,
-the URL **http://example.com/example/** will
-display the default document from the directory **/home/www/example/**, while the URL
-**http://example.com/example** will generate a
-"file not found" error message, with an error log entry that will
-look something like:
-
-
-.. code-block:: text
-
-   File does not exist: /usr/local/apache/htdocs/example
-
-
-The solution to this is to create **Alias** directives without the trailing
-slash, so that they will work whether or not the trailing slash is
-used:
-
-
-.. code-block:: text
-
-   Alias /example /home/www/example
-
-
-.. _See_Also_id156560:
-
-See Also
-~~~~~~~~
-
-
-* http://httpd.apache.org/docs/misc/FAQ-E.html#set-servername
-
-* :ref:`Recipe_Alias`
-
-
-.. _Creating_a_New_URL_for_Existing_Content_id124719:
-
-Creating a new URL for existing content
----------------------------------------
-
-.. index:: Alias
-
-.. index:: Map URL to directory
-
-
-.. _Problem_id124733:
-
-Problem
-~~~~~~~
-
-
-You have an existing directory that you want to access using a
-different name.
-
-
-.. _Solution_id124781:
-
-Solution
-~~~~~~~~
-
-
-Use an **Alias** directive in **httpd.conf**:
-
-
-.. code-block:: text
-
-   Alias "/newurl" "/www/htdocs/oldurl"
-
-
-.. _Discussion_id124840:
-
-Discussion
-~~~~~~~~~~
-
-
-Although **Alias** is usually
-used to map URLs to a directory outside of the **DocumentRoot** directory
-tree, this is not necessarily required. There are many times when it
-is desirable to have the same content accessible via a number of
-different names. This is typically the case when a directory has its
-name changed, and you wish to have the old URLs continue to work, or
-when different people refer to the same content by different
-names. 
-
-You can also have dynamic content respond differently depending
-on which URL was used to access it.
-
-Remember that **Alias** only affects the mapping of a local URI (the
-**/one/two.html** part of http://example.com/one/two.html); it doesn't affect or
-change the hostname part of the URL (the http://example.com/ part). To alter that portion of the
-URL, use the **Redirect** or **RewriteRule** directives.
-
-
-.. tip::
-
-   Finally, be aware that in certain circumstances, access restrictions
-   placed on ``oldurl`` may not apply to ``newurl``, depending on how they
-   were applied. For example, it may be possible to bypass restrictions
-   based on the URL, rather than on the content directory, since the URL
-   will now be different.
-
-
-.. _See_Also_id124930:
-
-See Also
-~~~~~~~~
-
-
-* :ref:`Recipe_Alias`
-
-* http://httpd.apache.org/docs/mod/mod_alias.html
-          
-* http://httpd.apache.org/docs/mod/mod_rewrite.html
+* https://httpd.apache.org/docs/current/mod/mod_alias.html
+* https://httpd.apache.org/docs/current/mod/core.html#options
+* https://httpd.apache.org/docs/current/mod/core.html#servername
 
 
 .. _Recipe_AliasMatch:
@@ -455,7 +278,7 @@ character of their names. For instance, project ``Example``'s URI would be ``/P-
 be mapped to **/usr/local/projects/E/Example/**.
 
 httpd's regular expression syntax is discussed in much greater
-detail in :ref:`Chapter_regex`, **Introduction to regular expressions**.
+detail in :ref:`Chapter_regex`.
 
 
 .. _See_Also_AliasMatch:
@@ -464,7 +287,7 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Chapter_regex`, **Introduction to regular expressions**
+* :ref:`Chapter_regex`
 
 * **Mastering Regular Expressions** by Jeffrey Friedl (O'Reilly)
 
@@ -538,7 +361,7 @@ See Also
 
 * :ref:`Recipe_AliasMatch`
 
-* :ref:`Chapter_regex`, **Introduction to regular expressions**
+* :ref:`Chapter_regex`
 
 * :ref:`Recipe_ScriptAlias`
 
@@ -1070,6 +893,30 @@ Note that the paths to the SSL and non-SSL locations differ; if
 you want the paths to be the same except for the security, you can use
 something like the directives given in the third solution.
 
+In modern httpd (2.4.x), the simplest approach is a ``Redirect`` inside
+a port-80 ``<VirtualHost>`` — no rewrite rules needed:
+
+.. code-block:: apache
+
+   <VirtualHost *:80>
+       ServerName www.example.com
+       Redirect permanent / https://www.example.com/
+   </VirtualHost>
+
+If you can't use separate ``<VirtualHost>`` blocks (e.g., in
+``.htaccess``), httpd 2.4 also supports the ``<If>`` expression syntax:
+
+.. code-block:: apache
+
+   <If "%{HTTPS} == 'off'">
+       Redirect permanent / https://www.example.com/
+   </If>
+
+You should also consider adding HSTS (``Strict-Transport-Security``)
+headers so that browsers remember to use HTTPS directly, eliminating
+the redirect for repeat visitors. See :ref:`Chapter_SSL_and_TLS` for a complete
+treatment of HTTPS redirection, HSTS, and related TLS configuration.
+
 
 .. _See_Also_id128230:
 
@@ -1077,7 +924,8 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/mod/mod_rewrite.html
+* :ref:`Chapter_SSL_and_TLS`
+* https://httpd.apache.org/docs/current/mod/mod_rewrite.html
 
 
 .. _Recipe_DirectoryIndex:
@@ -1148,8 +996,7 @@ program:
 
 If a directory does not contain the specified default document, your
 server may be configured to provide a directory listing instead. This
-functionality is discussed in :ref:`Chapter_Directory_listing`,
-**Directory Listing**, later in this book.
+functionality is discussed in :ref:`Chapter_Directory_listing`, later in this book.
 
 
 .. _See_Also_DirectoryIndex:
@@ -1160,7 +1007,7 @@ See Also
 
 * http://httpd.apache.org/docs/mod/mod_dir.html
 
-* :ref:`Chapter_Directory_listing`, **Directory Listing**
+* :ref:`Chapter_Directory_listing`
 
 
 Summary
@@ -1172,12 +1019,13 @@ them have been covered in this chapter. Other URL Mapping techniques
 are large enough that they merit their own chapters. So, you'll want
 to also read:
 
-* :ref:`Chapter_mod_rewrite`, URL Rewriting with mod_rewrite
-* :ref:`Chapter_Proxies`, **Proxies**
-* :ref:`Chapter_Directory_listing`, **Directory Listing**
-* :ref:`Chapter_userdir`, **User Directories**
+* :ref:`Chapter_mod_rewrite`
+* :ref:`Chapter_Proxies`
+* :ref:`Chapter_Directory_listing`
+* :ref:`Chapter_userdir`
 
 
 .. rubric:: Footnotes
 
-.. [#apacheckbk-CHP-5-FNOTE-1] See the documentation for the **Option** directive at `http://httpd.apache.org/docs/mod/core.html#options <http://httpd.apache.org/docs/mod/core.html#options>`_
+.. [#security-tips] https://httpd.apache.org/docs/current/misc/security_tips.html#protectserverfiles
+

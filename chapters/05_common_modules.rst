@@ -10,11 +10,10 @@ Adding common modules
 
 .. epigraph::
 
-   | You can't always get what you want,
-   | but if you try sometimes, you just might find
-   | you get what you need.
+   "When I get a little money I buy books; and if any is left
+   I buy food and clothes."
 
-   -- The Rolling Stones, *You Can't Always Get What You Want*
+   -- Desiderius Erasmus
 
 
 .. index:: Common modules
@@ -55,15 +54,11 @@ third-party modules, ranging from the trivial (mod_pony) to the more
 useful. I'll show how to install them via packages, and from source.
 
 This chapter does not cover writing your own modules. I feel that
-this is beyond the scope of this book. Instead I recommend Nick Kew's
-book, The Apache httpd Modules book.
-http://www.amazon.com/The-Apache-Modules-Book-Application/dp/0132409674
-
-I also recommend the online developer resource,
-http://httpd.apache.org/dev/ , and the API guide,
-http://ci.apache.org/projects/httpd/trunk/doxygen/
-
-.. refcosplay
+this is beyond the scope of this book. If you are interested in module
+development, start with the developer documentation at
+https://httpd.apache.org/docs/current/developer/ and the API reference
+at https://ci.apache.org/projects/httpd/trunk/doxygen/ (generated from
+the httpd trunk source).
 
 
 
@@ -112,7 +107,7 @@ Discussion
 ~~~~~~~~~~
 
 
-The Apache httpd project once maintained a module registry at
+For many years, the Apache httpd project maintained a module registry at
 modules.apache.org, where third-party authors could list their modules
 and users could post reviews. That site has been retired, and there is
 no direct replacement.
@@ -133,6 +128,18 @@ httpd and can be installed with a single command. The downside is that
 distribution repositories tend to carry only the most popular modules,
 and the versions may lag behind upstream.
 
+When evaluating a third-party module — particularly one found on
+GitHub — look for:
+
+* **Recent commits** — is the module actively maintained?
+* **Compatibility** — does it mention support for httpd 2.4?
+* **License** — is it Apache-2.0 or compatible?
+* **Issues and pull requests** — is anyone using it and reporting
+  problems?
+* **Documentation** — does it explain installation and configuration?
+
+A module with no commits in several years may still work, but you
+should be cautious about relying on it in production.
 
 .. _See_Also_Finding_Modules:
 
@@ -180,7 +187,10 @@ unpacked, and then:
 
 .. code-block:: text
 
-   apxs -cia module.c
+   sudo apxs -cia module.c
+
+The install step copies files into the server's modules directory, so
+you will need root privileges (via ``sudo``) to run this command.
 
 
 .. _Discussion_apxs:
@@ -190,7 +200,7 @@ Discussion
 
 
 Installing modules has
-been pretty standard for a long time, and for most modules, the proces should be
+been pretty standard for a long time, and for most modules, the process should be
 fairly easy.
 
 ``apxs`` is a tool that comes with the web server which facilitates
@@ -225,7 +235,7 @@ that file into the location where your server has module files.
 Activate modifies your server configuration file to add ``LoadModule``
 directive so that the module will be loaded on server restart.
 
-This requires that your server is build with ``mod_so`` enabled, to
+This requires that your server is built with ``mod_so`` enabled, to
 permit dynamic module loading.
 
 
@@ -239,7 +249,7 @@ See Also
   ``man apxs`` at the command line.
 
 * apxs documentation, at
-  http://httpd.apache.org/docs/programs/apxs.html
+  https://httpd.apache.org/docs/current/programs/apxs.html
 
 
 .. _Recipe_Installing_PHP:
@@ -273,7 +283,7 @@ There are a few different ways to install PHP on your httpd,
 depending on how you installed Apache httpd itself, and your needs and
 preferences.
 
-Look in :ref:`Chapter_Dynamic_content`, **Dynamic Content**, for discussion of the various ways
+Look in :ref:`Chapter_Dynamic_content` for discussion of the various ways
 to install and enable PHP on your httpd.
 
 
@@ -297,78 +307,6 @@ See Also
 * :ref:`Recipe_enabling_mod_php`
 
 * :ref:`Recipe_php-fpm`
-
-.. refcosplay
-
-
-
-.. _Recipe_modules_apache_org:
-
-Finding third-party modules on GitHub
--------------------------------------
-
-.. index:: Third-party modules on GitHub
-
-.. index:: Modules,third party
-
-.. index:: Third party modules
-
-
-.. _Problem_modules_apache_org:
-
-Problem
-~~~~~~~
-
-
-You're looking for a listing of Apache httpd modules for various
-purposes, and you want to know where to find them now that the
-old modules.apache.org registry has been retired.
-
-
-.. _Solution_modules_apache_org:
-
-Solution
-~~~~~~~~
-
-
-Search GitHub for the functionality you need:
-
-* https://github.com/search?q=apache+httpd+module&type=repositories
-
-Or browse by topic: https://github.com/topics/apache-httpd-module
-
-
-
-.. _Discussion_modules_apache_org:
-
-Discussion
-~~~~~~~~~~
-
-
-For many years, the Apache httpd project maintained a module registry
-at modules.apache.org, where third-party authors could list their
-modules and users could browse by category or post reviews. That site
-has been retired and is no longer available.
-
-Today, most third-party httpd modules are hosted on GitHub. If you're
-looking for a module that does something specific, a GitHub search for
-"apache httpd module" plus your use case (e.g., "apache httpd module
-geoip") is usually the fastest way to find it.
-
-Some things to look for when evaluating a third-party module on
-GitHub:
-
-* **Recent commits** — is the module actively maintained?
-* **Compatibility** — does it mention support for httpd 2.4?
-* **License** — is it Apache-2.0 or compatible?
-* **Issues and pull requests** — is anyone using it and reporting
-  problems?
-
-
-.. _See_Also_modules_apache_org:
-
-See Also
-~~~~~~~~
 
 
 .. _Recipe_mod_pony:
@@ -462,7 +400,10 @@ See Also
 ~~~~~~~~
 
 
-* mod_example and mod_example_hooks
+* ``mod_example_hooks`` —
+  https://httpd.apache.org/docs/current/mod/mod_example_hooks.html
+  — a sample module in the httpd source tree, useful as a template for
+  writing your own modules)
 
 * https://github.com/rbowen/mod_pony
 
@@ -485,8 +426,8 @@ Problem
 ~~~~~~~
 
 
-You'd like to use mod_security to block unsavory requests to your web
-server.
+You'd like to use ModSecurity as a web application firewall (WAF) to
+block common attacks against your web server.
 
 
 .. _Solution_mod_security:
@@ -495,18 +436,17 @@ Solution
 ~~~~~~~~
 
 
-Obtain and install mod_security from http://modsecurity.org/
-and install it using apxs, or install it via your operating system's
-package manager.
+Install ModSecurity via your operating system's package manager, then
+enable it and configure it with the OWASP Core Rule Set (CRS).
 
 To install via packages on Ubuntu or Debian:
 
 
 .. code-block:: text
 
-   $ sudo apt-get install libapache2-mod-security
-   $ sudo a2enmod mod-security
-   $ sudo /etc/init.d/apache2 force-reload
+   sudo apt install libapache2-mod-security2
+   sudo a2enmod security2
+   sudo systemctl restart apache2
 
 
 To install via packages on Fedora or RHEL:
@@ -514,34 +454,30 @@ To install via packages on Fedora or RHEL:
 
 .. code-block:: text
 
-   $ sudo dnf install mod_security
-   $ sudo /etc/init.d/httpd restart
+   sudo dnf install mod_security
+   sudo systemctl restart httpd
 
 
-To install on Microsoft Windows, obtain the installer from
-http://modsecurity.org/download.html
-
-To install using the source code, download the source tarball from
-http://www.modsecurity.org/download.html and unpack it. Then:
+Next, enable the recommended configuration:
 
 
 .. code-block:: text
 
-   $ $cd ModSecurity
-   $ ./autogen.sh
-   $ ./configure --with-apxs=/path/to/httpd/bin/apxs
-   $ make
-   $ sudo make install
-   $ /usr/local/modsecurity/lib/mod_security2.so /usr/local/apache/modules/
+   sudo cp /etc/modsecurity/modsecurity.conf-recommended \
+       /etc/modsecurity/modsecurity.conf
 
 
-Load ``mod_security`` into your server by adding the following line to
-your httpd configuration file:
-
+Edit ``/etc/modsecurity/modsecurity.conf`` and change:
 
 .. code-block:: text
 
-   LoadModule security2_module modules/mod_security2.so
+   SecRuleEngine DetectionOnly
+
+to:
+
+.. code-block:: text
+
+   SecRuleEngine On
 
 
 .. _Discussion_mod_security:
@@ -550,58 +486,53 @@ Discussion
 ~~~~~~~~~~
 
 
-Building ``mod_security`` from source is slightly more complicated than
-building simpler modules, like, say, ``mod_pony``, as there are various
-library dependencies that ``mod_security`` needs to resolve in the build
-process. In particular, you need to ensure that you have the following
-libraries installed:
+ModSecurity is an open-source web application firewall (WAF) that
+inspects HTTP traffic in real time and blocks common attack patterns
+such as SQL injection, cross-site scripting (XSS), and other OWASP
+Top 10 threats.
 
-* libapr
-* libapr-util
-* libpcre
-* libxml2
-* liblua
-* libcurl
-
-These will almost certainly be installed if you have Apache httpd
-installed, so there's not usually anything to worry about here.
+The project has been under the stewardship of the OWASP Foundation
+since January 2024 (previously maintained by Trustwave/SpiderLabs).
+The source code is at
+https://github.com/owasp-modsecurity/ModSecurity
 
 .. index:: mod_uniqueid
 
 .. index:: Modules,mod_uniqueid
 
-You will also need to have ``mod_uniqueid`` installed to use many of the
-features of ``mod_security``.
+.. index:: OWASP Core Rule Set
 
-In the recipe above, you'll need to provide your correct file paths
-for ``apxs`` and your modules directory in the appropriate places. That
-is:
+.. index:: CRS
 
+You will need to have ``mod_unique_id`` enabled for ModSecurity to
+function. On Debian/Ubuntu: ``sudo a2enmod unique_id``.
 
-.. code-block:: text
+By itself, ModSecurity is just an engine — it doesn't know what to
+block until you give it rules. The standard rule set is the **OWASP
+Core Rule Set (CRS)**, which provides protection against the most
+common web attacks out of the box.
 
-   ./configure --with-apxs=/path/to/httpd/bin/apxs
-
-
-In that command, replace ``/path/to/httpd/bin/apxs`` with the actual
-path to your ``apxs`` utility, which you can usually obtain by typing
-``which apxs``.
-
-And in the last line of the recipe:
-
+To install the CRS on Debian/Ubuntu:
 
 .. code-block:: text
 
-   $ /usr/local/modsecurity/lib/mod_security2.so /usr/local/apache/modules/
+   sudo apt install modsecurity-crs
 
+On RHEL/Fedora, the CRS is typically included with the
+``mod_security_crs`` package:
 
-Ensure that this is actually the location where your server stores
-modules files, or replace it with the correct path.
+.. code-block:: text
 
-Finally, there is an excellent book available by the creator of
-``mod_security`` - mod_security Handbook, by Ivan Ristić, from Feisty
-Duck publishing. You can find more information about this book at
-https://www.feistyduck.com/books/modsecurity-handbook/
+   sudo dnf install mod_security_crs
+
+The default CRS installation starts in "detection only" mode, which
+logs potential attacks without blocking them. This is a sensible
+starting point — run in detection mode for a while, review the logs
+for false positives, then switch to enforcement by setting
+``SecRuleEngine On`` as shown in the Solution above.
+
+For more detailed recipes on tuning ModSecurity rules and handling
+false positives, see :ref:`Chapter_Security`.
 
 
 .. _See_Also_mod_security:
@@ -610,15 +541,14 @@ See Also
 ~~~~~~~~
 
 
-* Ivan Ristić's book -
-  https://www.feistyduck.com/books/modsecurity-handbook/
+* OWASP ModSecurity project —
+  https://github.com/owasp-modsecurity/ModSecurity
 
-* The mod_security website, at http://modsecurity.org/
+* OWASP Core Rule Set (CRS) —
+  https://coreruleset.org/
 
-* The mod_security reference manual, at
-  https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual
-
-.. refcosplay
+* ModSecurity Reference Manual —
+  https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual
 
 
 
@@ -638,7 +568,7 @@ Problem
 ~~~~~~~
 
 
-Now that you have ``mod_security`` installed, how do I use it?
+Now that you have ``mod_security`` installed, how do you use it?
 
 
 .. _Solution_mod_security_rules:
@@ -648,7 +578,7 @@ Solution
 
 
 There are a number of recipes about using ``mod_security`` to protect
-your web server in :ref:`Chapter_Security`, **Security**.
+your web server in :ref:`Chapter_Security`.
 
 
 .. _Discussion_mod_security_rules:
@@ -669,9 +599,7 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Chapter_Security`, **Security**
-
-.. refcosplay
+* :ref:`Chapter_Security`
 
 
 
@@ -682,7 +610,7 @@ Why won't this module work?
 
 .. index:: Why won't this module work
 
-.. index:: Troublshooting,third-party modules
+.. index:: Troubleshooting,third-party modules
 
 
 .. _Problem_module_broken:
@@ -820,22 +748,22 @@ See Also
 
 * :ref:`Recipe_Debian_Vhosts`
 
-* ``man a2enmod`` (Type this at the command line for the ``a2enmod`` user
-  manual.
+* ``man a2enmod`` (Type this at the command line for the ``a2enmod``
+  user manual.)
 
-* ``man a2dismod`` (Type this at the command line for the ``a2dismod`` user
-  manual.
+* ``man a2dismod`` (Type this at the command line for the ``a2dismod``
+  user manual.)
 
 Summary
 -------
 
 
 Apache httpd is modular - the core is as small as possible, and all
-interesting functionality is in optional modules. this means that
+interesting functionality is in optional modules. This means that
 httpd can be as simple, or as featureful, as you want it to be, by
 enabling and disabling various modules for the functionality you want,
 or don't want.
 
 Everything else in this book is implemented by some module or other,
-which you'll need to have enabled to use the functionalty discussed.
+which you'll need to have enabled to use the functionality discussed.
 

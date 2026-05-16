@@ -7,9 +7,10 @@ Virtual hosts
 
 .. epigraph::
 
-   One of these days I'm going to cut you into little pieces.
+   And sin, young man, is when you treat people as things.
+   Including yourself. That's what sin is.
 
-   -- Pink Floyd, *One of These Days*
+   -- Terry Pratchett, *Carpe Jugulum*
 
 
 .. index:: Virtual hosts
@@ -39,14 +40,17 @@ and said, "Hi, Steve!," the phone was still answered the same way; nothing
 would convince Batman to admit on the Batphone that it was Bruce Wayne
 answering.
 
+(Of course, caller ID would have helped.)
+
 The other type of virtual host is called name-based because the
-server's response depends on the
-name by which it was called. To continue the telephone analogy, consider
-an apartment shared by multiple roommates; you call the same number
-whether you want to speak to Dave, Joyce, Amaterasu, or Georg. Just as
-multiple people may share a single telephone number, multiple web sites
-can share the same IP address. However, all IP addresses shared by
-multiple httpd virtual hosts share the same IP address.
+server's response depends on the name by which it was called. Think of
+a shared office building: multiple companies occupy the same street
+address, but when you walk into the lobby and tell the receptionist
+who you're there to see, you get directed to the right floor. The
+street address is the IP address, and the company name you give at the
+desk is the hostname in the HTTP request. Multiple web sites share
+the same IP address, and httpd routes each request to the right one
+based on the name the client asked for.
 
 In the most simple of httpd configurations, there are no virtual
 hosts. Instead, all of the directives in the configuration file apply
@@ -89,7 +93,6 @@ virtual hosts.
 .. index:: pair: virtual hosts; SNI
 .. index:: pair: virtual hosts; Host header
 .. index:: pair: virtual hosts; default vhost
-.. index:: pair: virtual hosts; _default_
 .. index:: httpd -S
 .. index:: apachectl -S
 
@@ -158,7 +161,7 @@ with very old software.
 The matching vhosts are searched **in configuration file order**:
 
 1. The ``ServerName`` and all ``ServerAlias`` entries of each vhost
-are compared against the hostname from the request.
+   are compared against the hostname from the request.
 
 2. The first match wins.
 
@@ -184,15 +187,10 @@ first block is configured accordingly. See
 
 The following diagram illustrates the two-phase process:
 
-.. only:: html
+.. figure:: ../images/vhost_matching_flow.*
+   :width: 100%
+   :alt: Flowchart showing the two-phase virtual host matching algorithm
 
-   .. figure:: ../images/vhost_matching_flow.svg
-      :width: 100%
-      :alt: Flowchart showing the two-phase virtual host matching algorithm
-
-.. only:: latex or epub
-
-   *The virtual host matching flowchart is available in the HTML edition of this book at* https://httpd-guide.com/
 
 Debugging with ``httpd -S``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,8 +205,16 @@ and shows:
 
 If your requests are going to the wrong vhost, run ``httpd -S`` first
 and compare the output against your expectations. Nine times out of
-ten, the answer is visible in that output.
+ten, the answer is visible in that output. See the example in
+:ref:`Recipe_name_vhosts` below.
 
+.. tip::
+
+   You may need to run ``httpd -S`` with ``sudo``. If your
+   configuration references log files or other resources owned by
+   root, running as an unprivileged user will produce misleading
+   errors — for example, a module that cannot open its log file will
+   report a "Syntax error" rather than a permissions problem.
 
 .. _Recipe_name_vhosts:
 
@@ -259,12 +265,13 @@ Discussion
 ~~~~~~~~~~
 
 
-With IP addresses increasingly hard to come by, name-based
-virtual hosting is the most common way to run multiple web sites on
-the same httpd. The previous recipe works for most users in
+Name-based virtual hosting is by far the most common way to run
+multiple web sites on the same httpd — there's no reason to dedicate
+a separate IP address to each site. The previous recipe works for most users in
 most virtual hosting situations.
 
-The **:80* in the previous
+
+The ``*:80`` in the previous
 rules means that the specified hosts run on all addresses. For a
 machine with only a single address, this means that it runs on that
 address but will also run on the **loopback**, or
@@ -346,7 +353,7 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/vhosts - Virtual hosts
+* https://httpd.apache.org/docs/current/vhosts - Virtual hosts
    documentation
 
 * :ref:`Recipe_dns`
@@ -354,7 +361,7 @@ See Also
 
 .. _Recipe_Default_name_based_vhost:
 
-Default_name_based_vhost
+Default name-based vhost
 ------------------------
 .. index:: Virtual hosts,Default
 
@@ -401,14 +408,13 @@ Discussion
 
 Note that this recipe is used in the context of name-based
 virtual hosts, so it is assumed that you have other virtual hosts that
-are also using the ``<VirtualHost *:80>`` notation, and that there
-are using the ``<VirtualHost *:80>`` notation. I have used the
+are also using the ``<VirtualHost *:80>`` notation. I have used the
 ``default`` name for clarity; you can
 call it whatever you want.
 
 Setting the **ErrorDocument 404**
 to a list of the available sites on the server directs the user to
-useful content, rather than leaving him stranded with an unhelpful 404
+useful content, rather than leaving them stranded with an unhelpful 404
 error message. You may wish to set **DirectoryIndex** to the site list as well, so
 that users who go directly to the front page of this site also get
 useful information.
@@ -432,7 +438,7 @@ See Also
 
 .. _Recipe_Address-based-vhosts:
 
-Address-based-vhosts
+Address-based vhosts
 --------------------
 
 .. index:: Virtual hosts,Address-based
@@ -464,16 +470,14 @@ list on:
 
 .. code-block:: text
 
-   ServerName 127.0.0.1
-   
-   <VirtualHost 10.0.0.1>
-       ServerName Example.Com
-       DocumentRoot "C:/Apache/Sites/Example.Com"
+   <VirtualHost 10.0.0.1:80>
+       ServerName boxofclue.com
+       DocumentRoot /var/www/boxofclue
    </VirtualHost>
    
-   <VirtualHost 10.0.0.2>
-       ServerName JohnSmith.Example.Com
-       DocumentRoot "C:/Apache/Sites/JustJohnSmith"
+   <VirtualHost 10.0.0.2:80>
+       ServerName dandelionforge.com
+       DocumentRoot /var/www/dandelionforge
    </VirtualHost>
 
 
@@ -502,22 +506,17 @@ See Also
 ~~~~~~~~
 
 
-* https://httpd.apache.org/docs/2.4/vhosts/
+* https://httpd.apache.org/docs/current/vhosts/
 
 * :ref:`Recipe_Default-address-vhost`
 
 
 .. _Recipe_Default-address-vhost:
 
-Default address virtual host
-----------------------------
-.. index:: Virtual hosts,Address-based
+Default virtual host for unmatched requests
+-------------------------------------------
 
 .. index:: Virtual hosts,Default
-
-.. index:: Address-based virtual hosts
-
-.. index:: IP-address based virtual hosts
 
 .. index:: Default virtual host,Address-based
 
@@ -528,8 +527,8 @@ Problem
 ~~~~~~~
 
 
-You want to create a virtual host to catch all requests that
-don't map to one of your address-based virtual hosts.
+You want to control what happens when a request arrives for a hostname
+that doesn't match any of your configured virtual hosts.
 
 
 .. _Solution_Default-address-vhost:
@@ -538,13 +537,20 @@ Solution
 ~~~~~~~~
 
 
-Use the **default** keyword to designate a default host:
+List the catch-all virtual host **first** in your configuration:
 
 
 .. code-block:: text
 
-   <VirtualHost _default_>
-       DocumentRoot /www/htdocs
+   <VirtualHost *:80>
+       ServerName default.example.com
+       DocumentRoot /www/default
+       ErrorDocument 404 /site-not-found.html
+   </VirtualHost>
+
+   <VirtualHost *:80>
+       ServerName realsite.example.com
+       DocumentRoot /www/realsite
    </VirtualHost>
 
 
@@ -554,34 +560,15 @@ Discussion
 ~~~~~~~~~~
 
 
-The **default** keyword
-creates a virtual host that catches all requests for any
-``address``:``port``
-combinations for which there is no virtual host configured.
+As described in the matching algorithm at the beginning of this
+chapter, the **first** ``<VirtualHost>`` block listed for a given
+address:port pair acts as the default — it handles any request whose
+``Host`` header doesn't match any other vhost's ``ServerName`` or
+``ServerAlias``.
 
-The **default** directive
-may—and should—be used in conjunction with a particular port number,
-such as:
-
-
-.. code-block:: text
-
-   <VirtualHost _default_:443>
-
-
-Using this syntax means that the specified virtual host catches
-all requests to port 443, on all addresses for which there is not an
-explicit virtual host configured. SSL virtual hosts are usually set up
-using the **default** syntax, so
-you'll see this syntax used in the default SSL configuration file,
-along with the necessary directives to enable SSL.
-
-**default** typically does not
-work as people expect in the case of name-based virtual hosts. It does
-not match names for which there are no virtual host sections, only
-``address``:``port``
-combinations for which there are no virtual hosts configured. If you
-wish to create a default name-based host, see :ref:`Recipe_Default_name_based_vhost`.
+Use this to return a friendly error page, a redirect, or a 403 for
+requests that arrive with an unrecognized hostname (e.g., someone
+pointing a random domain at your IP address).
 
 
 .. _See_Also_Default-address-vhost:
@@ -600,7 +587,7 @@ Mixing address-based and name-based virtual hosts
 
 .. index:: Mixing address-based and name-based virtual hosts
 
-.. index:: Virtual Hosts,Mising name-based and address-based
+.. index:: Virtual Hosts,Mixing name-based and address-based
 
 
 .. _Problem_mixing_address_and_name_based_vhosts:
@@ -624,26 +611,24 @@ Create ``<VirtualHost>`` sections for each IP address.
 
 .. code-block:: text
 
-   ServerName 127.0.0.1
-   
    <VirtualHost 10.0.0.1:80>
-       ServerName TheSmiths.name
-       DocumentRoot "C:/Apache/Sites/TheSmiths"
+       ServerName boxofclue.com
+       DocumentRoot /var/www/boxofclue
    </VirtualHost>
    
    <VirtualHost 10.0.0.1:80>
-       ServerName JohnSmith.name
-       DocumentRoot "C:/Apache/Sites/JustJohnSmith"
+       ServerName dandelionforge.com
+       DocumentRoot /var/www/dandelionforge
    </VirtualHost>
    
    <VirtualHost 10.0.0.2:80>
-       ServerName Example.Com
-       DocumentRoot "C:/Apache/Sites/Example.Com"
+       ServerName httpd-guide.com
+       DocumentRoot /var/www/httpd-guide
    </VirtualHost>
    
    <VirtualHost 10.0.0.2:80>
-       ServerName DoriFerguson.Example.Com
-       DocumentRoot "C:/Apache/Sites/JustDoriFerguson"
+       ServerName mod-rewrite.org
+       DocumentRoot /var/www/mod-rewrite
    </VirtualHost>
 
 
@@ -654,13 +639,12 @@ Discussion
 
 
 Using the address of the server, rather than the wildcard
-``*`` argument, makes the virtual hosts
-listen only to that IP address. However, you should notice that the
-argument to ``<VirtualHost>``
-The argument to ``<VirtualHost>`` should be an IP:Port combination, rather
-than a hostname.
+``*`` argument, makes each virtual host listen only on that specific IP
+address. In this example, ``boxofclue.com`` and ``dandelionforge.com``
+share the address ``10.0.0.1``, while ``httpd-guide.com`` and
+``mod-rewrite.org`` share ``10.0.0.2``. Name-based matching applies
+within each address group independently.
 
-The example here shows Microsoft Windows file path designations.
 
 
 .. _See_Also_mixing_address_and_name_based_vhosts:
@@ -669,7 +653,7 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/vhosts/ - Virtual host
+* https://httpd.apache.org/docs/current/vhosts/ - Virtual host
   documentation
 
 
@@ -840,9 +824,9 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/mod/mod_vhost_alias.html
+* https://httpd.apache.org/docs/current/mod/mod_vhost_alias.html
           
-* http://httpd.apache.org/docs/vhosts
+* https://httpd.apache.org/docs/current/vhosts
 
 
 .. _Recipe_mass_vhost_rewrite:
@@ -923,10 +907,10 @@ See Also
 
 * :ref:`Recipe_rewrite-path-to-vhost`
           
-* http://httpd.apache.org/docs/vhosts - Virtual host
+* https://httpd.apache.org/docs/current/vhosts - Virtual host
   documentation
           
-* http://httpd.apache.org/docs/mod/mod_rewrite.html -
+* https://httpd.apache.org/docs/current/mod/mod_rewrite.html -
   ``mod_rewrite`` documentation
 
 
@@ -988,20 +972,16 @@ main server configuration.
 
 .. warning::
 
-   Each logfile counts against the total number of files and
-   network connections your server is allowed to have. If you have 100
-   virtual hosts, each with its own error and activity log, that's 200
-   open channels—and if the server's quota is 256, you can only handle
-   56 concurrent requests at any one time.
+   Each logfile counts against the total number of open file
+   descriptors your server process is allowed. If you have hundreds of
+   virtual hosts, each with its own error and access log, this can add
+   up. Modern Linux kernels default to 65,536 or more open files per
+   process, so this is rarely a problem today — but it's worth keeping
+   in mind on systems with many vhosts.
 
-   Those numbers are just examples; actual values for maximum
-   open file quotas vary by platform, but are generally
-   **much** larger. Consult your platform's
-   documentation to find out your actual limit.
-
-   For this reason, I recommend that you have all your virtual
-   hosts log to the same files, and split them apart later for analysis
-   or examination.
+   For manageability (not just file descriptors), I recommend that you
+   have all your virtual hosts log to the same files, and split them
+   apart later for analysis. See :ref:`Recipe_Per_Vhost_Logging`.
 
 
 In the recipe given here, the logfiles are placed within the
@@ -1018,9 +998,9 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Chapter_Logging`, **Logging**
+* :ref:`Chapter_Logging`
 
-* :ref:`Chapter_Security`, **Security**
+* :ref:`Chapter_Security`
 
 * :ref:`Recipe_Per_Vhost_Logging`
 
@@ -1057,7 +1037,7 @@ Solution
 ~~~~~~~~
 
 
-This scenario is covered in :ref:`Chapter_Logging`, **Logging**, in the recipe
+This scenario is covered in :ref:`Chapter_Logging`, in the recipe
 :ref:`Recipe_Per_Vhost_Logging`.
 
 
@@ -1102,7 +1082,7 @@ Explicitly list the port number in the ``<VirtualHost>`` declaration:
    
    <VirtualHost 10.0.1.2:9090>
        DocumentRoot /www/vhosts/port9090
-   <VirtualHost>
+   </VirtualHost>
 
 
 .. _Discussion_port_vhost:
@@ -1142,7 +1122,7 @@ See Also
 ~~~~~~~~
 
 
-* http://httpd.apache.org/docs/vhosts - Virtual hosts
+* https://httpd.apache.org/docs/current/vhosts - Virtual hosts
    documentation
 
 
@@ -1204,7 +1184,7 @@ See Also
 
 * :ref:`Recipe_name_vhosts`
 
-* http://httpd.apache.org/docs/vhosts/
+* https://httpd.apache.org/docs/current/vhosts/
 
 
 .. _Recipe_Debian_Vhosts:
@@ -1262,7 +1242,7 @@ configuration file for each virtual host. By default, there will be
 just one, named **000-default**, which describes the default virtual
 host.
 
-In the directory **/etc/apache2/sites-enabled**, you will file symbolic
+In the directory **/etc/apache2/sites-enabled**, you will find symbolic
 links (symlinks) to the files in **/etc/apache2/sites-available** which
 are enabled.
 
@@ -1293,7 +1273,139 @@ See Also
 
 * man a2dissite
 
+
+.. _Recipe_ssl_name_vhosts:
+
+SSL/TLS name-based virtual hosts
+---------------------------------
+
+.. index:: Virtual hosts,SSL
+.. index:: Virtual hosts,TLS
+.. index:: SNI
+.. index:: SSL virtual hosts
+.. index:: HTTPS virtual hosts
+.. index:: Name-based virtual hosts,SSL
+
+.. _Problem_ssl_name_vhosts:
+
+Problem
+~~~~~~~
+
+You want to host multiple HTTPS websites on the same IP address, each with its own certificate.
+
+.. _Solution_ssl_name_vhosts:
+
+Solution
+~~~~~~~~
+
+.. todo:: Complete recipe: show name-based HTTPS vhosts with SNI, separate certs per vhost, and cross-ref to mod_md in ch12.
+
+.. _Discussion_ssl_name_vhosts:
+
+Discussion
+~~~~~~~~~~
+
+Thanks to Server Name Indication (SNI), which is supported by all modern
+clients, you can host multiple SSL/TLS virtual hosts on a single IP
+address — each with its own certificate. This was not possible in the
+earlier versions of httpd without dedicated IP addresses per SSL site.
+
+See :ref:`Chapter_SSL_TLS` for full details on SSL/TLS configuration,
+including automatic certificate management with ``mod_md`` (Let's
+Encrypt integration), which can automatically provision and renew
+certificates for each of your virtual hosts.
+
+.. _See_Also_ssl_name_vhosts:
+
+See Also
+~~~~~~~~
+
+* :ref:`Chapter_SSL_TLS`
+* https://httpd.apache.org/docs/current/vhosts/name-based.html
+
+
+.. _Recipe_wildcard_server_alias:
+
+Wildcard virtual hosts with ServerAlias
+----------------------------------------
+
+.. index:: ServerAlias,wildcard
+.. index:: Virtual hosts,wildcard
+.. index:: Wildcard virtual hosts
+.. index:: Subdomains,wildcard
+
+.. _Problem_wildcard_server_alias:
+
+Problem
+~~~~~~~
+
+You want a single virtual host to respond to all subdomains of a domain — for example, anything.example.com.
+
+.. _Solution_wildcard_server_alias:
+
+Solution
+~~~~~~~~
+
+Use the ``ServerAlias`` directive with a wildcard pattern:
+
+.. code-block:: apache
+
+   <VirtualHost *:80>
+       ServerName example.com
+       ServerAlias *.example.com
+       DocumentRoot /var/www/example.com
+   </VirtualHost>
+
+This vhost will respond to ``www.example.com``, ``blog.example.com``,
+``anything.example.com``, and so on — as well as the bare
+``example.com``.
+
+
+.. _Discussion_wildcard_server_alias:
+
+Discussion
+~~~~~~~~~~
+
+The wildcard in ``ServerAlias`` only affects httpd's virtual host
+matching. It does **not** create DNS records. You must separately
+configure a DNS wildcard record so that those hostnames actually
+resolve to your server's IP address:
+
+.. code-block:: text
+
+   *.example.com.    IN  A      203.0.113.10
+
+Without that DNS record, browsers will never reach your server in the
+first place — they'll get a DNS lookup failure before httpd is ever
+involved.
+
+A few things to keep in mind:
+
+- The wildcard matches **one** level of subdomain only:
+  ``*.example.com`` matches ``foo.example.com`` but not
+  ``bar.foo.example.com``.
+
+- If you need to serve different content per subdomain (e.g.,
+  ``alice.example.com`` gets Alice's site, ``bob.example.com`` gets
+  Bob's), see :ref:`Recipe_mod_vhost_alias` — it can map subdomains
+  to directories dynamically without a separate ``<VirtualHost>``
+  block for each.
+
+- If you also serve HTTPS, you'll need either a wildcard TLS
+  certificate (``*.example.com``) or use Let's Encrypt with
+  DNS-based challenges to issue certificates on demand.
+
+.. _See_Also_wildcard_server_alias:
+
+See Also
+~~~~~~~~
+
+* :ref:`Recipe_mod_vhost_alias`
+* https://httpd.apache.org/docs/current/mod/core.html#serveralias
+
+
 Summary
+-------
 
 
 Apache httpd provides a mechanism for running multiple websites on the
@@ -1303,6 +1415,5 @@ functionality.
 
 Virtual hosting is one aspect of the larger topic called URL Mapping -
 that is the mapping of a particular URL to the expected resource or
-content. In the next chapter, :ref:`Chapter_URL_Mapping`, **URL Mapping**, 
+content. In the next chapter, :ref:`Chapter_URL_Mapping`,
 other parts of this topic will be discussed.
-

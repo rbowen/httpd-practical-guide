@@ -7,9 +7,9 @@ Proxies
 
 .. epigraph::
 
-   Don't stand so close to me.
+   "Shut up," he explained.
 
-   -- The Police, *Don't Stand So Close to Me*
+   -- Ring Lardner
 
 
 .. index:: Proxies
@@ -478,7 +478,7 @@ See Also
 
 * http://httpd.apache.org/docs/mod/mod_proxy.html
 
-* :ref:`Chapter_Dynamic_content`, **Dynamic Content**
+* :ref:`Chapter_Dynamic_content`
 
 
 .. _Configuring_a_Caching_Proxy_Server_id148610:

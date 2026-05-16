@@ -7,9 +7,9 @@ Contributing to the Apache HTTP Server
 
 .. epigraph::
 
-   If you want to go fast, go alone. If you want to go far, go together.
+   "I shall finish the game."
 
-   -- African proverb
+   -- William Bonney (Billy the Kid)
 
 .. index:: Contributing
 .. index:: Open Source
@@ -332,8 +332,8 @@ Slack
 
 The ASF has an official Slack workspace at ``the-asf.slack.com``. The
 ``#httpd`` channel there is where real-time conversation happens these
-days. It's a good place to ask quick questions, get a sanity check on an
-idea before posting it to the mailing list, or just hang out with other
+days. It's a good place to ask quick questions, run an idea by someone
+before posting it to the mailing list, or just hang out with other
 httpd folks.
 
 To join, you'll need an invitation. If you have an ``@apache.org`` email

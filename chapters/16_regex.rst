@@ -10,10 +10,9 @@ Introduction to regular expressions
 
 .. epigraph::
 
-   | Is this the real life? Is this just fantasy?
-   | Caught in a landslide, no escape from reality.
+   I am not contain'd between my hat and boots.
 
-   -- Queen, *Bohemian Rhapsody*
+   -- Walt Whitman, *Song of Myself*, v7
 
 
 .. index:: Regular expressions
@@ -330,7 +329,7 @@ Rewriting with mod_rewrite*.
 
 Finally, the general purpose expression parser can use regular
 expressions in its expressions. The expression parser is discussed in
-more detail in :ref:`Chapter_per_request`, **Programmable Configuration**.
+more detail in :ref:`Chapter_per_request`.
 
 Common regex pitfalls
 ---------------------

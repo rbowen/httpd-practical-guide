@@ -8,6 +8,14 @@
 Dynamic content
 ===============
 
+.. epigraph::
+
+   "Mankind tied its shoelaces together in Eden, can't get them
+   untied, and refuses to walk barefoot."
+
+   -- Walter M. Miller Jr., *A Canticle for Leibowitz*
+
+
 .. index:: Dynamic content
 
 .. index:: CGI

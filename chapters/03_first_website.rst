@@ -7,10 +7,9 @@ My first website
 
 .. epigraph::
 
-   | Hello, is there anybody in there? Just nod if you can hear me.
-   | Is there anyone home?
+   No-one said "Leopard."
 
-   -- Pink Floyd, *Comfortably Numb*
+   -- Brad "Darb" Henderson
 
 
 .. index:: My first website
@@ -19,7 +18,7 @@ My first website
 
 
 If you're new to running a website, this chapter provides you with some
-of the informaiton that you'll need to get started with your first
+of the information that you'll need to get started with your first
 site. If you're already familiar with running a website, this
 chapter can be safely skipped.
 
@@ -48,7 +47,7 @@ My first "hello world" website
 
 .. index:: First website
 
-.. index:: My first Hellow World website
+.. index:: My first Hello World website
 
 
 .. _Problem_Hello_world_website:
@@ -177,7 +176,7 @@ configuration.
 
 
 This will be discussed again, and in more detail, in 
-:ref:`Chapter_Virtual_hosts`, **Virtual Hosts**, but for now, looking
+:ref:`Chapter_Virtual_hosts`, but for now, looking
 at the output above, you're looking for two main pieces of
 information. 
 
@@ -414,7 +413,7 @@ See Also
 
 * :ref:`Recipe_Where_are_my_files`
 
-* :ref:`Chapter_Virtual_hosts`, **Virtual Hosts**
+* :ref:`Chapter_Virtual_hosts`
 
 * http://en.wikipedia.org/wiki/Chmod
 
@@ -425,7 +424,7 @@ See Also
 * The Mozilla Developer Network HTML reference at
   https://developer.mozilla.org/en-US/docs/web/HTML
 
-* :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
+* :ref:`Chapter_SSL_and_TLS`
 
 .. refcosplay
 
@@ -651,7 +650,7 @@ in :ref:`Recipe_RewriteOptions`.
 Finally, you must consider **.htaccess** files as well, which can override
 settings in the main server configuration file and cause situations
 that are confusing and difficult to track. These are discussed in
-detail in :ref:`Chapter_htaccess`, **.htaccess Files**.
+detail in :ref:`Chapter_htaccess`.
 
 
 .. _See_Also_Directive_goes_where:
@@ -662,7 +661,7 @@ See Also
 
 * :ref:`Recipe_RewriteOptions`
 
-* :ref:`Chapter_htaccess`, **.htaccess files**
+* :ref:`Chapter_htaccess`
 
 * http://httpd.apache.org/docs/sections.html
 
@@ -974,7 +973,7 @@ See Also
 ~~~~~~~~
 
 
-* :ref:`Chapter_per_request`, **Programmable Configuration**
+* :ref:`Chapter_per_request`
 
 
 .. _Recipe_Options:
@@ -1459,7 +1458,7 @@ See Also
 
 * :ref:`Recipe_dns`
 
-* :ref:`Chapter_Performance_and_testing`, **Performance and Testing**
+* :ref:`Chapter_Performance_and_testing`
 
 
 .. _Recipe_favicon:
@@ -1555,6 +1554,17 @@ Web site design
 
 .. index:: CSS frameworks
 
+.. index:: Tailwind CSS
+
+.. index:: Bootstrap
+
+.. index:: Bulma
+
+.. index:: Pure CSS
+
+.. index:: Skeleton
+
+.. index:: HTMX
 
 .. _Problem_Design:
 
@@ -1595,9 +1605,28 @@ without needing to learn graphic design. Two popular choices:
 * **Bootstrap** (https://getbootstrap.com/) — component-based, good
   defaults out of the box, has been around for years.
 
-Both produce responsive layouts that work on phones, tablets, and
-desktops. Both have extensive documentation and examples you can
-copy.
+A few lighter-weight alternatives worth considering:
+
+* **Bulma** (https://bulma.io/) — CSS-only (no JavaScript required),
+  clean syntax, easy to learn. About 26 KB gzipped.
+* **Pure CSS** (https://purecss.io/) — created by Yahoo, extremely
+  small (~3.5 KB gzipped), modular. Good if you only need a grid
+  and basic form styling.
+* **Skeleton** (http://getskeleton.com/) — a minimal boilerplate
+  (~1.6 KB) that gives you a responsive grid and clean typography.
+  Ideal if you want to write most of the CSS yourself but need a
+  solid starting point.
+
+All of the above are free, open source (MIT licensed), and produce
+responsive layouts that work on phones, tablets, and desktops. They
+all have extensive documentation and examples you can copy.
+
+If you prefer to avoid JavaScript frameworks entirely and want your
+server to do the heavy lifting, look at **HTMX**
+(https://htmx.org/) — a small library (BSD licensed) that lets you
+add dynamic behavior to HTML pages using attributes rather than
+writing JavaScript. It pairs naturally with server-side applications
+running behind httpd.
 
 For learning HTML, CSS, and JavaScript from scratch — or for brushing
 up — see the resources in the See Also below.
@@ -1609,8 +1638,8 @@ See Also
 ~~~~~~~~
 
 
-* *Learning Web Design* by Jennifer Niederst Robbins —
-  https://www.learningwebdesign.com/
+* *Learning Web Design* (6th edition, 2025) by Jennifer Niederst Robbins —
+  https://www.oreilly.com/library/view/learning-web-design/9781098137670/
 
 * MDN "Learn web development" —
   https://developer.mozilla.org/en-US/docs/Learn

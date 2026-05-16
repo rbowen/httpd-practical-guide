@@ -1,11 +1,9 @@
 .. epigraph::
 
-   "The first rule of any technology used in a business is that automation
-   applied to an efficient operation will magnify the efficiency. The second
-   is that automation applied to an inefficient operation will magnify the
-   inefficiency."
+   "The optimist proclaims that we live in the best of all possible
+   worlds, and the pessimist fears that this is true."
 
-   -- Bill Gates
+   -- James Branch Cabell
 
 .. _Chapter_Automated_Deployment:
 

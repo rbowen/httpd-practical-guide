@@ -7,9 +7,9 @@ Programmable configuration
 
 .. epigraph::
 
-   We are the robots.
+   Let's get dangerous.
 
-   -- Kraftwerk, *The Robots*
+   -- *Darkwing Duck*
 
 
 .. index:: Per-request configuration
@@ -719,7 +719,7 @@ Use ``mod_vhost_alias``. This module is discussed in
 .. note::
 
    The primary recipe for ``mod_vhost_alias`` lives in
-   :ref:`Chapter_Virtual_hosts`, **Virtual Hosts**. See
+   :ref:`Chapter_Virtual_hosts`. See
    :ref:`Recipe_mod_vhost_alias` for the full discussion, including
    configuration examples and directory layout conventions.
 

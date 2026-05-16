@@ -7,9 +7,10 @@ User directories
 
 .. epigraph::
 
-   Our house, in the middle of our street.
+   "Dear Lord, give me chastity and self-restraint. But not yet,
+   O Lord, not yet."
 
-   -- Madness, *Our House*
+   -- Saint Augustine
 
 
 .. index:: User directories

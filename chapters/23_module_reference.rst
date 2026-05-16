@@ -4,10 +4,10 @@
 
 .. epigraph::
 
-   "A good craftsman knows what every tool in the shop does, even the ones
-   gathering dust in the back drawer."
+   "Education is what is left over after you've forgotten everything
+   you learned."
 
-   -- Workshop proverb
+   -- Paul Deaton
 
 .. _Chapter_Module_Reference:
 

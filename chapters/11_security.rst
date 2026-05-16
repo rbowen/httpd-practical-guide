@@ -7,9 +7,9 @@ Security
 
 .. epigraph::
 
-   Just because you're paranoid don't mean they're not after you.
+   "The past is in the past because that's where it belongs."
 
-   -- Nirvana, *Territorial Pissings*
+   -- Peter Straub, *Koko*
 
 
 .. index:: Security
@@ -49,6 +49,12 @@ to determine if the new version fixes a security hole to which you may be
 subject. Running the latest version of the Apache httpd is usually a good
 measure in the fight against
 security vulnerabilities.
+
+
+.. admonition:: Modules covered in this chapter
+
+   :module:`mod_security`, :module:`mod_evasive`, :module:`mod_reqtimeout`,
+   :module:`mod_headers`, :module:`mod_ssl`
 
 // TODO - Move recipes from ch02.asciidoc - the AAA chapter.
 

@@ -19,9 +19,10 @@ Performance
 
 .. epigraph::
 
-   I feel the need — the need for speed.
+   "If all the rich men in the world divided up their money
+   amongst themselves, there wouldn't be enough to go around."
 
-   -- Kenny Loggins, *Danger Zone* (via Top Gun)
+   -- Black Uhuru, *Great Train Robbery*
 
 
 .. index:: performance

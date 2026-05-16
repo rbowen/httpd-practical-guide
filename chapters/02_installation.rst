@@ -10,9 +10,10 @@ Installation
 
 .. epigraph::
 
-   We built this city on rock and roll.
+   Only in our dreams are we truly free. 'Twas always thus
+   and always thus shall be.
 
-   -- Starship, *We Built This City*
+   -- *Dead Poets Society*
 
 
 .. index:: Installation
@@ -1847,7 +1848,7 @@ good crash course. The default options generally produce a
 working server, although the filesystem locations and module choices
 may not be what you'd like; they may include modules you 
 don't want or omit some you do. (See 
-:ref:`Chapter_Common_modules`, **Adding Common Modules**, for some examples.)
+:ref:`Chapter_Common_modules`, for some examples.)
 
 The **buildconf** command creates the **configure** script, and
 is only strictly necessary if you obtained the source from version control (see
@@ -1905,10 +1906,12 @@ source tree:
    prefer a stable release.
 
 
-When you run **configure**, it will check the system for various
-prerequisites — eleventy billion of them, or so it seems from the
-scrolling output — and write the Makefile that will orchestrate the
-build.
+When you run **configure**, you'll see eleventy billion messages scroll
+past which are checking whether various things are available on the
+target system. These are ensuring that the build process has what it
+needs for success. The **configure** script the writes the Makefile
+that will orchestrate the build.
+
 Prerequisites include APR and PCRE, two libraries that you'll need to
 obtain and install. Further information on these prerequisites may be
 found at https://apr.apache.org/ and

@@ -7,10 +7,9 @@ Directory listing
 
 .. epigraph::
 
-   | We're not gonna take it. No, we ain't gonna take it.
-   | We're not gonna take it anymore.
+   "We're here to make your life just a little more surreal."
 
-   -- Twisted Sister, *We're Not Gonna Take It*
+   -- Bill Hall Jr.
 
 
 .. index:: Directory listing

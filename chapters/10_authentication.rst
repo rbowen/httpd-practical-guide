@@ -8,6 +8,24 @@
 Authentication, authorization, and access control
 =================================================
 
+.. epigraph::
+
+   The most important things are the hardest to say. They are the things
+   you get ashamed of, because words diminish them — words shrink things
+   that seemed limitless when they were in your head to no more than living
+   size when they're brought out. But it's more than that, isn't it? The
+   most important things lie too close to wherever your secret heart is
+   buried, like landmarks to a treasure your enemies would love to steal
+   away. And you may make revelations that cost you dearly only to have
+   people look at you in a funny way, not understanding what you've said at
+   all, or why you thought it was so important that you almost cried while
+   you were saying it. That's the worst, I think. When a secret stays
+   locked within not for want of a teller but for want of an understanding
+   ear.
+
+   -- Stephen King, *The Body*
+
+
 .. index:: AAA
 
 .. index:: Authentication
@@ -27,8 +45,8 @@ Authentication, authorization, and access control
 
 A lot of topics fit under the heading of 'Security'. One of these is
 covered in this chapter, while others are covered in the following
-chapters, :ref:`Chapter_Security`, **Security**, and
-:ref:`Chapter_SSL_and_TLS`, **SSL and TLS**.
+chapters, :ref:`Chapter_Security`, and
+:ref:`Chapter_SSL_and_TLS`.
 
 In this chapter we discuss the topics of Authentication,
 Authorization, and Access Control - topics that are 
@@ -1070,7 +1088,7 @@ group. That's discussed in the recipe
    we do not recommend that you use Basic authentication for highly
    sensitive resources, unless you also use SSL or TLS to encrypt the
    connection over which the resource is requested and returned. See
-   :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**, for further discussion of using encrypted
+   :ref:`Chapter_SSL_and_TLS`, for further discussion of using encrypted
    communications.
 
 
@@ -1750,7 +1768,6 @@ impossible, to intercept.
    enough information to hijack your login session. As with Basic
    authentication, it is strongly recommended that sensitive parts of
    your web presence be security with TLS. See :ref:`Chapter_SSL_and_TLS`,
-   **SSL and TLS**,
    for more details.
 
 
@@ -3326,7 +3343,7 @@ http://httpd.apache.org/docs/mod/mod_authnz_ldap.html
    traffic now has your users' credentials to company resources, rather
    than just giving them access to your web content. We recommend that
    you always use TLS/SSL when requiring authentication, to protect these
-   credentials. See :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**, for further discussion of
+   credentials. See :ref:`Chapter_SSL_and_TLS`, for further discussion of
    using encrypted communications.
 
 
@@ -3778,7 +3795,7 @@ Problem
 ~~~~~~~
 
 
-In :ref:`Chapter_per_request`, **Programmable Configuration**, you learned
+In :ref:`Chapter_per_request`, you learned
 how to use the general purpose expression parser. You want to use it
 to authorize requests against expressions.
 
@@ -4885,7 +4902,7 @@ http://mod-qos.sourceforge.net/ for more detail on this
 module, and to download the latest release.
 
 The second recipe uses ``mod_security``, which is discussed in further
-detail in :ref:`Chapter_Security`, **Security**. ``mod_security`` is a general purpose
+detail in :ref:`Chapter_Security`. ``mod_security`` is a general purpose
 http-level firewall, and this particular recipe only shows a tiny
 fraction of what it can do. In this recipe, we count request per IP
 address, and when a particular IP address makes more than 30 requests

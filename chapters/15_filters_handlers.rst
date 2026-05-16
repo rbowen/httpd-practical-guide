@@ -6,10 +6,10 @@ Filters and handlers
 
 .. epigraph::
 
-   | I'm just a soul whose intentions are good.
-   | Oh Lord, please don't let me be misunderstood.
+   "The only thing that makes life possible is permanent, intolerable
+   uncertainty: not knowing what comes next."
 
-   -- The Animals, *Don't Let Me Be Misunderstood*
+   -- Ursula K. Le Guin, *The Left Hand of Darkness*
 
 
 .. index:: Filters
@@ -44,10 +44,10 @@ Certain Other of filters and handlers
 constitute their own chapters, which appear elsewhere in the book:
 
 * The ``INCLUDES`` filter and the ``cgi-script`` handler are covered 
-  in :ref:`Chapter_Dynamic_content`, **Dynamic Content**
-* All aspects of SSL and TLS are covered in :ref:`Chapter_SSL_and_TLS`, **SSL and TLS**
+  in :ref:`Chapter_Dynamic_content`
+* All aspects of SSL and TLS are covered in :ref:`Chapter_SSL_and_TLS`
 * The ``server-info`` and ``server-status`` handlers have their own
-  chapter, :ref:`Chapter_info_and_status`, **mod_info and mod_status**
+  chapter, :ref:`Chapter_info_and_status`
 
 
 .. admonition:: Modules covered in this chapter
@@ -128,7 +128,7 @@ See Also
 
 * :ref:`Recipe_SetHandler`
 
-* :ref:`Chapter_Dynamic_content`, **Dynamic Content**
+* :ref:`Chapter_Dynamic_content`
 
 
 .. _Recipe_SetHandler:
@@ -176,7 +176,7 @@ the URL ``/server-status``:
    </Location>
 
 
-(See :ref:`Chapter_info_and_status`, **mod_info and mod_status**, for
+(See :ref:`Chapter_info_and_status`, for
 further discussion of the ``server-status`` handler.)
 
 To invoke the ``mod_php`` handler for all files that end in ``.php``:
@@ -232,7 +232,7 @@ See Also
 
 * :ref:`Recipe_AddHandler`
 
-* :ref:`Chapter_info_and_status`, **mod_info and mod_status**
+* :ref:`Chapter_info_and_status`
 
 
 .. _Recipe_Multiple_Extensions:

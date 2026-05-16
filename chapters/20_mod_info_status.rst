@@ -7,10 +7,9 @@ mod_info and mod_status
 
 .. epigraph::
 
-   | Ground control to Major Tom.
-   | Take your protein pills and put your helmet on.
+   "It's a shame she won't live. But then again, who does?"
 
-   -- David Bowie, *Space Oddity*
+   -- Gaff, *Blade Runner*
 
 
 .. index:: mod_info

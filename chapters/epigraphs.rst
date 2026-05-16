@@ -7,11 +7,9 @@ List of epigraphs
 
 
 Each chapter opens with an epigraph drawn from a different author.
-This page collects them in one place, with notes on why each was chosen.
+This page collects them in one place.
 
-
-Preface
-~~~~~~~
+**Preface**
 
    Before the High and Far-Off Times, O my Best Beloved, came the
    Time of the Very Beginnings; and that was in the days when the
@@ -21,269 +19,193 @@ Preface
 
    -- Rudyard Kipling, *Just So Stories*, "The Crab that Played with the Sea"
 
-*Notes:*
 
-TBD
+**Chapter 1: Installation**
 
+   Only in our dreams are we truly free. 'Twas always thus
+   and always thus shall be.
 
-Chapter 1: Installation
-~~~~~~~~~~~~~~~~~~~~~~~
+   -- *Dead Poets Society*
 
-   We built this city on rock and roll.
 
-   -- Starship, *We Built This City*
+**Chapter 2: My first website**
 
-*Notes:*
+   No-one said "Leopard."
 
-TBD
+   -- Brad "Darb" Henderson
 
 
-Chapter 2: My First Website
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Chapter 3: .htaccess files**
 
-   | Hello, is there anybody in there? Just nod if you can hear me.
-   | Is there anyone home?
+   "We must view with profound respect the infinite capacity of the
+   human mind to resist the introduction of useful knowledge."
 
-   -- Pink Floyd, *Comfortably Numb*
+   -- Thomas R. Lounsbury
 
-*Notes:*
 
-TBD
+**Chapter 4: Adding common modules**
 
+   "When I get a little money I buy books; and if any is left
+   I buy food and clothes."
 
-Chapter 3: Adding Common Modules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   -- Desiderius Erasmus
 
-   | You can't always get what you want,
-   | but if you try sometimes, you just might find
-   | you get what you need.
 
-   -- The Rolling Stones, *You Can't Always Get What You Want*
+**Chapter 5: Virtual hosts**
 
-*Notes:*
+   And sin, young man, is when you treat people as things.
+   Including yourself. That's what sin is.
 
-TBD
+   -- Terry Pratchett, *Carpe Jugulum*
 
 
-Chapter 4: Logging
-~~~~~~~~~~~~~~~~~~
+**Chapter 6: URL mapping**
 
-   | Every breath you take, every move you make,
-   | every bond you break, every step you take,
-   | I'll be watching you.
+   "Which road do I take?" she asked.
+   "Where do you want to go?" was his response.
+   "I don't know," Alice answered.
+   "Then," said the cat, "it doesn't matter."
 
-   -- The Police, *Every Breath You Take*
+   -- Lewis Carroll, *Alice in Wonderland*
 
-*Notes:*
 
-TBD
+**Chapter 7: Directory listing**
 
+   "We're here to make your life just a little more surreal."
 
-Chapter 5: Virtual Hosts
-~~~~~~~~~~~~~~~~~~~~~~~~
+   -- Bill Hall Jr.
 
-   One of these days I'm going to cut you into little pieces.
 
-   -- Pink Floyd, *One of These Days*
+**Chapter 8: Logging**
 
-*Notes:*
+   "There are those quintessential moments in a man's life: Losing
+   his virginity; getting married; becoming a father; and having the
+   right girl smile at him."
 
-TBD
+   -- *St. Elmo's Fire*
 
 
-Chapter 6: URL Mapping
-~~~~~~~~~~~~~~~~~~~~~~
+**Chapter 9: Authentication, authorization, and access control**
 
-   I can't get no satisfaction.
+   The most important things are the hardest to say. They are the things
+   you get ashamed of, because words diminish them — words shrink things
+   that seemed limitless when they were in your head to no more than living
+   size when they're brought out. But it's more than that, isn't it? The
+   most important things lie too close to wherever your secret heart is
+   buried, like landmarks to a treasure your enemies would love to steal
+   away. And you may make revelations that cost you dearly only to have
+   people look at you in a funny way, not understanding what you've said at
+   all, or why you thought it was so important that you almost cried while
+   you were saying it. That's the worst, I think. When a secret stays
+   locked within not for want of a teller but for want of an understanding
+   ear.
 
-   -- The Rolling Stones, *(I Can't Get No) Satisfaction*
+   -- Stephen King, *The Body*
 
-*Notes:*
 
-TBD
+**Chapter 10: Security**
 
+   "The past is in the past because that's where it belongs."
 
-Chapter 7: Introduction to Regular Expressions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   -- Peter Straub, *Koko*
 
-   | Is this the real life? Is this just fantasy?
-   | Caught in a landslide, no escape from reality.
 
-   -- Queen, *Bohemian Rhapsody*
+**Chapter 11: SSL and TLS**
 
-*Notes:*
+   If it keeps on raining, the levee's gonna break.
 
-TBD
+   -- Led Zeppelin, *When the Levee Breaks*
 
 
-Chapter 8: URL Rewriting with mod_rewrite
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Chapter 12: Dynamic content**
 
-   | Should I stay or should I go now?
-   | If I go, there will be trouble.
-   | And if I stay, it will be double.
+   "Mankind tied its shoelaces together in Eden, can't get them
+   untied, and refuses to walk barefoot."
 
-   -- The Clash, *Should I Stay or Should I Go*
+   -- Walter M. Miller Jr., *A Canticle for Leibowitz*
 
-*Notes:*
 
-TBD
+**Chapter 13: Proxies**
 
+   "Shut up," he explained.
 
-Chapter 9: Authentication, Authorization, and Access Control
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   -- Ring Lardner
 
-   Who are you? Who, who, who, who?
 
-   -- The Who, *Who Are You*
+**Chapter 14: Filters and handlers**
 
-*Notes:*
+   "The only thing that makes life possible is permanent, intolerable
+   uncertainty: not knowing what comes next."
 
-TBD
+   -- Ursula K. Le Guin, *The Left Hand of Darkness*
 
 
-Chapter 10: Security
-~~~~~~~~~~~~~~~~~~~~
+**Chapter 15: Introduction to regular expressions**
 
-   Just because you're paranoid don't mean they're not after you.
+   I am not contain'd between my hat and boots.
 
-   -- Nirvana, *Territorial Pissings*
+   -- Walt Whitman, *Song of Myself*, v7
 
-*Notes:*
 
-TBD
+**Chapter 16: URL rewriting with mod_rewrite**
 
+   "What if the grain doesn't want to become a pearl? Is it ever
+   asked to climb out quietly and take up its old position as a bit
+   of ocean floor?"
 
-Chapter 11: SSL and TLS
-~~~~~~~~~~~~~~~~~~~~~~~
+   -- Robin McKinley, *The Blue Sword*
 
-   I got my mind set on you. I got my mind set on you.
 
-   -- George Harrison, *Got My Mind Set on You*
+**Chapter 17: Programmable configuration**
 
-*Notes:*
+   Let's get dangerous.
 
-TBD
+   -- *Darkwing Duck*
 
 
-Chapter 12: Dynamic Content
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Chapter 18: Performance**
 
-   *Quote to be selected.*
+   "If all the rich men in the world divided up their money
+   amongst themselves, there wouldn't be enough to go around."
 
-   -- Source
+   -- Black Uhuru, *Great Train Robbery*
 
-*Notes:*
 
-TBD
+**Chapter 19: mod_info and mod_status**
 
+   "It's a shame she won't live. But then again, who does?"
 
-Chapter 13: Proxies
-~~~~~~~~~~~~~~~~~~~
+   -- Gaff, *Blade Runner*
 
-   Don't stand so close to me.
 
-   -- The Police, *Don't Stand So Close to Me*
+**Chapter 20: User directories**
 
-*Notes:*
+   "Dear Lord, give me chastity and self-restraint. But not yet,
+   O Lord, not yet."
 
-TBD
+   -- Saint Augustine
 
 
-Chapter 14: Performance and Testing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Chapter 21: Automated deployment**
 
-   I feel the need — the need for speed.
+   "The optimist proclaims that we live in the best of all possible
+   worlds, and the pessimist fears that this is true."
 
-   -- Kenny Loggins, *Danger Zone* (via Top Gun)
+   -- James Branch Cabell
 
-*Notes:*
 
-TBD
+**Chapter 22: Module reference**
 
+   "Education is what is left over after you've forgotten everything
+   you learned."
 
-Chapter 15: Directory Listing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   -- Paul Deaton
 
-   | We're not gonna take it. No, we ain't gonna take it.
-   | We're not gonna take it anymore.
 
-   -- Twisted Sister, *We're Not Gonna Take It*
+**Chapter 23: Contributing to the Apache HTTP Server**
 
-*Notes:*
+   "I shall finish the game."
 
-TBD
+   -- William Bonney (Billy the Kid)
 
 
-Chapter 16: Contributing to the Apache HTTP Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Come together, right now, over me.
-
-   -- The Beatles, *Come Together*
-
-*Notes:*
-
-TBD
-
-
-Chapter 17: Filters and Handlers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   | I'm just a soul whose intentions are good.
-   | Oh Lord, please don't let me be misunderstood.
-
-   -- The Animals, *Don't Let Me Be Misunderstood*
-
-*Notes:*
-
-TBD
-
-
-Chapter 18: .htaccess Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Breaking the law, breaking the law.
-
-   -- Judas Priest, *Breaking the Law*
-
-*Notes:*
-
-TBD
-
-
-Chapter 19: User Directories
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Our house, in the middle of our street.
-
-   -- Madness, *Our House*
-
-*Notes:*
-
-TBD
-
-
-Chapter 20: Programmable Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   We are the robots.
-
-   -- Kraftwerk, *The Robots*
-
-*Notes:*
-
-TBD
-
-
-Chapter 21: mod_info and mod_status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   | Ground control to Major Tom.
-   | Take your protein pills and put your helmet on.
-
-   -- David Bowie, *Space Oddity*
-
-*Notes:*
-
-TBD

@@ -10,22 +10,21 @@
 ---
 
 
-### 🔴 Windows "Starting httpd at Boot" recipe — likely wrong
-- [ ] The Windows service installation recipe may be incorrect for modern Windows
-- [ ] No Windows machine available for verification
-- [ ] Research: what is the current correct way to install httpd as a Windows service?
-- [ ] Consider: is Windows coverage worth maintaining at all, or should we stub it out?
+### ✅ ~~Windows "Starting httpd at Boot" recipe~~ — RESOLVED
+Windows service installation (`httpd.exe -k install`) is covered in the Apache Lounge install recipe. The "Starting at Boot" recipe correctly covers only Linux (systemctl) and macOS (launchctl), since the Windows service install *is* the boot mechanism.
 
-### 🔴 Ch15 Performance — likely needs major overhaul
-- [ ] "Caching Frequently Viewed Files" and "Caching Dynamic Content" are dated
-- [ ] Zero mod_cache/mod_cache_disk/mod_expires coverage (top ML demand topic)
-- [ ] mod_dialup recipe is essentially empty stub
-- [ ] Nikto recipe is misplaced — move to Ch10 Security
-- [ ] Missing: HTTP/2 performance, Event MPM tuning (modern), compression
-  (mod_brotli), security headers (HSTS, CSP, CORS)
-- [ ] mod_ratelimit recipe may be fine but review for accuracy
-- [ ] Draft caching recipes already generated (recipes_caching.rst in artifacts)
-- [ ] Consider: is this chapter better split into "Performance Tuning" + "Testing"?
+### ✅ ~~Ch15 Performance — likely needs major overhaul~~ — RESOLVED (May 16, 2026)
+All items addressed:
+- ~~Caching recipes~~ — mod_cache, mod_cache_disk, mod_expires, mod_file_cache all covered
+- ~~mod_dialup~~ — removed (empty stub, no value)
+- ~~Nikto~~ — removed (third-party testing tool, out of scope for httpd admin book)
+- ~~HTTP/2~~ — full recipe exists (Enabling HTTP/2)
+- ~~Event MPM tuning~~ — full recipe exists (Tuning the event MPM)
+- ~~mod_brotli~~ — covered in Compression recipe (mod_deflate + mod_brotli)
+- ~~Security headers (HSTS, CSP, CORS)~~ — full recipe in Ch10 Security
+- ~~mod_ratelimit~~ — recipe exists and reviewed
+- ~~Chapter split~~ — not needed; chapter is well-structured with logical flow
+- Also added: Load balancing overview, Troubleshooting cache behavior
 
 
 ## Version Numbering
